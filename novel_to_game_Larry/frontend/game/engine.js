@@ -70,6 +70,7 @@
     var bonus = {};
     if (opts.followedAudience) { st.res.morale = clamp(st.res.morale + TUNING.pollFollowBonus); bonus.poll = TUNING.pollFollowBonus; }
     if (opts.audienceResonance) { st.res.morale = clamp(st.res.morale + TUNING.predictResonanceBonus); bonus.resonance = TUNING.predictResonanceBonus; }
+    if (opts.extraAdjust) { for (var ea = 0; ea < opts.extraAdjust.length; ea++) { var e = opts.extraAdjust[ea]; st.res[e.res] = clamp((st.res[e.res] || 0) + e.d); } }
 
     for (var j = 0; j < choice.costs.length; j++) {
       var c = choice.costs[j];

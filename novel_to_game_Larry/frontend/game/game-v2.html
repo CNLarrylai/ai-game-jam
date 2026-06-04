@@ -627,15 +627,22 @@ function App(){
     const followed = aud && choice.id===aud.favId;
     const tone = choiceTone(choice);
     const audienceResonance = (tone==='bad');
-    const out = E.choose(G, gs, choice.id, { followedAudience:followed, audienceResonance });
+    // 民意真正影响结果:顺应强民意(≥50%)软化该选项最重的负代价+1;逆强民意则士气-1
+    let audFx=null; const extraAdjust=[];
+    if(aud){ const favIdx=node.choices.findIndex(c=>c.id===aud.favId); const favPct=(aud.pct&&aud.pct[favIdx])||0; const strong=favPct>=50;
+      if(strong&&followed){ const neg=choice.costs.filter(c=>c.d<0).slice().sort((a,b)=>a.d-b.d)[0]; if(neg){ extraAdjust.push({res:neg.res,d:1}); audFx={kind:'boon',res:neg.res}; } }
+      else if(strong&&!followed){ extraAdjust.push({res:'morale',d:-1}); audFx={kind:'malus'}; } }
+    const out = E.choose(G, gs, choice.id, { followedAudience:followed, audienceResonance, extraAdjust });
     // 幸存者结算(忠于原著的按章节失人映射)
     const loss = survivorLossFor(node.id);
-    setReveal({choice, out, phase:'hold', tone, followed, loss}); sfx('hold');
+    setReveal({choice, out, phase:'hold', tone, followed, loss, audFx}); sfx('hold');
     setTimeout(()=> setReveal(r=> r?{...r,phase:'show'}:r), 1100);
     setTimeout(()=>{
       const d={}; choice.costs.forEach(c=>{d[c.res]=c.d;});
       if(followed||audienceResonance) d.morale=(d.morale||0)+(followed?1:0)+(audienceResonance?1:0);
       if(loss) d.survivors=loss.d;
+      if(audFx&&audFx.kind==='boon') d[audFx.res]=(d[audFx.res]||0)+1;
+      if(audFx&&audFx.kind==='malus') d.morale=(d.morale||0)-1;
       setDeltas(d);
       setReveal(r=> r?{...r,nums:true}:r);
       if(tone==='good'){ setFlash('good'); sfx('good'); } else { setFlash('bad'); sfx('bad'); }
@@ -801,6 +808,8 @@ function App(){
             <div className="rv-body" dangerouslySetInnerHTML={{__html:reveal.choice.outcome.body}}></div>
             {reveal.nums && <div className="rv-deltas">{reveal.choice.costs.map((c,i)=>{const def=G.res_def.find(r=>r.id===c.res);return <span key={i} className={`rv-delta ${c.d>0?'up':'down'}`}>{def.ic} {c.d>0?'+':''}{c.d}</span>;})}</div>}
             {reveal.nums && (reveal.followed||reveal.tone==='bad') && <div className="rv-bonus">{reveal.followed?'＋ 民心所向 士气+1　':''}{reveal.tone==='bad'?'＋ 观众共鸣 士气+1':''}</div>}
+            {reveal.nums && reveal.audFx && reveal.audFx.kind==='boon' && <div className="rv-bonus" style={{color:'var(--cyan)'}}>＋ 观众声援 · {({food:'食物',health:'健康',morale:'士气'})[reveal.audFx.res]}代价减轻 +1</div>}
+            {reveal.nums && reveal.audFx && reveal.audFx.kind==='malus' && <div className="rv-bonus" style={{color:'var(--rust)'}}>− 你逆了民意 · 士气 −1</div>}
             {reveal.nums && reveal.loss && <div className="rv-loss">✝ 幸存者 {reveal.loss.d} · {reveal.loss.note}</div>}
             {reveal.nums && reveal.choice.effects && reveal.choice.effects[0] && <div className="rv-foot">{reveal.choice.effects[0]}</div>}
             {reveal.nums && <button className="rv-cont" onClick={cont}>{reveal.out.state.status!=='playing'||lostNowPreview(reveal,survivors)?'面对结局 ▸':'继续 ▸'}</button>}
