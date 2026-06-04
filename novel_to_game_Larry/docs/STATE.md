@@ -1,0 +1,25 @@
+# 项目状态(handoff / 防压缩续作锚点)
+
+## 位置
+- 团队 repo:`C:\Users\Victoria\ai-game-jam`(Next.js 脚手架,**勿动 main 上别人的代码**)
+- 我们的模块:`ai-game-jam\novel_to_game_Larry\`,分支 **`feature/novel-content-expansion`**(从 main 切,独立,合并以后再说)
+- GitHub:https://github.com/CNLarrylai/ai-game-jam(凭据已缓存,push 不弹窗)
+
+## 已完成
+- `dist/world_bible.json` 全局底座;`dist/map.json` 66 决策卡(19 章);`dist/interactions.json` 197 互动点;`dist/prologue_cards.json` 3 过桥卡;`dist/characters.json` 角色库(木刻配方)
+- `frontend/`:`doom.css`(暗调视觉系统)、`cold-open.html`(冷开场,可玩)、`character-generator.html`+`avatar.css`(角色生成器)、`design-ref/`(Claude Design 原始源码)
+- `docs/`:`METHODOLOGY.md`(可复用方法论)、`ART_STYLE.md`(美术+玩法规范,§7 插画 §8 角色生成)
+- `specs/`:SPEC / SPEC2 / WORLDBIBLE;`scripts/`:split / merge / gamify / rich-merge / build-gamedata / sim
+
+## 进行中:可玩游戏 `frontend/game/`
+- `gamedata.js`(自动生成:22 节点主线 campaign + nodes + interactions + nodeChapter;`node scripts/build-gamedata.mjs` 重建)
+- `engine.js`(纯逻辑,浏览器/Node 双用):资源 food/health/morale(0–10,任一≤0 出局);risk 揭晓;`next` 分支否则下一章锚点;通关/死亡结局。
+  观众机制:顺应民意 +1 士气、押注共鸣 +1 士气、**金主每 4 抉择给最低资源 +2**(solo 模拟,multiplayer 接真观众)。TUNING 常量可调。
+- `game.html`(UI,复用 cold-open 的 React+doom.css 模式):开场(world lines+crew)→ 逐卡(资源条/情境/选项/观众投票条)→ 屏息揭晓 → 死亡或通关。
+- 自测:`node scripts/sim.cjs [N]` 多策略模拟统计平衡(随机/谨慎/激进)。
+- 要求:单人耐玩 + 留观众互动影响游戏的钩子。**先让用户玩一遍 → 再自我迭代到 80 分**。
+
+## 注意
+- `.js` 在 type:module 下被当 ESM;gamedata/engine 用 `window` 全局导出,Node 侧用 vm 提供 window 加载(见 sim.cjs)。
+- 浏览器打开 game.html 需联网(React CDN)。
+- 省 token:避免重复读大文件、避免大输出。
