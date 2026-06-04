@@ -1,0 +1,50 @@
+"use client";
+
+import { useState } from "react";
+import { scenarios } from "@/lib/scenarios";
+import type { Scenario } from "@/lib/types";
+import GameChat from "@/components/GameChat";
+
+export default function Home() {
+  const [active, setActive] = useState<Scenario | null>(null);
+
+  if (active) {
+    return <GameChat scenario={active} onExit={() => setActive(null)} />;
+  }
+
+  return (
+    <main className="mx-auto max-w-4xl px-6 py-16">
+      <div className="mb-12 text-center">
+        <h1 className="bg-gradient-to-b from-parchment to-ember bg-clip-text text-4xl font-bold text-transparent sm:text-5xl">
+          AI Game Jam
+        </h1>
+        <p className="mt-3 text-parchment/60">
+          选一个剧本，AI 主持人会为你实时编织一个独一无二的故事。
+        </p>
+      </div>
+
+      <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        {scenarios.map((s) => (
+          <button
+            key={s.id}
+            onClick={() => setActive(s)}
+            className="group flex flex-col rounded-2xl border border-white/10 bg-white/[0.03] p-6 text-left transition hover:border-ember/50 hover:bg-white/[0.06]"
+          >
+            <span className="text-4xl">{s.emoji}</span>
+            <h2 className="mt-4 text-lg font-semibold text-parchment">{s.title}</h2>
+            <p className="mt-1 flex-1 text-sm text-parchment/55">{s.tagline}</p>
+            <span className="mt-4 text-sm font-medium text-ember opacity-0 transition group-hover:opacity-100">
+              开始冒险 →
+            </span>
+          </button>
+        ))}
+      </div>
+
+      <p className="mt-14 text-center text-xs text-parchment/30">
+        想加自己的剧本？编辑{" "}
+        <code className="rounded bg-white/10 px-1.5 py-0.5">lib/scenarios.ts</code>
+        ，无需改任何代码。详见 README。
+      </p>
+    </main>
+  );
+}
