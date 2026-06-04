@@ -1,0 +1,2259 @@
+[
+  {
+    "chapter": "V2-CI",
+    "type": "predict",
+    "id": "predict_evadne_curse_comes_true",
+    "prompt": "伊瓦德妮赌上性命诅咒雷蒙德必死于火、战与疫——这道诅咒会应验吗?",
+    "setup_node": "battlefield_dying_curse",
+    "options": [
+      "疯话而已,雷蒙德无恙",
+      "诅咒会一一应验"
+    ]
+  },
+  {
+    "chapter": "V2-CI",
+    "type": "predict",
+    "id": "predict_raymond_survives_voyage",
+    "prompt": "奄奄一息、被吊下船的雷蒙德,能熬过这趟海上颠簸抵岸吗?",
+    "setup_node": "rough_harbor_reunion",
+    "options": [
+      "他撑得过去",
+      "他会死在浪里"
+    ]
+  },
+  {
+    "chapter": "V2-CI",
+    "type": "poll",
+    "id": "poll_perdita_should_follow",
+    "prompt": "瘟疫已在抬头,佩迪塔却执意要随雷蒙德再赴战场——她该跟去吗?",
+    "options": [
+      "该,生死与共",
+      "不该,留下护住孩子"
+    ]
+  },
+  {
+    "chapter": "V2-CI",
+    "type": "react",
+    "id": "react_gaunt_raymond_unrecognizable",
+    "prompt": "面颊深陷、双眼空洞、手腕还留着镣铐勒痕——这还是当年那个英雄吗?刷弹幕。",
+    "mood": "grief"
+  },
+  {
+    "chapter": "V2-CI",
+    "type": "react",
+    "id": "react_ravens_over_corpse_field",
+    "prompt": "夕阳沉入阿索斯山,乌鸦成群飞向尸野『收割』——为这片杀戮之地刷一波。",
+    "mood": "horror"
+  },
+  {
+    "chapter": "V2-CI",
+    "type": "react",
+    "id": "react_silent_city_welcome",
+    "prompt": "万人列队相迎却鸦雀无声,只低头行礼怕惊扰病中的英雄——为这静默的欢迎刷屏。",
+    "mood": "awe"
+  },
+  {
+    "chapter": "V2-CI",
+    "type": "micro_choice",
+    "id": "micro_clara_meets_father",
+    "prompt": "克拉拉认不出形容大变的父亲,缩在船尾。你怎么帮这对父女?",
+    "options": [
+      {
+        "label": "轻声哄她过去认父亲",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      },
+      {
+        "label": "由她躲着,先顾雷蒙德的身子",
+        "effect": {
+          "res": "health",
+          "d": 1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V2-CI",
+    "type": "micro_choice",
+    "id": "micro_retreat_to_eleusis",
+    "prompt": "雷蒙德被雅典人的热闹『差点爱死』,康复受阻。要不要带他退居埃莱夫西斯静养?",
+    "options": [
+      {
+        "label": "退居静养,远离喧嚣",
+        "effect": {
+          "res": "health",
+          "d": 1
+        }
+      },
+      {
+        "label": "留在城中受民众拥戴鼓舞",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V2-CI",
+    "type": "lore",
+    "id": "lore_remorse_of_love",
+    "prompt": "莱昂内尔早就警告过佩迪塔:有朝一日她会尝到迟来的悔。",
+    "quote": "『迟来的爱之悔,会撼动如今铁石般的心。』",
+    "note": "主播可在佩迪塔绝食自苦的镜头前口播,点出『悔之已晚』的宿命感。"
+  },
+  {
+    "chapter": "V2-CI",
+    "type": "lore",
+    "id": "lore_end_of_love",
+    "prompt": "伊瓦德妮咽气前的遗言,是全章最阴森的预兆。",
+    "quote": "『这就是爱的尽头!——不,还没到尽头!火、战争、瘟疫都是我的仆役,我以死换你相随,雷蒙德,你无处可逃。』",
+    "note": "主播可逐句念出,作为引向后续瘟疫主线的不祥伏笔。"
+  },
+  {
+    "chapter": "V2-CII",
+    "type": "predict",
+    "id": "predict_raymond_fate",
+    "prompt": "雷蒙德独自策马冲进爆炸的火城——他还能活着出来吗?",
+    "setup_node": "raymonds_lone_charge",
+    "options": [
+      "他奇迹生还",
+      "他已葬身火海"
+    ]
+  },
+  {
+    "chapter": "V2-CII",
+    "type": "predict",
+    "id": "predict_army_breaks_gate",
+    "prompt": "雷蒙德强令全军破门入疫城——士兵们会服从,还是哗变?",
+    "setup_node": "plague_gate_of_stamboul",
+    "options": [
+      "全军遵命入城",
+      "畏疫哗变溃散"
+    ]
+  },
+  {
+    "chapter": "V2-CII",
+    "type": "poll",
+    "id": "poll_enter_plague_city",
+    "prompt": "面前是不战而空的胜利之城,城里却是瘟疫。换作你,进还是不进?",
+    "options": [
+      "进城夺取胜利",
+      "宁退也不冒疫",
+      "先探明虚实再说"
+    ]
+  },
+  {
+    "chapter": "V2-CII",
+    "type": "poll",
+    "id": "poll_glory_or_life",
+    "prompt": "雷蒙德为'名'赴死,佩迪塔劝他为'生'而退。你更认同哪一边?",
+    "options": [
+      "荣耀高于性命",
+      "活着才是一切"
+    ]
+  },
+  {
+    "chapter": "V2-CII",
+    "type": "react",
+    "id": "react_dome_falls",
+    "prompt": "惊天巨响中圣索菲亚的穹顶消失,整座城化作火海——刷弹幕送别这一刻!",
+    "mood": "awe"
+  },
+  {
+    "chapter": "V2-CII",
+    "type": "react",
+    "id": "react_echo_was_mute",
+    "prompt": "莱昂内尔在焦土上嘶喊雷蒙德的名字,无人应答,连回声都已喑哑……",
+    "mood": "grief"
+  },
+  {
+    "chapter": "V2-CII",
+    "type": "react",
+    "id": "react_death_lord_of_city",
+    "prompt": "'死亡已成君士坦丁堡之主'——疫城的真相令全军股栗。",
+    "mood": "horror"
+  },
+  {
+    "chapter": "V2-CII",
+    "type": "micro_choice",
+    "id": "micro_bury_evadne",
+    "prompt": "烈日下匆匆为伊瓦德妮掘墓,你要为她多做一件事吗?",
+    "options": [
+      {
+        "label": "堆石筑墓,郑重道别",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      },
+      {
+        "label": "草草掩埋,速追大军",
+        "effect": {
+          "res": "morale",
+          "d": -1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V2-CII",
+    "type": "micro_choice",
+    "id": "micro_share_ice",
+    "prompt": "围城军从雪山运来冰与清水,该如何分配?",
+    "options": [
+      {
+        "label": "犒赏劳作的士兵,提振士气",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      },
+      {
+        "label": "全部留作军医急救之用",
+        "effect": {
+          "res": "health",
+          "d": 1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V2-CII",
+    "type": "lore",
+    "id": "lore_grave_in_greece",
+    "prompt": "雷蒙德望着即将陷落的城,只求一座坟。",
+    "quote": "他们许我桂冠、尊号、权位与财富——而我向希腊所求的,唯有一座坟。",
+    "note": "主播可在雷蒙德登场时口播,点出他求死殉名的心境。"
+  },
+  {
+    "chapter": "V2-CII",
+    "type": "lore",
+    "id": "lore_living_skeleton",
+    "prompt": "雷蒙德眼中,万物皆是死亡的预兆。",
+    "quote": "每块石头都垒起一座金字塔,每朵花都筑起一座墓碑,每座建筑都是高耸的坟,每个士兵都是一具活着的骷髅。",
+    "note": "可在镜头扫过围城大军时旁白,渲染全章笼罩的死亡阴影。"
+  },
+  {
+    "chapter": "V2-CIII",
+    "type": "predict",
+    "id": "predict_perdita_fate",
+    "prompt": "莱昂内尔下了安眠药,趁睡把佩迪塔抬上了回英格兰的船。她醒来后会怎样?",
+    "setup_node": "tomb_or_force",
+    "options": [
+      "她会认命,慢慢被亲情挽回",
+      "她会投海,只求回到雷蒙德身边"
+    ]
+  },
+  {
+    "chapter": "V2-CIII",
+    "type": "predict",
+    "id": "predict_sea_search",
+    "prompt": "午夜落水,船底暗流湍急。停船搜救一个钟头,能把佩迪塔活着捞回来吗?",
+    "setup_node": "sea_search_aftermath",
+    "options": [
+      "还活着,只是昏迷",
+      "已经断气,只剩遗体"
+    ]
+  },
+  {
+    "chapter": "V2-CIII",
+    "type": "poll",
+    "id": "poll_save_or_respect",
+    "prompt": "面对誓死守墓的佩迪塔,你认为莱昂内尔该怎么做?",
+    "options": [
+      "强行带她回家,亲情能救她",
+      "尊重她,留她守墓"
+    ]
+  },
+  {
+    "chapter": "V2-CIII",
+    "type": "poll",
+    "id": "poll_reenter_city",
+    "prompt": "为了一具遗体,值得带活人再闯染过疫的死城吗?",
+    "options": [
+      "值得,故人不能弃于焦土",
+      "不值,活人比尸首要紧"
+    ]
+  },
+  {
+    "chapter": "V2-CIII",
+    "type": "react",
+    "id": "react_dying_dog",
+    "prompt": "垂死的弗洛里奥认出莱昂内尔,舔了舔他的手,爬到主人身边咽了气。",
+    "mood": "grief"
+  },
+  {
+    "chapter": "V2-CIII",
+    "type": "react",
+    "id": "react_crushed_body",
+    "prompt": "焦黑的瓦砾下,昨日还价值连城的躯体被巨石砸得面目全非——那已不再像雷蒙德。",
+    "mood": "horror"
+  },
+  {
+    "chapter": "V2-CIII",
+    "type": "react",
+    "id": "react_hymettus_view",
+    "prompt": "岩穴金字塔下,翠谷直抵两海,湛蓝的爱琴海洒满岛屿与流光——死亡在此地竟褪去了一半恐怖。",
+    "mood": "awe"
+  },
+  {
+    "chapter": "V2-CIII",
+    "type": "micro_choice",
+    "id": "micro_feed_lionel",
+    "prompt": "佩迪塔在悲恸中仍亲手为疲惫饥渴的你端来食物。你要不要吃下?",
+    "options": [
+      {
+        "label": "吃下,补回一点气力",
+        "effect": {
+          "res": "food",
+          "d": 1
+        }
+      },
+      {
+        "label": "推开,你食不下咽",
+        "effect": {
+          "res": "morale",
+          "d": -1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V2-CIII",
+    "type": "micro_choice",
+    "id": "micro_torches",
+    "prompt": "希腊墓地里,要不要在雷蒙德灵前点上长明火、留兵看守?",
+    "options": [
+      {
+        "label": "点火守灵,以慰故人",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      },
+      {
+        "label": "省下人手,连夜赶路",
+        "effect": {
+          "res": "health",
+          "d": 1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V2-CIII",
+    "type": "lore",
+    "id": "lore_one_grave",
+    "prompt": "佩迪塔的痴语:她只求一座坟能同时盛下雷蒙德和她。",
+    "quote": "纵使君士坦丁堡如墓碑般压在他身上,我也必寻到他——再让全城的重量、连同一座山压下来盖住我俩,我也不在乎,只要一座坟能容下雷蒙德和他的佩迪塔。",
+    "note": "主播可在『墓前的固执』前口播此句,铺垫她为何宁死也要同葬。"
+  },
+  {
+    "chapter": "V2-CIII",
+    "type": "lore",
+    "id": "lore_death_companions",
+    "prompt": "莱昂内尔的悼词:末日里死亡不再孤独,因为先行者已为你备好接引。",
+    "quote": "世界初生时,死亡何其可怖,人需独自离开亲友,做异乡孤客;而如今,赴死者会发现许多人早已先行,在那里等他。",
+    "note": "适合在哀嚎与寻尸之间做旁白,点出这部末日故事的死亡观。"
+  },
+  {
+    "chapter": "V2-CIV",
+    "type": "predict",
+    "id": "predict_harbor_plague",
+    "prompt": "你已下令开放港口收容逃难者——瘟疫会不会真的跟着上岸?",
+    "setup_node": "plague_ships_at_the_docks",
+    "options": [
+      "瘟疫已悄然登岛",
+      "孤岛侥幸逃过一劫"
+    ]
+  },
+  {
+    "chapter": "V2-CIV",
+    "type": "predict",
+    "id": "predict_alfred_at_eton",
+    "prompt": "阿尔弗雷德被送进伊顿——疫病会不会伸到那片草坪上?",
+    "setup_node": "alfreds_first_term_at_eton",
+    "options": [
+      "他平安无事",
+      "他终究染上了病"
+    ]
+  },
+  {
+    "chapter": "V2-CIV",
+    "type": "poll",
+    "id": "poll_leave_life_to_live",
+    "prompt": "莱昂内尔说「让我们离开『生活』,才能真正地活」——你赞同关上世界的门、隐居避世吗?",
+    "options": [
+      "该隐居,守住所爱",
+      "该入世,直面乱局"
+    ]
+  },
+  {
+    "chapter": "V2-CIV",
+    "type": "poll",
+    "id": "poll_paradise_or_hell",
+    "prompt": "阿德里安信只要一年和平人间便成乐土,莱兰却说地狱的种子生于此土——你站哪边?",
+    "options": [
+      "阿德里安的乐土",
+      "莱兰的清醒"
+    ]
+  },
+  {
+    "chapter": "V2-CIV",
+    "type": "react",
+    "id": "react_black_sun",
+    "prompt": "近午时分,一轮黑太阳升起,黑夜骤降,飞鸟坠地、走兽惊逃——刷屏感受这天地异变!",
+    "mood": "awe"
+  },
+  {
+    "chapter": "V2-CIV",
+    "type": "react",
+    "id": "react_athens_falls",
+    "prompt": "雅典人如熟麦倒在死神的镰刀下,神庙宫殿尽成坟墓——为这座神圣之城刷一片哀悼。",
+    "mood": "grief"
+  },
+  {
+    "chapter": "V2-CIV",
+    "type": "micro_choice",
+    "id": "micro_windsor_spring",
+    "prompt": "温莎的春日醒来,森林披绿、夜莺啼鸣——此刻你想?",
+    "options": [
+      {
+        "label": "陪家人在森林里走一走",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      },
+      {
+        "label": "趁好天气抢收一批春粮",
+        "effect": {
+          "res": "food",
+          "d": 1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V2-CIV",
+    "type": "micro_choice",
+    "id": "micro_idris_fear",
+    "prompt": "伊德丽丝因孩子一点小病便陷入恐惧的颤栗——你怎么宽慰她?",
+    "options": [
+      {
+        "label": "陪她守在孩子床边整夜",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      },
+      {
+        "label": "翻出家中余药给孩子调养",
+        "effect": {
+          "res": "health",
+          "d": 1
+        }
+      },
+      {
+        "label": "强装镇定,自己却整夜难眠",
+        "effect": {
+          "res": "morale",
+          "d": -1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V2-CIV",
+    "type": "lore",
+    "id": "lore_leave_life_to_live",
+    "prompt": "莱昂内尔关于隐退避世的金句,适合主播口播定调。",
+    "quote": "让我们离开所谓的'生活',好让我们真正地活。",
+    "note": "开场口播,点出本章「关门隐居 vs 直面乱世」的核心张力。"
+  },
+  {
+    "chapter": "V2-CIV",
+    "type": "lore",
+    "id": "lore_invincible_monster",
+    "prompt": "莱昂内尔形容瘟疫的金句,渲染末日威胁感。",
+    "quote": "那只盘旋着吞噬了君士坦丁堡的无敌怪物——它比风暴更残忍,比烈火更难驯服,如今已在那片美丽的国土上挣脱了锁链。",
+    "note": "在难民船或雅典陷落节点前口播,把瘟疫拟人化成步步逼近的怪物。"
+  },
+  {
+    "chapter": "V2-CV",
+    "type": "lore",
+    "id": "wind_lord_of_air",
+    "prompt": "连刮四月的狂风,被原文奉为凌驾万物的“空气之王”。",
+    "quote": "风啊,你强大到该高踞于自然万物之上——云听你号令,太阳听你差遣,无边的海洋是你的奴隶。",
+    "note": "主播可在开场用这句渲染天地失序、末日将至的压迫感。"
+  },
+  {
+    "chapter": "V2-CV",
+    "type": "react",
+    "id": "wrecked_shores",
+    "prompt": "海岸尽是船骸,洪水冲毁城镇,大地在风暴下失了颜色。",
+    "mood": "awe"
+  },
+  {
+    "chapter": "V2-CV",
+    "type": "poll",
+    "id": "air_or_contact",
+    "prompt": "学者吵翻了天:这瘟疫到底怎么传?你押哪一边?",
+    "options": [
+      "靠空气,封不住的",
+      "靠人传,隔离就能挡",
+      "谁也说不准"
+    ]
+  },
+  {
+    "chapter": "V2-CV",
+    "type": "predict",
+    "id": "predict_quarantine_gamble",
+    "prompt": "护国公赌一把封港,把船拦在港外的浪里。这道令,挡住的是瘟疫,还是垂死的同胞?",
+    "setup_node": "plague_at_the_gates",
+    "options": [
+      "挡住了瘟疫,值了",
+      "只是把同胞逼死在海上"
+    ]
+  },
+  {
+    "chapter": "V2-CV",
+    "type": "predict",
+    "id": "predict_ration_outcome",
+    "prompt": "不毁园林、不宰鹿,只死命配给。这场赌博,撑得过去吗?",
+    "setup_node": "feed_the_refugees",
+    "options": [
+      "侥幸撑住了",
+      "饿殍遍地,输了"
+    ]
+  },
+  {
+    "chapter": "V2-CV",
+    "type": "micro_choice",
+    "id": "ladies_on_foot",
+    "prompt": "贵妇们以坐马车为耻,纷纷徒步赴会。你要不要带头?",
+    "options": [
+      {
+        "label": "带头徒步,与众同甘苦",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      },
+      {
+        "label": "留着马车,体面要紧",
+        "effect": {
+          "res": "morale",
+          "d": -1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V2-CV",
+    "type": "micro_choice",
+    "id": "share_the_castle_stores",
+    "prompt": "城堡的私库,要不要再省一口、多分给难民?",
+    "options": [
+      {
+        "label": "再缩用度,多救一人",
+        "effect": {
+          "res": "food",
+          "d": -1
+        }
+      },
+      {
+        "label": "先顾自家口粮",
+        "effect": {
+          "res": "food",
+          "d": 1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V2-CV",
+    "type": "poll",
+    "id": "plague_spares_us",
+    "prompt": "有人高喊“瘟疫是太阳之子,只杀南方人,绝不碰我们苍白的凯尔特人”。你信吗?",
+    "options": [
+      "信,这是天命庇佑",
+      "不信,这是自欺"
+    ]
+  },
+  {
+    "chapter": "V2-CV",
+    "type": "lore",
+    "id": "house_on_fire",
+    "prompt": "报纸证实瘟疫登陆里窝那、热那亚、马赛,那一刻的恐惧原文写绝了。",
+    "quote": "我们像一个听说自家失火的人,仍抱着也许是误传的侥幸穿街而过,直到转过街角,看见庇护自己的屋顶正裹在火焰里。",
+    "note": "主播可在“坏消息坐实”的转折处口播,把不可逆的绝望感推满。"
+  },
+  {
+    "chapter": "V2-CV",
+    "type": "react",
+    "id": "mourner_struck_mute",
+    "prompt": "成千上万人无人哀悼地死去——尸身尚温,身旁的哀悼者已被死亡夺去了声音。",
+    "mood": "grief"
+  },
+  {
+    "chapter": "V2-CVI",
+    "type": "react",
+    "id": "vision_of_corpses_at_the_fair",
+    "prompt": "舞曲正欢,莱昂内尔却幻见绿茵铺满尸骸、空气腐臭——'你们都将死去,坟墓已在身旁筑起。'",
+    "mood": "horror"
+  },
+  {
+    "chapter": "V2-CVI",
+    "type": "react",
+    "id": "merrymeeting_turns_funeral",
+    "prompt": "盛装与彩旗未改,欢宴却骤然化作丧仪——伊芙琳的笑声在空荡的拱顶下回响,母亲掩面而泣抱子离席。",
+    "mood": "grief"
+  },
+  {
+    "chapter": "V2-CVI",
+    "type": "poll",
+    "id": "flee_or_face_the_plague",
+    "prompt": "瘟疫已入伦敦,海峡不再是城墙。你会怎么做?",
+    "options": [
+      "举家出逃寻净土",
+      "留下直面、援助同胞",
+      "紧闭城堡只顾自家"
+    ]
+  },
+  {
+    "chapter": "V2-CVI",
+    "type": "poll",
+    "id": "judge_ryland_desertion",
+    "prompt": "护国公瑞兰弃职潜逃,只求自保。你怎么看他?",
+    "options": [
+      "懦夫,背叛了同胞",
+      "凡人皆惜命,情有可原",
+      "无能本就该早退位"
+    ]
+  },
+  {
+    "chapter": "V2-CVI",
+    "type": "predict",
+    "id": "will_lionel_replace_adrian",
+    "prompt": "议会即将表决:莱昂内尔临阵自荐,想替挚友赴死。押一押,谁会当选副护国公?",
+    "setup_node": "nominate_adrian_as_deputy",
+    "options": [
+      "莱昂内尔代友当选",
+      "阿德里安夺回此位"
+    ]
+  },
+  {
+    "chapter": "V2-CVI",
+    "type": "predict",
+    "id": "will_adrian_survive_london",
+    "prompt": "阿德里安孤身留守疫城伦敦。押一押,这场与瘟疫的'最后一战',他能活着撑过去吗?",
+    "setup_node": "entrust_idris_and_return",
+    "options": [
+      "他终将病倒在疫城",
+      "他能挺过这一劫"
+    ]
+  },
+  {
+    "chapter": "V2-CVI",
+    "type": "micro_choice",
+    "id": "comfort_idris_at_the_window",
+    "prompt": "伊德丽丝立在窗前,目光在人群里搜寻自己的孩子,泪光闪动。你怎么做?",
+    "options": [
+      {
+        "label": "走上前握住她的手安慰",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      },
+      {
+        "label": "默默守在一旁,不点破恐惧",
+        "effect": {
+          "res": "health",
+          "d": 1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V2-CVI",
+    "type": "micro_choice",
+    "id": "rally_the_frightened_guests",
+    "prompt": "宾客围拢过来向你求教,人心惶惶。你以什么号召他们?",
+    "options": [
+      {
+        "label": "'清洁、秩序与勇气是我们最好的药'",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      },
+      {
+        "label": "据实相告疫情,不掩饰危险",
+        "effect": {
+          "res": "morale",
+          "d": -1
+        }
+      },
+      {
+        "label": "分发干粮,先稳住人心",
+        "effect": {
+          "res": "food",
+          "d": -1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V2-CVI",
+    "type": "lore",
+    "id": "the_sea_our_prison",
+    "prompt": "海峡曾是英格兰的护墙,如今却成了囚笼。",
+    "quote": "曾经护佑我们的大海,如今竟成了囚牢的边界;小小的英格兰,将化作一座广袤无边的坟茔。",
+    "note": "主播可在'孤岛失守'的转折处口播,渲染无处可逃的绝望氛围。"
+  },
+  {
+    "chapter": "V2-CVI",
+    "type": "lore",
+    "id": "conquer_by_facing_the_enemy",
+    "prompt": "阿德里安接过护国公之责时的宣言。",
+    "quote": "不是靠逃避,而是靠直面敌人,我们才能取胜。倘若这是我最后一战,纵然落败——也随它去吧!",
+    "note": "主播可在号召观众'留下抵抗'时引用,点燃逆境中的斗志。"
+  },
+  {
+    "chapter": "V2-CVII",
+    "type": "predict",
+    "id": "predict_hut_occupant_alive",
+    "prompt": "莱昂内尔推开破屋的门之前——里面那个被丢下的染疫者,还活着吗?",
+    "setup_node": "deserted_man_at_bolters_lock",
+    "options": [
+      "他还撑着一口气",
+      "他早已冰冷"
+    ]
+  },
+  {
+    "chapter": "V2-CVII",
+    "type": "predict",
+    "id": "predict_gazed_villager_survives",
+    "prompt": "被疯先知凝视盯住的那个村民,如果有人冲上去打断——他能活下来吗?",
+    "setup_node": "maniac_prophet_at_town_hall",
+    "options": [
+      "能被拉回来",
+      "还是当场吓死"
+    ]
+  },
+  {
+    "chapter": "V2-CVII",
+    "type": "poll",
+    "id": "poll_enter_the_hut",
+    "prompt": "明知方圆半英里无人敢近,你会为一个陌生弃者走进那间破屋吗?",
+    "options": [
+      "会,人该如此待人",
+      "不,先回到妻儿身边"
+    ]
+  },
+  {
+    "chapter": "V2-CVII",
+    "type": "poll",
+    "id": "poll_fear_or_plague_kills",
+    "prompt": "那个村民当众断气——真正杀死他的是瘟疫,还是恐惧?",
+    "options": [
+      "是瘟疫",
+      "是恐惧",
+      "两者都是"
+    ]
+  },
+  {
+    "chapter": "V2-CVII",
+    "type": "react",
+    "id": "react_corpse_in_the_hut",
+    "prompt": "稻草上僵硬冰冷的尸体、扭曲的脸、失去知觉的石眼——这就是瘟疫真正的样子。刷屏!",
+    "mood": "horror"
+  },
+  {
+    "chapter": "V2-CVII",
+    "type": "react",
+    "id": "react_old_nurse_dies",
+    "prompt": "把伊德丽丝从小带大的老保姆咽下最后一口气,伊德丽丝悲恸欲绝。为她刷一片悼念。",
+    "mood": "grief"
+  },
+  {
+    "chapter": "V2-CVII",
+    "type": "micro_choice",
+    "id": "micro_perdita_ruined_cottage",
+    "prompt": "路过佩迪塔荒废的旧居,鹿卧在花丛、杂草爬上门槛——你在废墟前停留还是匆匆走开?",
+    "options": [
+      {
+        "label": "驻足哀悼往昔",
+        "effect": {
+          "res": "morale",
+          "d": -1
+        }
+      },
+      {
+        "label": "快步穿过不回头",
+        "effect": {
+          "res": "health",
+          "d": 1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V2-CVII",
+    "type": "micro_choice",
+    "id": "micro_check_idris_breath",
+    "prompt": "死寂的深夜,你伸手按住熟睡的伊德丽丝的心口、俯身去听她的呼吸——",
+    "options": [
+      {
+        "label": "确认她还在,松一口气",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      },
+      {
+        "label": "不忍惊扰,独自熬过恐惧",
+        "effect": {
+          "res": "health",
+          "d": -1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V2-CVII",
+    "type": "lore",
+    "id": "lore_no_spot_of_safety",
+    "prompt": "莱昂内尔把整个世界摊成一张地图,却找不到一处可指为安全。",
+    "quote": "我把整个大地摊在面前如一张地图——它的表面没有一处,能让我按下手指说:这里是安全的。",
+    "note": "主播可在玩家纠结避难地点时口播:在末日里,'安全'只是相对的距离,不是地点。"
+  },
+  {
+    "chapter": "V2-CVII",
+    "type": "lore",
+    "id": "lore_today_already_walks_tomorrow",
+    "prompt": "正如太阳升起前先把影像投在天空,大事的幽灵也总在事件之前先行。",
+    "quote": "大事的幽灵常常先于事件而行——今日之中,明日已在行走。",
+    "note": "主播可在玩家被'不祥预感'笼罩、却仍要做决定时口播,渲染末日临近的宿命感。"
+  },
+  {
+    "chapter": "V2-CVIII",
+    "type": "lore",
+    "id": "lore_grave_not_dwelling",
+    "prompt": "主播口播:这一句道尽了瘟疫年代的人心。",
+    "quote": "我们不再把这天地看作居所,而看作自己的坟墓——芬芳的大地在恐惧者闻来,就像一片广阔的墓园。",
+    "note": "在描绘'美丽的春天却人人恐惧'时口播,营造反差压迫感。"
+  },
+  {
+    "chapter": "V2-CVIII",
+    "type": "lore",
+    "id": "lore_one_living_beggar",
+    "prompt": "主播口播:阶级在死亡面前彻底崩塌。",
+    "quote": "一个活着的乞丐,如今比满朝死去的贵族还要珍贵——生命,才是人类一切欲望的开端与终结。",
+    "note": "在前王后摆架子拒见主角时口播,点破她的傲慢有多可笑。"
+  },
+  {
+    "chapter": "V2-CVIII",
+    "type": "react",
+    "id": "react_bartholomew_corpse_room",
+    "prompt": "圣巴塞洛缪医院里,半开的门后堆满了尸体——刷屏送上你的悚然。",
+    "mood": "horror"
+  },
+  {
+    "chapter": "V2-CVIII",
+    "type": "react",
+    "id": "react_macduff_all_my_children",
+    "prompt": "'我所有漂亮的孩子?一次就全没了?'全场恸哭——把你的眼泪打在屏幕上。",
+    "mood": "grief"
+  },
+  {
+    "chapter": "V2-CVIII",
+    "type": "react",
+    "id": "react_abbey_organ",
+    "prompt": "威斯敏斯特教堂的管风琴轰然响起,圣咏盖过了哀恸——为这一刻的庄严刷屏。",
+    "mood": "awe"
+  },
+  {
+    "chapter": "V2-CVIII",
+    "type": "poll",
+    "id": "poll_winter_truce",
+    "prompt": "瘟疫在冬天暂歇,人们该怎么过这'喘息之冬'?",
+    "options": [
+      "像马尔塔那样照料病弱、维系秩序",
+      "趁还活着纵情享乐、麻痹绝望"
+    ]
+  },
+  {
+    "chapter": "V2-CVIII",
+    "type": "poll",
+    "id": "poll_queen_pride",
+    "prompt": "末日里前王后仍端着架子拒见主角,你怎么看?",
+    "options": [
+      "可悲的执念",
+      "她最后的尊严"
+    ]
+  },
+  {
+    "chapter": "V2-CVIII",
+    "type": "micro_choice",
+    "id": "micro_help_fainting_woman",
+    "prompt": "霍尔本街头,那个找丈夫的女人瘫倒在墙边——你伸不伸手?",
+    "options": [
+      {
+        "label": "扶她上马车,送她去医院",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      },
+      {
+        "label": "假装没看见,快步走开",
+        "effect": {
+          "res": "morale",
+          "d": -1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V2-CVIII",
+    "type": "micro_choice",
+    "id": "micro_keep_fields_working",
+    "prompt": "乡间的农人无心收割,任干草烂在地里。你要不要督促他们照常劳作?",
+    "options": [
+      {
+        "label": "鼓励他们照旧耕作,假装瘟疫不存在",
+        "effect": {
+          "res": "food",
+          "d": 1
+        }
+      },
+      {
+        "label": "由他们去,人都要死了何必劳碌",
+        "effect": {
+          "res": "morale",
+          "d": -1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V2-CVIII",
+    "type": "predict",
+    "id": "predict_grandmother_brings_plague",
+    "prompt": "押注:百岁老太婆若被抬进城堡,城堡能挡住她带来的病气吗?",
+    "setup_node": "cornfield_grandmother",
+    "options": [
+      "挡住了,城堡平安",
+      "病气扩散,城堡加速凋零"
+    ]
+  },
+  {
+    "chapter": "V2-CIX",
+    "type": "predict",
+    "id": "predict_dying_man_truce",
+    "prompt": "阿德里安抱起那个垂死的乱民——他能撑到两军放下武器吗?",
+    "setup_node": "battle_line_at_dawn",
+    "options": [
+      "他活了下来,亲手促成停火",
+      "他咽了气,用死亡换来和平"
+    ]
+  },
+  {
+    "chapter": "V2-CIX",
+    "type": "predict",
+    "id": "predict_merrival_fate",
+    "prompt": "墓前抱着坟土的疯老人梅里瓦尔,结局会如何?",
+    "setup_node": "merrival_at_the_graves",
+    "options": [
+      "他被劝回温莎,苟活下来",
+      "他抱着冻土,死在妻儿坟旁"
+    ]
+  },
+  {
+    "chapter": "V2-CIX",
+    "type": "poll",
+    "id": "poll_general_or_soldier",
+    "prompt": "你站阿德里安'一个也不许死',还是站士兵'替乡民复仇'?",
+    "options": [
+      "不流血的和平",
+      "为死者复仇",
+      "活下去最重要"
+    ]
+  },
+  {
+    "chapter": "V2-CIX",
+    "type": "poll",
+    "id": "poll_flee_or_stay",
+    "prompt": "末日严冬里,你会赌上沉船的风险渡海南逃,还是死守温莎?",
+    "options": [
+      "登船南渡求生",
+      "死守家园不走"
+    ]
+  },
+  {
+    "chapter": "V2-CIX",
+    "type": "react",
+    "id": "react_ship_sinking",
+    "prompt": "百二十炮的巨舰满载旱鸭子,在风暴中缓缓沉没,众船只能眼睁睁看着海面合拢……",
+    "mood": "horror"
+  },
+  {
+    "chapter": "V2-CIX",
+    "type": "react",
+    "id": "react_dying_man_silence",
+    "prompt": "两军屏息,只听见那一个垂死者的呻吟——'他死了',世界的命运仿佛系于这一人之死。",
+    "mood": "awe"
+  },
+  {
+    "chapter": "V2-CIX",
+    "type": "react",
+    "id": "react_merrival_clings",
+    "prompt": "冷雨浇头,老人扑在小小的坟堆上嘶喊妻儿的名字——可他们再不会应答。",
+    "mood": "grief"
+  },
+  {
+    "chapter": "V2-CIX",
+    "type": "micro_choice",
+    "id": "micro_dying_robin",
+    "prompt": "雪林里一只濒死的知更鸟落在你脚边,鹰在头顶盘旋。你怎么做?",
+    "options": [
+      {
+        "label": "把它揣进怀里,用饼干屑喂活它",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      },
+      {
+        "label": "任它自生自灭,自己已自顾不暇",
+        "effect": {
+          "res": "morale",
+          "d": -1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V2-CIX",
+    "type": "micro_choice",
+    "id": "micro_winter_chore",
+    "prompt": "炉火将熄,谁去雪地里劈柴破冰?",
+    "options": [
+      {
+        "label": "你亲自顶着寒风去干",
+        "effect": {
+          "res": "health",
+          "d": -1
+        }
+      },
+      {
+        "label": "让克拉拉再多担一份活",
+        "effect": {
+          "res": "morale",
+          "d": -1
+        }
+      },
+      {
+        "label": "聚众分工,人人出力",
+        "effect": {
+          "res": "food",
+          "d": -1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V2-CIX",
+    "type": "lore",
+    "id": "lore_pitiless_than_plague",
+    "prompt": "阿德里安立马火线之间的怒吼,值得主播原声口播。",
+    "quote": "瘟疫很快就不会给你们留下一个可供泄愤的活人——你们还要比瘟疫更冷酷吗?",
+    "note": "主播可在'放士兵冲杀'选项弹出前念这句,逼观众在复仇与人性之间做选择。"
+  },
+  {
+    "chapter": "V2-CIX",
+    "type": "lore",
+    "id": "lore_hope_is_dead",
+    "prompt": "全章的诗眼,适合做章末旁白收尾。",
+    "quote": "希望也像造物主赐予人的一切礼物一样会死去——她的最后一刻到了:向万邦传告,希望已死!",
+    "note": "主播可在维克托'顿悟南迁'后立刻念出,反差感拉满,把整场情绪推向末日低谷。"
+  },
+  {
+    "chapter": "V3-CI",
+    "type": "react",
+    "id": "react_spring_beauty",
+    "prompt": "末日竟降临在最美的春天:花开、鸟鸣、阳光灿烂,瘟疫却无声踏过每个人的心。",
+    "mood": "awe"
+  },
+  {
+    "chapter": "V3-CI",
+    "type": "react",
+    "id": "react_ryland_corpse",
+    "prompt": "莱兰德死在荒屋里,身旁堆着吃不完的粮食,尸身已被虫蚁啃噬——这就是孤绝的下场。",
+    "mood": "horror"
+  },
+  {
+    "chapter": "V3-CI",
+    "type": "react",
+    "id": "react_idris_wandering",
+    "prompt": "深夜,伊德丽丝独自在屋里徘徊,俯看熟睡孩子的脸,泪水无声滑落。",
+    "mood": "grief"
+  },
+  {
+    "chapter": "V3-CI",
+    "type": "poll",
+    "id": "poll_south_or_stay",
+    "prompt": "又一个严冬将至。你会带全家南下追逐阳光,还是守着熟悉的温莎堡?",
+    "options": [
+      "南下向阳",
+      "留守故土"
+    ]
+  },
+  {
+    "chapter": "V3-CI",
+    "type": "predict",
+    "id": "predict_stand_in_the_gap",
+    "prompt": "半夜他握着匕首,想一刀了结妻子未受苦的身躯再刺向自己。押注:他会动手吗?",
+    "setup_node": "windsor_idris_fading",
+    "options": [
+      "他会收手,选择活着守护",
+      "他会动手了结一切"
+    ]
+  },
+  {
+    "chapter": "V3-CI",
+    "type": "predict",
+    "id": "predict_march_to_the_sun",
+    "prompt": "全家踏上南迁之路。押注:南方等着他们的是生机,还是另一座坟?",
+    "setup_node": "windsor_flee_south",
+    "options": [
+      "前方有生机",
+      "只是另一座坟"
+    ]
+  },
+  {
+    "chapter": "V3-CI",
+    "type": "micro_choice",
+    "id": "micro_idris_comfort",
+    "prompt": "伊德丽丝又一夜无眠。你要怎么安抚她?",
+    "options": [
+      {
+        "label": "握着她的手,陪她坐到天明",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      },
+      {
+        "label": "强撑笑脸,假装一切都会好起来",
+        "effect": {
+          "res": "morale",
+          "d": -1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V3-CI",
+    "type": "lore",
+    "id": "lore_plague_companion_spring",
+    "prompt": "原文金句:瘟疫是春天、阳光与丰饶的同伴。",
+    "quote": "瘟疫,是春天、阳光与丰饶的同伴。我们不再与她抗争了。",
+    "note": "主播可在春景画面切到惨象时口播,制造反差张力。"
+  },
+  {
+    "chapter": "V3-CI",
+    "type": "lore",
+    "id": "lore_fight_destiny",
+    "prompt": "原文金句:身处灾厄,人必须与命运抗争,绝不被它击垮。",
+    "quote": "在苦难之中,我们必须与自己的命运搏斗,绝不能被它击垮。",
+    "note": "主播可在玩家面临'放弃还是死守'的抉择时引用,点燃斗志。"
+  },
+  {
+    "chapter": "V3-CI",
+    "type": "micro_choice",
+    "id": "micro_take_warm_cloak",
+    "prompt": "空屋里有件厚实的斗篷,要不要给伊德丽丝带回去?",
+    "options": [
+      {
+        "label": "带回去给她御寒",
+        "effect": {
+          "res": "health",
+          "d": 1
+        }
+      },
+      {
+        "label": "嫌晦气,放下不取",
+        "effect": {
+          "res": "health",
+          "d": -1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V3-CII",
+    "type": "poll",
+    "id": "poll_go_or_stay",
+    "prompt": "英格兰已入殓——该举族渡海南迁,还是守着祖坟困死故土?",
+    "options": [
+      "渡海南迁去寻生",
+      "守住故土到最后"
+    ]
+  },
+  {
+    "chapter": "V3-CII",
+    "type": "predict",
+    "id": "predict_idris_found_alive",
+    "prompt": "莱昂内尔顶着高烧冲进雨夜寻找伊德丽丝——他能在她断气前找到她吗?",
+    "setup_node": "london_plague_night_choice",
+    "options": [
+      "及时寻回,雨中重逢",
+      "扑空,她已倒在街头"
+    ]
+  },
+  {
+    "chapter": "V3-CII",
+    "type": "predict",
+    "id": "predict_orphan_carries_plague",
+    "prompt": "押注一把:这个在尸城独活的歌唱孤女,身上带没带瘟疫?",
+    "setup_node": "minories_singing_orphan",
+    "options": [
+      "干净,平安随队",
+      "已染疫,祸患入营"
+    ]
+  },
+  {
+    "chapter": "V3-CII",
+    "type": "react",
+    "id": "react_alfred_death",
+    "prompt": "克拉拉颤抖着托起阿尔弗雷德喂水,而他双眼已无光——刷屏送别这个孩子。",
+    "mood": "grief"
+  },
+  {
+    "chapter": "V3-CII",
+    "type": "react",
+    "id": "react_dead_london",
+    "prompt": "草木爬满台阶,群狗游荡,圣保罗大教堂如一座刻着'英格兰长眠于此'的巨墓——为死城刷屏。",
+    "mood": "awe"
+  },
+  {
+    "chapter": "V3-CII",
+    "type": "react",
+    "id": "react_festering_embrace",
+    "prompt": "门后染疫者用溃烂的裸臂死死缠住莱昂内尔,死亡的气息钻入他的脏腑——刷屏这一刻的窒息恐怖。",
+    "mood": "horror"
+  },
+  {
+    "chapter": "V3-CII",
+    "type": "micro_choice",
+    "id": "micro_children_keepsake",
+    "prompt": "孩子们抱来玫瑰树和雕花石瓶,哭闹着非要带上路。你怎么办?",
+    "options": [
+      {
+        "label": "由他们带一件小物作念想",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      },
+      {
+        "label": "狠心丢下,只带活命要紧的东西",
+        "effect": {
+          "res": "food",
+          "d": 1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V3-CII",
+    "type": "micro_choice",
+    "id": "micro_meet_countess",
+    "prompt": "伊德丽丝多年后重见傲慢的前王后母亲,要不要替她缓和这场冷遇?",
+    "options": [
+      {
+        "label": "陪她去,让她与母亲稍作和解",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      },
+      {
+        "label": "避开旧恨,不去触怒老人",
+        "effect": {
+          "res": "morale",
+          "d": -1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V3-CII",
+    "type": "lore",
+    "id": "lore_england_shroud",
+    "prompt": "阿德里安劝众人离英时最锋利的一句。",
+    "quote": "英格兰已裹上了她的殓布——我们不能把自己锁死在一具尸体上。",
+    "note": "主播可在'去/留'投票前口播,瞬间把抉择的重量压到观众身上。"
+  },
+  {
+    "chapter": "V3-CII",
+    "type": "lore",
+    "id": "lore_last_man",
+    "prompt": "本章为全书标题埋下的旁白金句。",
+    "quote": "他将带领这英格兰仅存的残民南行,一个接一个死去,直到最后一人留在喑哑的空世界里。",
+    "note": "主播点出'最后一人'母题,提醒观众:他们护送的是一支送葬的队伍。"
+  },
+  {
+    "chapter": "V3-CIII",
+    "type": "lore",
+    "id": "lore_death_warrant",
+    "prompt": "瘟疫的初症,就是无可赦免的死刑判决。",
+    "quote": "此疫骇人之处,在于初现的病症即是死刑判决——从无一例得到赦免或缓刑。",
+    "note": "主播可在莱昂内尔染病一幕口播,渲染'生还本身就是奇迹'的绝望底色"
+  },
+  {
+    "chapter": "V3-CIII",
+    "type": "predict",
+    "id": "predict_idris_survives_storm",
+    "prompt": "暴雪夜里他孤身赶路,伊德丽丝撑得到温莎吗?",
+    "setup_node": "hampton_snowstorm_night",
+    "options": [
+      "她会挺到城堡",
+      "她已在车中咽气"
+    ]
+  },
+  {
+    "chapter": "V3-CIII",
+    "type": "predict",
+    "id": "predict_lionel_recovers",
+    "prompt": "无一人生还的瘟疫缠上了他,押注:莱昂内尔会怎样?",
+    "setup_node": "deathbed_vigil_idris",
+    "options": [
+      "他会奇迹生还",
+      "他难逃一死"
+    ]
+  },
+  {
+    "chapter": "V3-CIII",
+    "type": "poll",
+    "id": "poll_turn_back_for_lucy",
+    "prompt": "为素昧平生的露西母女折返险路,值不值?",
+    "options": [
+      "该救,人不能见死不救",
+      "不该,先保住病妻和孩子"
+    ]
+  },
+  {
+    "chapter": "V3-CIII",
+    "type": "poll",
+    "id": "poll_who_to_blame",
+    "prompt": "伊德丽丝之死,该怪谁?",
+    "options": [
+      "命运无常",
+      "他的盲目与轻信",
+      "她自己执意折返"
+    ]
+  },
+  {
+    "chapter": "V3-CIII",
+    "type": "react",
+    "id": "react_idris_dead_in_carriage",
+    "prompt": "他点亮屋灯回身——伊德丽丝已从座上滑落,心脉俱停。刷屏送别她!",
+    "mood": "grief"
+  },
+  {
+    "chapter": "V3-CIII",
+    "type": "react",
+    "id": "react_blood_from_mouth",
+    "prompt": "惊喜冲垮了她——她口中喷血昏倒在地。这一幕看得人心碎,刷屏!",
+    "mood": "horror"
+  },
+  {
+    "chapter": "V3-CIII",
+    "type": "micro_choice",
+    "id": "micro_idris_last_words",
+    "prompt": "她笑着说'我会好起来的,劫数已经退潮'。你信吗?",
+    "options": [
+      {
+        "label": "愿意相信她,心头一暖",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      },
+      {
+        "label": "看穿那是回光返照,心如刀绞",
+        "effect": {
+          "res": "morale",
+          "d": -1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V3-CIII",
+    "type": "micro_choice",
+    "id": "micro_cover_with_furs",
+    "prompt": "墓穴里你为亡妻铺设皮裘印度披肩,只露出她安详的脸。",
+    "options": [
+      {
+        "label": "给她最后一份体面,聊以慰心",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      },
+      {
+        "label": "耗尽了你最后的气力",
+        "effect": {
+          "res": "health",
+          "d": -1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V3-CIII",
+    "type": "lore",
+    "id": "lore_threads_of_fate",
+    "prompt": "命运用无数细丝织网,等你察觉,早已被缠得密不透风。",
+    "quote": "谁在大难之后,不曾惊愕于自己当初竟那般愚钝,看不见命运织就死网的根根细丝,直到自己被彻底网住?",
+    "note": "可在'被笑容蒙蔽的折返'后口播,点破玩家此刻每个选择都在收紧那张网"
+  },
+  {
+    "chapter": "V3-CIV",
+    "type": "lore",
+    "id": "lore_england_dead_ghost",
+    "prompt": "主播口播:这一句道尽了告别故土的哀恸。",
+    "quote": "英格兰还在,英格兰却已死去——我所凝望的,不过是欢乐英格兰的幽灵。",
+    "note": "在主角踏雪走过熟悉乡间、永别温莎时口播,渲染'物在人非'的末日苍凉。"
+  },
+  {
+    "chapter": "V3-CIV",
+    "type": "lore",
+    "id": "lore_priceless_gem",
+    "prompt": "主播口播:点破末日里每条人命的分量。",
+    "quote": "如今每一个人,都是王冠上一颗无价的宝石——一旦毁去,大地深处再也炼不出第二颗。",
+    "note": "在三派拔刀相向、首领幡然醒悟那一刻口播,凸显自相残杀的荒谬。"
+  },
+  {
+    "chapter": "V3-CIV",
+    "type": "react",
+    "id": "react_three_mock_suns",
+    "prompt": "三个燃烧的'假太阳'旋转着坠入海中,大海如熔岩般沸腾——为这末日异象刷屏。",
+    "mood": "awe"
+  },
+  {
+    "chapter": "V3-CIV",
+    "type": "react",
+    "id": "react_cattle_plunge_cliff",
+    "prompt": "受惊的牛马被强光逼瞎,成群嘶鸣着冲下海崖坠入怒涛——把你的悚然打在屏上。",
+    "mood": "horror"
+  },
+  {
+    "chapter": "V3-CIV",
+    "type": "react",
+    "id": "react_lucy_by_corpse",
+    "prompt": "烛火下,露西独守着母亲的尸体,手里还缝着裹尸布——为这份孤绝的哀伤刷屏。",
+    "mood": "grief"
+  },
+  {
+    "chapter": "V3-CIV",
+    "type": "poll",
+    "id": "poll_omen_or_wind",
+    "prompt": "三个'假太阳'坠海、海水暴涨倒灌多佛——这是什么?",
+    "options": [
+      "上帝降罚,阻我们逃离故土",
+      "不过是两股狂风相撞的天象"
+    ]
+  },
+  {
+    "chapter": "V3-CIV",
+    "type": "poll",
+    "id": "poll_countess_remorse",
+    "prompt": "前王后因傲慢错过女儿最后一面,如今刻骨忏悔。你怎么看?",
+    "options": [
+      "迟来的悔恨也是真心",
+      "傲慢害人,悔之晚矣"
+    ]
+  },
+  {
+    "chapter": "V3-CIV",
+    "type": "micro_choice",
+    "id": "micro_coax_wild_horses",
+    "prompt": "加莱荒原上跑野了的马半数忘了马厩,要不要费谷物把它们诱回代步?",
+    "options": [
+      {
+        "label": "撒下谷物,耐心诱马回来赶路",
+        "effect": {
+          "res": "health",
+          "d": 1
+        }
+      },
+      {
+        "label": "不耗粮了,徒步前行省下口粮",
+        "effect": {
+          "res": "food",
+          "d": 1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V3-CIV",
+    "type": "predict",
+    "id": "predict_confront_fanatic",
+    "prompt": "押注:若策马直逼神选派首领、当众喝令他约束信众,结局会是?",
+    "setup_node": "place_vendome_standoff",
+    "options": [
+      "他服软退去,广场无血",
+      "信众暴起,险些当场火并"
+    ]
+  },
+  {
+    "chapter": "V3-CIV",
+    "type": "predict",
+    "id": "predict_row_tonight",
+    "prompt": "押注:一月二十八日深夜划小艇强渡海峡,十四人能否平安抵达法国?",
+    "setup_node": "the_last_crossing",
+    "options": [
+      "硬撑十二小时,全员登岸",
+      "恶浪太凶,有人葬身海中"
+    ]
+  },
+  {
+    "chapter": "V3-CV",
+    "type": "poll",
+    "id": "poll_winter_or_south",
+    "prompt": "议事会争执:是留在凡尔赛熬过这个冬天,还是冒着酷暑立刻南迁?你站哪边?",
+    "options": [
+      "留下过冬,夏天去瑞士冰谷",
+      "立刻南下追逐春天"
+    ]
+  },
+  {
+    "chapter": "V3-CV",
+    "type": "poll",
+    "id": "poll_worth_saving_one",
+    "prompt": "幸存者已寥寥无几,为救一个陷入邪教的人深入虎穴,值得吗?",
+    "options": [
+      "值得,每一条命都不能放弃",
+      "太冒险,该先顾好自己人"
+    ]
+  },
+  {
+    "chapter": "V3-CV",
+    "type": "predict",
+    "id": "predict_dungeon_fate",
+    "prompt": "维尔尼被投进地牢,先知扬言明日处斩。午夜门开——他能活着走出杜伊勒里宫吗?",
+    "setup_node": "rescue_juliet_in_tuileries",
+    "options": [
+      "他会死在地牢里",
+      "有人会放他出去"
+    ]
+  },
+  {
+    "chapter": "V3-CV",
+    "type": "predict",
+    "id": "predict_juliet_leaves",
+    "prompt": "门外就是月光与自由,维尔尼想拉朱丽叶一起逃。她最终会跟他走吗?",
+    "setup_node": "dungeon_open_portal",
+    "options": [
+      "她会跟着逃出去",
+      "她会为孩子留下"
+    ]
+  },
+  {
+    "chapter": "V3-CV",
+    "type": "react",
+    "id": "react_idris_cavern",
+    "prompt": "歌舞欢声里,他闭上眼,只看见安放着伊德丽丝遗骸的幽暗墓穴——刷弹幕送别她。",
+    "mood": "grief"
+  },
+  {
+    "chapter": "V3-CV",
+    "type": "react",
+    "id": "react_midnight_execution",
+    "prompt": "钟敲一点,他背靠牢墙,以为是来取他性命的刺客——为这一刻刷屏!",
+    "mood": "horror"
+  },
+  {
+    "chapter": "V3-CV",
+    "type": "react",
+    "id": "react_child_hostage_scream",
+    "prompt": "'我的孩子!他扣着我的孩子!'朱丽叶一声尖叫奔回黑暗,铁门合拢——刷屏震撼!",
+    "mood": "awe"
+  },
+  {
+    "chapter": "V3-CV",
+    "type": "micro_choice",
+    "id": "micro_versailles_evening",
+    "prompt": "难得的平静夜晚,你想怎么陪伴孩子们?",
+    "options": [
+      {
+        "label": "和五岁的伊夫林玩闹,沾一点天真的快活",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      },
+      {
+        "label": "陪克拉拉静静读她珍视的经文",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V3-CV",
+    "type": "micro_choice",
+    "id": "micro_forage_share",
+    "prompt": "觅食队带回一批存粮,要怎么分配?",
+    "options": [
+      {
+        "label": "多留作储备,稳住接下来的口粮",
+        "effect": {
+          "res": "food",
+          "d": 1
+        }
+      },
+      {
+        "label": "今晚让大家吃顿饱的,提提士气",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V3-CV",
+    "type": "lore",
+    "id": "lore_dare_not_look_forward",
+    "prompt": "旁白金句:为什么宫殿里的人不敢憧憬未来?",
+    "quote": "可夏天与瘟疫近在眼前,我们不敢向前展望。",
+    "note": "主播可在镜头扫过欢宴人群时口播,点出末日里'欢笑底下尽是空洞'的反差。"
+  },
+  {
+    "chapter": "V3-CV",
+    "type": "lore",
+    "id": "lore_cannibal_of_souls",
+    "prompt": "旁白金句:用一句话点破假先知的本质。",
+    "quote": "她竟要被这个吞噬灵魂的食人者献祭。",
+    "note": "介绍反派先知时口播,立刻把'温情教主'的伪装撕下来。"
+  },
+  {
+    "chapter": "V3-CV",
+    "type": "lore",
+    "id": "lore_be_acceptable_to_power",
+    "prompt": "旁白金句:点出朱丽叶为何如此脆弱、如此易被蛊惑。",
+    "quote": "她从婴孩起便被抛掷于激情与不幸的汪洋,在万物中都看见神明的指引——越是良善,越成了易碎的祭品。",
+    "note": "可在朱丽叶出场时口播,让观众对她的'狂信'多一分同情,而非鄙夷。"
+  },
+  {
+    "chapter": "V3-CVI",
+    "type": "poll",
+    "id": "flee_or_assist_poll",
+    "prompt": "队伍只想逃往瑞士冰川,阿德里安却被困凡尔赛。换作是你,会怎么选?",
+    "options": [
+      "跟队伍逃命要紧",
+      "折返去救挚友"
+    ]
+  },
+  {
+    "chapter": "V3-CVI",
+    "type": "predict",
+    "id": "predict_horse_fate",
+    "prompt": "维尼一夜狂奔五十英里,他的爱马最后会怎样?投票押注!",
+    "setup_node": "lone_ride_to_versailles",
+    "options": [
+      "撑到城门便力竭而死",
+      "保住一命,只是累垮"
+    ]
+  },
+  {
+    "chapter": "V3-CVI",
+    "type": "predict",
+    "id": "predict_assassin_fate",
+    "prompt": "被缚的刺客叫嚣求殉道,愤怒的众人要动手。他的下场会是?",
+    "setup_node": "arrival_in_hall_of_hercules",
+    "options": [
+      "被阿德里安护下,免于私刑",
+      "被暴怒人群当场撕碎"
+    ]
+  },
+  {
+    "chapter": "V3-CVI",
+    "type": "predict",
+    "id": "predict_impostor_end",
+    "prompt": "谎言被朱丽叶当众戳穿,假先知会如何收场?",
+    "setup_node": "impostor_unmasked",
+    "options": [
+      "开枪自尽",
+      "被信众处死"
+    ]
+  },
+  {
+    "chapter": "V3-CVI",
+    "type": "react",
+    "id": "react_horse_death",
+    "prompt": "忠驹冲过长街抵达城门,跪倒、双眼蒙翳,喘了几口便死去。刷屏送它最后一程!",
+    "mood": "grief"
+  },
+  {
+    "chapter": "V3-CVI",
+    "type": "react",
+    "id": "react_juliet_denounce",
+    "prompt": "朱丽叶衣裙浸血、怀抱死婴,在人群中嘶声揭发恶行——这一幕让你怎样的震动?",
+    "mood": "horror"
+  },
+  {
+    "chapter": "V3-CVI",
+    "type": "react",
+    "id": "react_omens",
+    "prompt": "出发前夜,送葬队伍的幻影掠过长廊,夜空中传来为人类唱响的安魂曲。末日的凶兆刷屏!",
+    "mood": "awe"
+  },
+  {
+    "chapter": "V3-CVI",
+    "type": "micro_choice",
+    "id": "micro_calm_or_press",
+    "prompt": "枫丹白露折损数人,部众惶恐抗命。临行前你想给这群亡命之徒留下什么?",
+    "options": [
+      {
+        "label": "留句鼓舞士气的话",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      },
+      {
+        "label": "多备一程口粮再走",
+        "effect": {
+          "res": "food",
+          "d": 1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V3-CVI",
+    "type": "micro_choice",
+    "id": "micro_rest_at_dawn",
+    "prompt": "孤骑途中,要不要让人和马都歇一口气?",
+    "options": [
+      {
+        "label": "歇片刻,缓口气",
+        "effect": {
+          "res": "health",
+          "d": 1
+        }
+      },
+      {
+        "label": "咬牙赶路,心里更焦灼",
+        "effect": {
+          "res": "morale",
+          "d": -1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V3-CVI",
+    "type": "lore",
+    "id": "lore_sit_and_smile",
+    "prompt": "维尼面对必然的毁灭,留下一句近乎认命的独白。",
+    "quote": "既然一切既已注定、无可更改,我便坐在废墟之中微笑。我们生来不是为了享乐,而是为了顺从,为了怀抱希望。",
+    "note": "主播可在玩家做出艰难抉择后口播,把无力感转成一种悲壮的镇定。"
+  },
+  {
+    "chapter": "V3-CVI",
+    "type": "lore",
+    "id": "lore_quintessence_of_dust",
+    "prompt": "维尼悲叹人类的渺小:曾自诩为万物之灵,如今不过尘埃。",
+    "quote": "我们自称'万物之灵长',可看哪——我们只是一抔'尘埃的精华'。",
+    "note": "适合在大批角色病死、资源崩盘时口播,渲染末日的虚无感。"
+  },
+  {
+    "chapter": "V3-CVII",
+    "type": "predict",
+    "id": "predict_white_spectre_identity",
+    "prompt": "暮色里那团跳跃的白影,究竟是什么?上前之前先押一注。",
+    "setup_node": "the_spectre_on_the_road",
+    "options": [
+      "真的是鬼魂",
+      "是个发狂的活人",
+      "什么都不是,集体幻觉"
+    ]
+  },
+  {
+    "chapter": "V3-CVII",
+    "type": "predict",
+    "id": "predict_black_spectre_fate",
+    "prompt": "若派人靠近倒地的'黑骑士',照料他的人会被传染吗?",
+    "setup_node": "the_black_spectre",
+    "options": [
+      "平安无事",
+      "也染上瘟疫"
+    ]
+  },
+  {
+    "chapter": "V3-CVII",
+    "type": "poll",
+    "id": "poll_save_or_skip_dancer",
+    "prompt": "面对染病垂死的陌生人,该停下相救,还是护住健全的队伍先走?",
+    "options": [
+      "停下相救",
+      "带队绕开"
+    ]
+  },
+  {
+    "chapter": "V3-CVII",
+    "type": "poll",
+    "id": "poll_kindest_mercy",
+    "prompt": "对盲乐师父女,哪种结局才算最大的慈悲?",
+    "options": [
+      "收留盲父继续活",
+      "让父女一同体面长眠",
+      "不打碎那个善意的谎言"
+    ]
+  },
+  {
+    "chapter": "V3-CVII",
+    "type": "react",
+    "id": "react_alps_at_sunset",
+    "prompt": "翻过山脊,莱芒湖与落日下的阿尔卑斯雪峰骤然铺展眼前——把你的赞叹刷出来!",
+    "mood": "awe"
+  },
+  {
+    "chapter": "V3-CVII",
+    "type": "react",
+    "id": "react_countess_last_tie",
+    "prompt": "旧世界最后的纽带断了:王冠曾压过她的眉,如今随她一同入土。为伯爵夫人刷一行送别。",
+    "mood": "grief"
+  },
+  {
+    "chapter": "V3-CVII",
+    "type": "micro_choice",
+    "id": "micro_ferney_organ",
+    "prompt": "费尔奈教堂飘出海顿《创世》的管风琴声,你要做什么?",
+    "options": [
+      {
+        "label": "全队驻足跪听,让音乐抚平绝望",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      },
+      {
+        "label": "不忍打扰,绕过教堂继续赶路",
+        "effect": {
+          "res": "food",
+          "d": 1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V3-CVII",
+    "type": "micro_choice",
+    "id": "micro_jura_rest",
+    "prompt": "汝拉山脚胡桃树下有清泉绿草,正午酷热,歇还是趁凉赶路?",
+    "options": [
+      {
+        "label": "树荫下歇息饮水,缓一缓病弱",
+        "effect": {
+          "res": "health",
+          "d": 1
+        }
+      },
+      {
+        "label": "趁着尚有力气多赶一段山路",
+        "effect": {
+          "res": "morale",
+          "d": -1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V3-CVII",
+    "type": "lore",
+    "id": "lore_death_is_a_portal",
+    "prompt": "弗尼在第戎写下最绝望也最通透的一句独白。",
+    "quote": "死亡是一道巨大的门,是通往生命的高路;让我们快些穿过吧——不再苟活于这活着的死亡里,而是去死,好让我们真正地活。",
+    "note": "主播可在士气跌到谷底时口播,把'继续走下去'重新包装成一种向死而生的选择。"
+  },
+  {
+    "chapter": "V3-CVII",
+    "type": "lore",
+    "id": "lore_grasshopper_burden",
+    "prompt": "翻越汝拉山时,弗尼引了一句希伯来诗人的话形容疲惫。",
+    "quote": "有些时候,连一只蚱蜢都成了沉重的负担。",
+    "note": "主播可在玩家资源见底、寸步难行时口播,渲染'再小的事都压垮人'的末日疲态。"
+  },
+  {
+    "chapter": "V3-CVIII",
+    "type": "predict",
+    "id": "predict_ice_cave_survival",
+    "prompt": "他屏息潜进崩冰随时坠落的冰穴深处安放遗体——他能全身而退吗?",
+    "setup_node": "arveiron_ice_burial",
+    "options": [
+      "他平安退出,只被擦伤",
+      "他被坠冰活埋在里头"
+    ]
+  },
+  {
+    "chapter": "V3-CVIII",
+    "type": "predict",
+    "id": "predict_evelyn_alive",
+    "prompt": "湖岸空荡、别墅空无一人——下了山径再找到的克拉拉与埃维林,孩子还活着吗?",
+    "setup_node": "empty_beach_evelyn",
+    "options": [
+      "孩子只是病倒,还活着",
+      "孩子已经断气"
+    ]
+  },
+  {
+    "chapter": "V3-CVIII",
+    "type": "poll",
+    "id": "poll_leave_or_stay",
+    "prompt": "克拉拉求你带她离开这致命的乐园——你会连夜动身,还是留下来缓一缓?",
+    "options": [
+      "立刻启程奔罗马",
+      "再留几日养身子"
+    ]
+  },
+  {
+    "chapter": "V3-CVIII",
+    "type": "react",
+    "id": "react_ice_collapse",
+    "prompt": "刚退出洞口,巨大冰块便自穹顶崩落,严严盖住那具人形——刷屏送他最后一程",
+    "mood": "awe"
+  },
+  {
+    "chapter": "V3-CVIII",
+    "type": "react",
+    "id": "react_evelyn_dies",
+    "prompt": "血在脉里停了流,他睁了睁眼又阖上,没有抽搐没有叹息,小小躯壳便空了——为埃维林默哀",
+    "mood": "grief"
+  },
+  {
+    "chapter": "V3-CVIII",
+    "type": "react",
+    "id": "react_plague_gone",
+    "prompt": "随这最后一名死者,瘟疫七年的暴政在冰岩间终结,从此世上再无瘟疫——这一刻你怎么想?",
+    "mood": "awe"
+  },
+  {
+    "chapter": "V3-CVIII",
+    "type": "micro_choice",
+    "id": "micro_milan_lodging",
+    "prompt": "在米兰过冬,该给克拉拉挑一处怎样的居所?",
+    "options": [
+      {
+        "label": "最奢华的副王宫,华袍美玉装点幸存",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      },
+      {
+        "label": "先彻查无腐尸残迹的干净小宅再住",
+        "effect": {
+          "res": "health",
+          "d": 1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V3-CVIII",
+    "type": "micro_choice",
+    "id": "micro_foraging_trip",
+    "prompt": "天好的午后,阿德里安要撑舟去对岸荒村搜粮,你怎么安排?",
+    "options": [
+      {
+        "label": "满载而归,给埃维林带回新奇礼物",
+        "effect": {
+          "res": "food",
+          "d": 1
+        }
+      },
+      {
+        "label": "留在别墅陪克拉拉,吹单簧管解她的闷",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V3-CVIII",
+    "type": "lore",
+    "id": "lore_two_blasted_trees",
+    "prompt": "阿德里安望着冰墓,说出末日里最苍凉的一句自况",
+    "quote": "我们就这样被留下了——两棵枯焦的残树,立在曾经森林摇曳之地;留下来哀悼、憔悴,然后死去。",
+    "note": "主播可在冰葬场景口播此句,点出全人类只剩四人的孤绝"
+  },
+  {
+    "chapter": "V3-CVIII",
+    "type": "lore",
+    "id": "lore_plague_abdicates",
+    "prompt": "瘟疫退位的那句旁白,适合在'瘟疫消失'节点收尾口播",
+    "quote": "她交出王座,在环绕我们的冰岩间卸下了帝国的权杖,只留下孤独与寂静共治她的王国。",
+    "note": "主播用它制造转折:敌人终被战胜,但留给幸存者的只是更深的空寂"
+  },
+  {
+    "chapter": "V3-CIX",
+    "type": "predict",
+    "id": "predict_storm_survivors",
+    "prompt": "三人扬帆出海,你押注暴风雨后谁能活着上岸?",
+    "setup_node": "venice_setting_sail",
+    "options": [
+      "三人都得救",
+      "只有莱昂内尔独活",
+      "全员葬身大海"
+    ]
+  },
+  {
+    "chapter": "V3-CIX",
+    "type": "predict",
+    "id": "predict_swim_rescue",
+    "prompt": "莱昂内尔扑向电光里那个抱着桨的身影——他能把阿德里安救回来吗?",
+    "setup_node": "shipwreck_choice",
+    "options": [
+      "救回了同伴",
+      "扑了个空,人影消散"
+    ]
+  },
+  {
+    "chapter": "V3-CIX",
+    "type": "poll",
+    "id": "poll_sail_or_land",
+    "prompt": "平静的海面在召唤,荒山陆路却更稳妥——你会让他们出海吗?",
+    "options": [
+      "顺心愿,出海",
+      "保平安,走陆路"
+    ]
+  },
+  {
+    "chapter": "V3-CIX",
+    "type": "poll",
+    "id": "poll_crusoe_compare",
+    "prompt": "莱昂内尔自比鲁滨逊——你觉得谁的处境更绝望?",
+    "options": [
+      "鲁滨逊还有获救之望",
+      "末日独存者更绝望",
+      "两者一样无解"
+    ]
+  },
+  {
+    "chapter": "V3-CIX",
+    "type": "react",
+    "id": "react_boat_capsize",
+    "prompt": "舵断了,小舟迎头扎进巨浪——一声尖叫,黑海吞没了一切!",
+    "mood": "horror"
+  },
+  {
+    "chapter": "V3-CIX",
+    "type": "react",
+    "id": "react_clara_resignation",
+    "prompt": "电光中,克拉拉脸上的恐惧化作平静:'一场死亡将把我们永不分离地拥在一起。'",
+    "mood": "grief"
+  },
+  {
+    "chapter": "V3-CIX",
+    "type": "react",
+    "id": "react_last_man_dawn",
+    "prompt": "玫瑰色的晨光铺满空荡的海岸,只剩一截断桅——世上最后一人,睁开了眼。",
+    "mood": "awe"
+  },
+  {
+    "chapter": "V3-CIX",
+    "type": "micro_choice",
+    "id": "micro_tower_supper",
+    "prompt": "塔楼里有半霉的饼干和半瓶酸酒,你怎么对付这一夜?",
+    "options": [
+      {
+        "label": "吃下霉饼干、喝口酸酒续命",
+        "effect": {
+          "res": "food",
+          "d": 1
+        }
+      },
+      {
+        "label": "嫌它腐败,忍着饥饿入睡",
+        "effect": {
+          "res": "morale",
+          "d": -1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V3-CIX",
+    "type": "micro_choice",
+    "id": "micro_ravenna_bed",
+    "prompt": "空城拉文纳有上千张床,你今夜睡哪儿?",
+    "options": [
+      {
+        "label": "拣一张柔软的床好好歇息",
+        "effect": {
+          "res": "health",
+          "d": 1
+        }
+      },
+      {
+        "label": "以冷石阶为枕,用苦行麻痹悲恸",
+        "effect": {
+          "res": "morale",
+          "d": -1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V3-CIX",
+    "type": "lore",
+    "id": "lore_last_man",
+    "prompt": "金句时刻:他终于在每一次脉搏里确认了自己的身份。",
+    "quote": "我独自留存于我的族类——我,是最后一个人。",
+    "note": "主播可在第三张卡揭晓结局时口播,点题'最后一人',让弹幕集体刷屏。"
+  },
+  {
+    "chapter": "V3-CIX",
+    "type": "lore",
+    "id": "lore_ocean_grave",
+    "prompt": "金句时刻:大海作墓,却不立碑。",
+    "quote": "大海虽是坟墓,却不竖墓碑,也不留废墟。",
+    "note": "主播可在小舟驶离威尼斯、转向大海那一刻念出,为出海决定埋下不祥的伏笔。"
+  },
+  {
+    "chapter": "V3-CX",
+    "type": "predict",
+    "id": "predict_death_feast",
+    "prompt": "维尼扑向那间小屋桌上的'晚宴',你押他会发现什么?",
+    "setup_node": "death_feast_search",
+    "options": [
+      "桌后藏着一个活人",
+      "只剩发霉的食物与死寂"
+    ]
+  },
+  {
+    "chapter": "V3-CX",
+    "type": "predict",
+    "id": "predict_voyage_fate",
+    "prompt": "维尼扬帆驶入风暴与瘟疫之海,你押他会怎样?",
+    "setup_node": "set_sail_last_man",
+    "options": [
+      "在某个港口找到同类",
+      "孤独终老,死于海上"
+    ]
+  },
+  {
+    "chapter": "V3-CX",
+    "type": "poll",
+    "id": "poll_endure_or_die",
+    "prompt": "若你是地球最后一人,你会选?",
+    "options": [
+      "拼尽全力远航寻人",
+      "守着遗产安静老死",
+      "干脆了结这一切"
+    ]
+  },
+  {
+    "chapter": "V3-CX",
+    "type": "poll",
+    "id": "poll_nature_friend_or_foe",
+    "prompt": "在维尼眼中,山羊、飞鸟、牧群这些活物算是?",
+    "options": [
+      "反衬孤独的敌人",
+      "提醒他还活着的慰藉"
+    ]
+  },
+  {
+    "chapter": "V3-CX",
+    "type": "react",
+    "id": "react_mirror_savage",
+    "prompt": "维尼在宫殿镜中认不出那个半裸如野人的自己——刷屏吧!",
+    "mood": "horror"
+  },
+  {
+    "chapter": "V3-CX",
+    "type": "react",
+    "id": "react_eternal_rome",
+    "prompt": "空寂的永恒之城在蓝天下沉睡,喷泉独自低吟——为这壮美刷屏!",
+    "mood": "awe"
+  },
+  {
+    "chapter": "V3-CX",
+    "type": "micro_choice",
+    "id": "micro_break_the_wand",
+    "prompt": "斯波莱托山顶,维尼盯着那根记日的柳枝——",
+    "options": [
+      {
+        "label": "折断它,不再用日月丈量痛苦",
+        "effect": {
+          "res": "morale",
+          "d": -1
+        }
+      },
+      {
+        "label": "留着它,继续刻下每一天",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V3-CX",
+    "type": "micro_choice",
+    "id": "micro_adopt_the_dog",
+    "prompt": "坎帕尼亚的牧羊犬扑上你的膝头,摇着尾巴——",
+    "options": [
+      {
+        "label": "带上它,从此结伴",
+        "effect": {
+          "res": "morale",
+          "d": 1
+        }
+      },
+      {
+        "label": "分它一份口粮",
+        "effect": {
+          "res": "food",
+          "d": -1
+        }
+      }
+    ]
+  },
+  {
+    "chapter": "V3-CX",
+    "type": "lore",
+    "id": "lore_dedication_last_man",
+    "prompt": "维尼为自己的书写下题献——",
+    "quote": "谨献给那些显赫的逝者。亡魂们,起来,读一读你们的覆灭吧!这是《最后的人》的史册。",
+    "note": "主播可在维尼落笔写书时口播,点题整部作品,拉满末日的庄严感。"
+  },
+  {
+    "chapter": "V3-CX",
+    "type": "lore",
+    "id": "lore_peril_my_friend",
+    "prompt": "维尼向罗马、向文明告别时的宣言——",
+    "quote": "凶险如今属于我,我以朋友之名迎接它;死亡将不断横在我路上,我视它为恩人。",
+    "note": "登舟出发的高潮口播金句,把'自毁式的远航'升华成最后的英雄主义。"
+  }
+]
