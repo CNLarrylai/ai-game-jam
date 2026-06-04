@@ -66,3 +66,22 @@
 
 ## 文风
 - 中文为主;`res` 等字段值用英文。
+
+---
+
+## 新增字段(v2:骨架 / 住所 / 路线 / POI)
+在 `world_bible.json` 增产以下字段,供游戏壳按"住所 + 路线 + POI"通用框架渲染(见 GAME_FRAMEWORK.md §E):
+```jsonc
+"spine_type": "journey | holdout | social | investigation",   // 故事骨架(决定地图隐喻+住所是否移动)
+"dwelling": {                          // "住所"轨迹(基地 = 人/载具,而非固定地点)
+  "kind_progression": ["马车","温莎城堡","小船"],            // 随旅程演变
+  "fragility_beats": ["暴雪夜马车散架→失伊德丽丝"]            // 受损/丢失的关键节点(即戏)
+},
+"route": [                             // 把章节聚成"程"
+  { "leg": 1, "place": "温莎", "phase": "本土爆发", "chapters": ["V2-CVI","V2-CVII"] }
+],
+"poi_bank": [                          // 沿途据点(策展 + 留 AI 槽给观众生成)
+  { "leg": 1, "name": "水闸破屋", "kind": "search|npc|hazard|shelter", "from": "novel|audience", "hook": "染疫弃者" }
+]
+```
+判定 `spine_type`:多数可爬小说 = journey(地点在变);困守一地 = holdout(= cheney 的固定基地特例);群像/关系 = social;悬疑 = investigation。
