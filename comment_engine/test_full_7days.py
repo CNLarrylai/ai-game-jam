@@ -186,8 +186,31 @@ SCRIPT = {
 # 游戏引擎
 # ============================================================
 
+FALLBACK_EVENTS = {
+    "home_event": {
+        "event_title": "🌅 平静的早晨",
+        "narration": "避难所里一切照旧。水管滴答作响，窗外依然死寂。你检查了一遍物资，发现储备比想象中少。今天得出去找点什么。",
+        "options": [
+            {"text": "整理背包出发", "outcome": "你把能带的都塞进背包，推开门迎接又一天的末日。", "stat_changes": {"hp": 0, "hunger": -5, "sanity": 5}, "capability_used": "none"},
+            {"text": "先吃点东西", "outcome": "你勉强吃了点剩余食物，感觉好了一些。", "stat_changes": {"hp": 5, "hunger": 10, "sanity": 0}, "capability_used": "none"},
+        ],
+        "source_display": "系统兜底事件",
+    },
+    "explore": {
+        "event_title": "🔍 寂静角落",
+        "narration": "你走进一个还没被翻过的角落。灰尘厚得像毯子，脚印只有你自己的。安静得让人不安，但至少没有危险。",
+        "options": [
+            {"text": "仔细搜索", "outcome": "你在废墟中找到了一些有用的东西。", "stat_changes": {"hp": 0, "hunger": -5, "sanity": -5}, "item_gained": "废旧零件", "capability_used": "none"},
+            {"text": "快速扫过继续前进", "outcome": "没什么值得停留的，你继续往前走。", "stat_changes": {"hp": 0, "hunger": -3, "sanity": 0}, "capability_used": "none"},
+        ],
+        "source_display": "系统兜底事件",
+    },
+}
+
+
 def safe_generate(category, comment, username, context, state, retries=2):
-    """带安全检查和重试的生成"""
+    """带安全检查和重试的生成，全部失败时返回兜底事件"""
+    last_error = None
     for attempt in range(retries + 1):
         try:
             result = generate(category=category, comment=comment, username=username, context=context)
@@ -196,11 +219,21 @@ def safe_generate(category, comment, username, context, state, retries=2):
                 return result, safety
             if attempt < retries:
                 continue
-            return result, safety  # 最后一次即使不过也返回
+            return result, safety
         except Exception as e:
+            last_error = e
             if attempt < retries:
                 continue
-            return None, None
+
+    # 全部失败，返回兜底事件（仅 EVENT 类型有兜底）
+    if category == "EVENT":
+        phase = state.phase
+        fallback = FALLBACK_EVENTS.get(phase, FALLBACK_EVENTS["explore"]).copy()
+        print(f"  ⚠️ 生成失败({last_error})，使用兜底事件")
+        from narrative_safety import SafetyCheckResult
+        return fallback, SafetyCheckResult(passed=True, score=50, warnings=["使用兜底事件"])
+
+    print(f"  ⚠️ 生成失败({last_error})，跳过")
     return None, None
 
 

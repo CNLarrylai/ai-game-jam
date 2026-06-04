@@ -237,8 +237,20 @@ def generate(category: str, comment: str, username: str, context: str) -> dict:
     )
 
     raw = resp.content[0].text.strip()
+    return _parse_json_response(raw)
 
-    # 提取 JSON（多种包裹格式兼容）
+
+def _parse_json_response(raw: str) -> dict:
+    """
+    从 AI 响应中提取 JSON，带多层容错：
+    1. 去 markdown code block
+    2. 找 { } 边界
+    3. 修复尾逗号
+    4. 修复截断的 JSON（补全缺失的括号）
+    5. 修复未转义的换行符
+    """
+    import re
+
     # 去掉 markdown code block
     if "```" in raw:
         parts = raw.split("```")
@@ -250,15 +262,75 @@ def generate(category: str, comment: str, username: str, context: str) -> dict:
                 raw = p
                 break
 
-    # 尝试找到第一个 { 和最后一个 }
+    # 找 { } 边界
     start = raw.find("{")
     end = raw.rfind("}")
     if start != -1 and end != -1:
         raw = raw[start:end + 1]
+    elif start != -1:
+        # JSON 被截断了（没有最后的 }），尝试补全
+        raw = raw[start:]
+        raw = _fix_truncated_json(raw)
 
-    # 修复常见 JSON 问题：尾逗号
-    import re
+    # 修复尾逗号
     raw = re.sub(r',\s*}', '}', raw)
     raw = re.sub(r',\s*]', ']', raw)
 
-    return json.loads(raw.strip())
+    # 修复字符串内的未转义换行
+    raw = re.sub(r'(?<=": ")(.*?)(?="[,\s}])', lambda m: m.group(0).replace('\n', '\\n'), raw)
+
+    try:
+        return json.loads(raw.strip())
+    except json.JSONDecodeError:
+        # 最后尝试：逐行清理
+        lines = raw.strip().split('\n')
+        cleaned = []
+        for line in lines:
+            line = line.rstrip()
+            if line and not line.startswith('//'):
+                cleaned.append(line)
+        raw_cleaned = '\n'.join(cleaned)
+        raw_cleaned = re.sub(r',\s*}', '}', raw_cleaned)
+        raw_cleaned = re.sub(r',\s*]', ']', raw_cleaned)
+        return json.loads(raw_cleaned)
+
+
+def _fix_truncated_json(raw: str) -> str:
+    """补全截断的 JSON：计算未关闭的括号并追加"""
+    open_braces = 0
+    open_brackets = 0
+    in_string = False
+    escape = False
+
+    for ch in raw:
+        if escape:
+            escape = False
+            continue
+        if ch == '\\':
+            escape = True
+            continue
+        if ch == '"' and not escape:
+            in_string = not in_string
+            continue
+        if in_string:
+            continue
+        if ch == '{':
+            open_braces += 1
+        elif ch == '}':
+            open_braces -= 1
+        elif ch == '[':
+            open_brackets += 1
+        elif ch == ']':
+            open_brackets -= 1
+
+    # 去掉末尾可能的不完整值（截断的字符串等）
+    raw = raw.rstrip()
+    if raw and raw[-1] not in '{}[],"0123456789tfn':
+        # 可能是截断的字符串值，补引号
+        raw += '"'
+
+    # 补全括号
+    raw += ']' * max(0, open_brackets)
+    raw += '}' * max(0, open_braces)
+
+    return raw

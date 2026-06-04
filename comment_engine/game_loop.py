@@ -103,12 +103,21 @@ class GameLoop:
         result = None
 
         for attempt in range(max_retries + 1):
-            raw_result = generate(
-                category=category,
-                comment=pick.raw_text,
-                username=pick.username,
-                context=context,
-            )
+            try:
+                raw_result = generate(
+                    category=category,
+                    comment=pick.raw_text,
+                    username=pick.username,
+                    context=context,
+                )
+            except Exception as e:
+                self._render("GENERATE_ERROR", {
+                    "attempt": attempt + 1,
+                    "error": str(e),
+                })
+                if attempt < max_retries:
+                    continue
+                break
 
             # 叙事安全检查
             safety = check_narrative_safety(raw_result, self.state, category)
@@ -133,9 +142,11 @@ class GameLoop:
                     continue
 
         if result is None:
-            # 全部重试失败，使用兜底
-            self._render("FALLBACK", {"reason": "安全检查连续失败，使用兜底事件"})
-            return None
+            # 全部重试失败，使用兜底事件
+            self._render("FALLBACK", {"reason": "生成失败或安全检查连续不通过，使用兜底事件"})
+            result = self._get_fallback_event()
+            if result is None:
+                return None
 
         # 记录被采纳的评论
         self.state.record_adopted_comment(
@@ -152,6 +163,30 @@ class GameLoop:
         })
 
         return result
+
+    def _get_fallback_event(self) -> Optional[dict]:
+        """返回一个安全的兜底事件"""
+        phase = self.state.phase
+        if phase == "home_event":
+            return {
+                "event_title": "🌅 平静的早晨",
+                "narration": "避难所里一切照旧。水管滴答作响，窗外依然死寂。",
+                "options": [
+                    {"text": "整理背包出发", "outcome": "你推开门迎接又一天的末日。", "stat_changes": {"hp": 0, "hunger": -5, "sanity": 5}},
+                    {"text": "先吃点东西", "outcome": "你勉强吃了点剩余食物。", "stat_changes": {"hp": 5, "hunger": 10, "sanity": 0}},
+                ],
+                "source_display": "系统兜底事件",
+            }
+        else:
+            return {
+                "event_title": "🔍 寂静角落",
+                "narration": "你走进一个还没被翻过的角落。灰尘厚得像毯子，安静得让人不安。",
+                "options": [
+                    {"text": "仔细搜索", "outcome": "你找到了一些有用的东西。", "stat_changes": {"hp": 0, "hunger": -5, "sanity": -5}, "item_gained": "废旧零件"},
+                    {"text": "快速扫过", "outcome": "没什么值得停留的。", "stat_changes": {"hp": 0, "hunger": -3, "sanity": 0}},
+                ],
+                "source_display": "系统兜底事件",
+            }
 
     def end_of_day(self):
         """日终处理：清理孤儿钩子 + 压缩历史"""
