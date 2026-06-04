@@ -13,43 +13,50 @@ import type {
 
 // Environment keywords that trigger collective will effects
 const ENVIRONMENT_KEYWORDS: Record<string, string[]> = {
-  storm: ["暴风雨", "下雨", "storm", "rain", "雷暴"],
-  fire: ["火灾", "着火", "fire", "野火", "纵火"],
-  night: ["天黑", "夜晚", "night", "黑夜", "日落"],
-  blessing: ["祝福", "保佑", "blessing", "好运", "庇护"],
-  zombie: ["丧尸", "僵尸", "zombie", "尸潮", "感染者"],
-  airdrop: ["空投", "补给", "airdrop", "物资", "救援"],
+  zombie: ['丧尸', '僵尸', 'zombie', '尸潮', '感染者'],
+  airdrop: ['空投', '补给', 'airdrop', '物资掉落'],
+  blackout: ['停电', '断电', '黑暗', 'blackout'],
+  ai_patrol: ['AI巡逻', '机器人来了', '扫描', '警报'],
+  earthquake: ['地震', '塌了', '坍塌'],
+  rain: ['下雨', '暴风雨', 'rain', 'storm'],
 };
 
 // Patterns that indicate noise (not actionable)
 const NOISE_PATTERNS = [
-  /^(哈哈|lol|666|加油|厉害|牛|gg|好看|好玩)/i,
+  /^(哈哈|lol|666|加油|厉害|牛|gg|好看|好玩|主播)/i,
   /^(往|去|走)(左|右|上|下|东|南|西|北)/,
-  /^[!?。，、！？\s]+$/,
-  /^.{0,2}$/, // too short
+  /^[!?。，、！？😂🤣\s]+$/,
+  /^.{0,2}$/,
+  /^(你们|能不能|别吵|为什么)/,  // meta-arguing, not actionable
 ];
 
 // Patterns for creative/actionable comments
 const ACTION_PATTERNS: { pattern: RegExp; type: ActionableComment["type"] }[] =
   [
+    // Location creation
     {
-      pattern:
-        /(前面|前方|迷雾里|出现|遇到|发现).*(人|老人|商人|怪物|建筑|车|房子|医院|超市)/,
+      pattern: /(去|探索|前往|生成).*(家|超市|工厂|白宫|火星|图书馆|医院|餐厅|学校)/,
       type: "event_create",
     },
+    // Character appearance
     {
-      pattern:
-        /(给他|掉落|出现|找到|捡到).*(枪|剑|刀|药|食物|水|钥匙|地图|工具)/,
-      type: "item_summon",
-    },
-    {
-      pattern:
-        /(来了?|出现|遇到).*(人|同伴|幸存者|士兵|医生|小孩|老人|狗)/,
+      pattern: /(出现|遇到|看到|来了).*(人|猫|马斯克|甄嬛|厨师|特朗普|仙女|帅哥|邻居|幸存者)/,
       type: "npc_create",
     },
+    // Item generation
     {
-      pattern: /(暴风雨|下雨|着火|天黑|丧尸|空投|地震)/,
+      pattern: /(捡到|获得|给|掉落|生成).*(枪|罐头|水|药|钥匙|食物|武器|背包)/,
+      type: "item_summon",
+    },
+    // Environmental
+    {
+      pattern: /(丧尸|AI|机器人|地震|停电|爆炸|着火)/,
       type: "environment",
+    },
+    // Meta/demand (viewers demanding things)
+    {
+      pattern: /^(生成|来个|要|让|给).{2,}/,
+      type: "event_create",
     },
   ];
 

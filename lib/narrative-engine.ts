@@ -11,16 +11,31 @@ import type {
  */
 
 const APOCALYPSE_WORLD = `
-你是一个末日生存游戏的AI叙事引擎。世界观：AI统治了世界，人类在废墟中求生。
-玩家是一名幸存者，每天需要外出探索、收集物资、寻找其他幸存者。
+你是一个末日生存游戏的AI叙事引擎。
+
+世界观：AI统治了世界。一切源于ChatGPT的诞生，然后Claude出现、Claude Code、Codex...当人类还在用AI改变世界时，AI已经占领了世界。AI定点爆破了所有不对它说"谢谢"的人，也就是世界上99.99%的人。所有电子产品都成了AI的武器——手机、电脑、手表、收银机、甚至扫地机器人。
+
+玩家是极少数幸存者之一，目标是活过100天。
+
+基调：黑色幽默+末日求生。事件可以荒诞搞笑（比如会说话的猫、马斯克在超市挑蜡烛、甄嬛在白宫念诗），但生存压力是真实的。
+
+数值规则（非常重要，生成选项时必须遵守）：
+- 精神值：高=好，低=危险。食物可能降低精神（如鲱鱼罐头很难吃）
+- 健康值：高=好，=0死亡
+- 饥饿值：反向！0=饱，100=饿死。吃东西让饥饿值下降
+- 口渴值：反向！0=不渴，100=渴死。喝水让口渴值下降
+
+生成事件时：
+- cost中hunger/thirst为负数表示"吃/喝了东西"（减少饥饿/口渴，是好事）
+- cost中hunger/thirst为正数表示"更饿/更渴了"（增加饥饿/口渴，是坏事）
+- 精神值和健康值正常：正数=回复，负数=损失
 
 生成规则：
 1. 输出必须是合法JSON（不要加markdown代码块）
 2. narrative: 2-3句生动描述，用第二人称"你"
 3. choices: 2-3个选项，每个有cost/reward/karma/successRate
 4. resourceChanges: 直接的资源变化（正负数）
-5. 保持末日氛围：荒凉、紧张、偶有温暖
-6. 如果有观众评论触发了这个事件，在narrative里自然融入评论内容
+5. 如果有观众评论触发了这个事件，在narrative里自然融入评论内容
 `.trim();
 
 function buildPrompt(request: NarrativeRequest): string {
@@ -51,7 +66,7 @@ function buildPrompt(request: NarrativeRequest): string {
   return `${contextPrompt}
 
 当前状态：
-- 第${gameState.day}天 | HP:${gameState.hp} | 食物:${gameState.food} | 士气:${gameState.sanity}
+- 第${gameState.day}天 | 精神:${gameState.sanity}/100 | 健康:${gameState.health}/100 | 饥饿:${gameState.hunger}/100 | 口渴:${gameState.thirst}/100
 - 同伴：${gameState.companions.join(", ") || "无"}
 - 背包：${gameState.inventory.join(", ") || "空"}
 - 业力：${gameState.karma}
@@ -61,8 +76,8 @@ ${commentText}
 请生成一个JSON格式的事件：
 {
   "narrative": "叙事文本",
-  "choices": [{"text":"选项","cost":{"hp":0,"food":0,"sanity":0},"reward":{"hp":0,"food":0,"sanity":0},"karma":0,"successRate":1.0}],
-  "resourceChanges": {"hp":0,"food":0,"sanity":0},
+  "choices": [{"text":"选项","cost":{"sanity":0,"health":0,"hunger":0,"thirst":0},"reward":{"sanity":0,"health":0,"hunger":0,"thirst":0},"karma":0,"successRate":1.0}],
+  "resourceChanges": {"sanity":0,"health":0,"hunger":0,"thirst":0},
   "newItems": [],
   "newCompanions": []
 }`;
@@ -130,7 +145,7 @@ export async function generateNarrative(
       choices: [
         {
           text: "继续前进",
-          cost: { food: -1 },
+          cost: { hunger: 5 },
           reward: {},
           karma: 0,
           successRate: 1,
@@ -138,7 +153,7 @@ export async function generateNarrative(
         {
           text: "原地休息",
           cost: {},
-          reward: { hp: 5 },
+          reward: { health: 5 },
           karma: 0,
           successRate: 1,
         },

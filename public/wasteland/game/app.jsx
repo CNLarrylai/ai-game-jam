@@ -326,12 +326,43 @@ function App() {
     return () => clearInterval(interval);
   }, []);
 
-  /* ---- broadcast game state for spectators ---- */
+  /* ---- broadcast game state for spectators (WebSocket) ---- */
   useEffect(() => {
+    if (window.WsSync && WsSync.connected) {
+      WsSync.broadcastGameState({
+        day, stats, scene,
+        pack: pack.map(i => ({ id: i.id, name: i.name, qty: i.qty, icon: i.icon })),
+        comments: comments.slice(-10),
+        decision: decision ? { title: decision.title, desc: decision.desc, opts: decision.opts, votes: decision.votes, result: decision.result } : null,
+      });
+    }
     if (window.ApiBridge) {
       ApiBridge.broadcastState({ day, stats, scene, pack: pack.map(i => i.name) });
     }
-  }, [day, stats, scene]);
+  }, [day, stats, scene, decision]);
+
+  /* ---- receive viewer comments via WebSocket ---- */
+  useEffect(() => {
+    if (!window.WsSync) return;
+    const onViewerComment = (msg) => {
+      streamComment({ user: msg.name, av: msg.avatar, text: msg.text });
+    };
+    const onViewerJoin = (msg) => {
+      setViewers(msg.viewerCount || viewers);
+      pushComment({ user: "系统", av: "📢", text: (msg.name || "新观众") + " 进入了直播间", system: true });
+    };
+    const onViewerLeave = (msg) => {
+      setViewers(msg.viewerCount || viewers);
+    };
+    WsSync.on('viewer_comment', onViewerComment);
+    WsSync.on('viewer_join', onViewerJoin);
+    WsSync.on('viewer_leave', onViewerLeave);
+    return () => {
+      WsSync.off('viewer_comment', onViewerComment);
+      WsSync.off('viewer_join', onViewerJoin);
+      WsSync.off('viewer_leave', onViewerLeave);
+    };
+  }, []);
 
   /* hidden review shortcuts (NOT visible streamer controls): 1=fail 2=win 3=settle 0=restart */
   useEffect(() => {

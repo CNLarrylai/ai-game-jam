@@ -4,7 +4,7 @@ export interface ResourceAction {
   playerAction: string;
   isReasonable: boolean;
   narrative: string;
-  resourceChanges: Partial<Record<'hp' | 'food' | 'sanity', number>>;
+  resourceChanges: Partial<Record<'health' | 'hunger' | 'thirst' | 'sanity', number>>;
   itemsConsumed: string[];
   itemsGained: string[];
   karmaChange: number;
@@ -18,11 +18,11 @@ export const resourceActions: ResourceAction[] = [
     playerAction: '用绷带治疗同伴',
     isReasonable: true,
     narrative: '你小心翼翼地为同伴清理伤口，用最后一卷绷带仔细包扎好。同伴咬着牙没有出声，但眼神里满是感激。',
-    resourceChanges: { hp: 20 },
+    resourceChanges: { health: 20 },
     itemsConsumed: ['绷带'],
     itemsGained: [],
     karmaChange: 5,
-    companionEffect: '同伴生命值+20',
+    companionEffect: '同伴健康值+20',
   },
   {
     id: 'r02',
@@ -54,7 +54,7 @@ export const resourceActions: ResourceAction[] = [
     playerAction: '用酒精消毒伤口',
     isReasonable: true,
     narrative: '你咬紧牙关，将酒精倒在发炎的伤口上，剧烈的刺痛让你差点叫出声来。几分钟后灼烧感逐渐消退，伤口周围的红肿明显减轻，感染的风险被暂时控制住了。',
-    resourceChanges: { hp: 15 },
+    resourceChanges: { health: 15 },
     itemsConsumed: ['酒精'],
     itemsGained: [],
     karmaChange: 0,
@@ -78,7 +78,7 @@ export const resourceActions: ResourceAction[] = [
     playerAction: '吃生肉充饥',
     isReasonable: false,
     narrative: '饥饿战胜了理智，你撕下一块生肉塞进嘴里，腥膻的味道让胃一阵翻涌但你强忍着咽了下去。肚子暂时不叫了，但隐隐的腹痛让你担心接下来几个小时可能会很难熬。',
-    resourceChanges: { food: 15, hp: -20 },
+    resourceChanges: { hunger: -15, health: -20 },
     itemsConsumed: ['生肉'],
     itemsGained: [],
     karmaChange: 0,

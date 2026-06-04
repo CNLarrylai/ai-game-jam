@@ -3,7 +3,8 @@
 ## 概述
 
 - **项目**：AI Game Jam 黑客松
-- **主题**：末日求生（AI统治世界后的人类生存）
+- **主题**：在AI统治的世界存活100天
+- **世界观**：AI定点清除了所有不对AI说"谢谢"的人类（99.99%），幸存者在废墟中求生。黑色幽默 + 末日生存。电子产品即武器。
 - **负责人**：陈昕
 - **模块定位**：评论识别 -> 事件生成 -> 叙事引擎，作为独立模块被游戏主循环调用
 
@@ -19,6 +20,21 @@
 | 2.资源调整 | 玩家自由操作结果判定 | 玩家指令+状态 | 结果判定 |
 | 4.选择地图 | 生成可选探索地点 | 评论+进度 | 2-3个地点选项 |
 | 5.探索地图 | 生成每格内容 | 位置+历史+评论 | 格子事件 |
+
+---
+
+## 游戏状态：四维数值
+
+| 数值 | 中文名 | 方向 | 说明 |
+|------|--------|------|------|
+| sanity | 精神值 | 正向（越高越好） | 精神崩溃=游戏结束 |
+| health | 健康值 | 正向（越高越好） | 生命值归零=死亡 |
+| hunger | 饥饿值 | **反向（0=饱，100=饿死）** | 数值越低状态越好 |
+| thirst | 口渴值 | **反向（0=不渴，100=渴死）** | 数值越低状态越好 |
+
+**初始物品**：矿泉水x3, 鲱鱼罐头x2
+
+> 注意：hunger和thirst采用反向设计，0代表最佳状态，数值随时间自然增长，需要消耗食物/水来降低。
 
 ---
 
@@ -54,11 +70,11 @@
 
 | 类型 | 示例 | 处理 |
 |------|------|------|
-| 事件创造 | "前面有个废弃医院" | -> NarrativeEngine生成事件 |
-| 物品召唤 | "给他一把枪" | -> NarrativeEngine生成物品事件 |
-| NPC创造 | "遇到一个幸存者" | -> NarrativeEngine生成NPC事件 |
-| 环境变化 | "丧尸来了" x5 | -> 集体意志触发环境事件 |
-| 噪音 | "加油" "666" "往左走" | -> 过滤，不触发 |
+| 事件创造 | "去白宫" "生成火星地点" | -> NarrativeEngine生成事件 |
+| 物品召唤 | "主播捡到一把冲锋枪" | -> NarrativeEngine生成物品事件 |
+| NPC创造 | "出现一个秦始皇" "有一个光头邻居" | -> NarrativeEngine生成NPC事件 |
+| 环境变化 | "丧尸来了" x5 / "AI巡逻" x3 | -> 集体意志触发环境事件 |
+| 噪音 | "666" "哈哈哈" "加油" "你们能不能说点有用的" | -> 过滤，不触发 |
 
 ### API
 
@@ -66,6 +82,54 @@
 processComments(raw: RawComment[]): ProcessedComments
 checkCollectiveWill(envKeywords, threshold): string | null
 ```
+
+---
+
+## 评论分类示例（来自真实直播间观察）
+
+以下展示真实观众评论及其分类结果：
+
+### 创意事件（event_create / npc_create / item_summon）
+| 评论 | 分类 | 说明 |
+|------|------|------|
+| "看到一只猫" | npc_create | 创造角色 |
+| "猫会说话" | event_create | 修饰已有角色，触发事件 |
+| "出现一个秦始皇" | npc_create | 历史人物乱入，黑色幽默 |
+| "特朗普从天而降" | npc_create | 名人出现 |
+| "拐角遇到马斯克" | npc_create | 名人NPC |
+| "出现甄嬛" | npc_create | 影视人物 |
+| "主播捡到一把冲锋枪" | item_summon | 武器获取 |
+| "有一只鬼出现" | npc_create | 超自然角色 |
+
+### 地点建议（event_create）
+| 评论 | 分类 | 说明 |
+|------|------|------|
+| "主播应该去看看零食区" | event_create | 场景内导航 |
+| "去白宫" | event_create | 新地点 |
+| "去泰勒斯威夫特家" | event_create | 名人相关地点 |
+| "生成火星地点" | event_create | 极端地点，系统需转译 |
+
+### NPC/角色交互
+| 评论 | 分类 | 说明 |
+|------|------|------|
+| "有一个光头邻居" | npc_create | 创造NPC |
+| "光头邻居请求收留" | event_create | 驱动NPC行为 |
+| "生成一个厨子" | npc_create | 直接要求生成 |
+
+### 噪音（过滤）
+| 评论 | 分类 | 说明 |
+|------|------|------|
+| "666" | noise | 纯表情/数字 |
+| "哈哈哈" | noise | 纯笑声 |
+| "猫咪万岁" | noise | 太短且无可执行内容 |
+| "你们能不能说点有用的" | noise | meta吐槽，不可执行 |
+
+### 元评论/争论（过滤）
+| 评论 | 分类 | 说明 |
+|------|------|------|
+| "不要马斯克！" | noise | 反对性元评论 |
+| "就要马斯克！" | noise | 支持性元评论（但不创造内容） |
+| "你们在玩宫接龙吗？" | noise | 元评论吐槽 |
 
 ---
 
@@ -81,7 +145,7 @@ checkCollectiveWill(envKeywords, threshold): string | null
 
 ```typescript
 {
-  gameState: { day, hp, food, morale, companions, inventory, karma, history },
+  gameState: { day, sanity, health, hunger, thirst, companions, inventory, karma, history },
   context: 'home_event' | 'resource_adjust' | 'map_choice' | 'explore_tile',
   comments?: ActionableComment[],
   playerAction?: string
@@ -94,7 +158,7 @@ checkCollectiveWill(envKeywords, threshold): string | null
 {
   narrative: string,         // 叙事文本
   choices: Choice[],         // 2-3个选项(cost/reward/karma/successRate)
-  resourceChanges: {},       // 资源变化
+  resourceChanges: {},       // 资源变化（sanity/health/hunger/thirst）
   newItems: string[],        // 新物品
   newCompanions: string[],   // 新同伴
   attribution: {user, text}, // 评论归属
@@ -131,7 +195,7 @@ checkCollectiveWill(envKeywords, threshold): string | null
 
 ### 同步内容
 
-- 游戏状态（位置/资源/血量）
+- 游戏状态（位置/精神值/健康值/饥饿值/口渴值）
 - 事件弹窗（标题/描述/选项/结果）
 - 评论弹幕
 - 神圣干预popup
@@ -191,10 +255,12 @@ GameUI.showEvent(event);
 
 ## 末日求生世界观（给AI的prompt基础）
 
-AI统治了世界。人类在废墟中求生。玩家是一名幸存者。
+AI统治了世界。AI定点清除了所有不对AI说"谢谢"的人类（99.99%被消灭）。幸存者在废墟中求生。玩家是最后的幸存者之一，目标是存活100天。
 
-- **环境**：废弃城市、荒野、地下避难所
-- **威胁**：AI巡逻机器人、资源枯竭、恶劣天气、其他幸存者（可能友好也可能敌对）
-- **目标**：存活足够长时间 / 找到安全区 / 与AI谈判
-- **资源**：HP(生命)、Food(食物)、Morale(士气)
-- **业力系统**：善恶选择影响NPC态度和事件走向
+- **基调**：黑色幽默 + 荒诞 + 末日生存
+- **环境**：废弃工厂、大型超市、白宫、火星（观众创造）等
+- **威胁**：AI巡逻机器人、电子设备（即武器）、丧尸、资源枯竭、变异生物
+- **目标**：存活100天
+- **资源**：精神值(sanity)、健康值(health)、饥饿值(hunger, 反向)、口渴值(thirst, 反向)
+- **初始物品**：矿泉水x3, 鲱鱼罐头x2
+- **关键地点**：废弃工厂, 大型超市, 王金鑫家, 白宫

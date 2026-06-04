@@ -27,13 +27,16 @@ const AMBIENT_COMMENTS = [
 
 // Items in the shelter / pack
 const ITEMS = {
-  can:    { id: "can",    icon: "🥫", name: "罐头",     kind: "consume", effect: { hunger: 30 }, effText: "饱腹 +30", qty: 3 },
-  bandage:{ id: "bandage",icon: "🩹", name: "绷带",     kind: "consume", effect: { hp: 25 },     effText: "HP +25",  qty: 1 },
-  water:  { id: "water",  icon: "💧", name: "净水",     kind: "consume", effect: { hunger: 12, sanity: 8 }, effText: "饱腹 +12 理智 +8", qty: 2 },
-  pills:  { id: "pills",  icon: "💊", name: "镇静剂",   kind: "consume", effect: { sanity: 30 }, effText: "理智 +30", qty: 1 },
-  flashlight:{ id:"flashlight", icon:"🔦", name:"军用手电筒", kind: "tool", effect:{}, effText:"被动：探索时多揭开 1 格视野", qty: 1 },
-  scrap:  { id: "scrap",  icon: "🔩", name: "废铁",     kind: "material", effect: {}, effText: "材料：交易 / 设置陷阱时消耗", qty: 2 },
+  water: { id: "water", icon: "💧", name: "矿泉水", kind: "consume", effect: { thirst: -10 }, effText: "口渴 -10", qty: 3 },
+  herring: { id: "herring", icon: "🐟", name: "鲱鱼罐头", kind: "consume", effect: { hunger: -10, sanity: -10 }, effText: "饥饿 -10 精神 -10", qty: 2 },
+  catcan: { id: "catcan", icon: "🐱", name: "猫咪罐头", kind: "consume", effect: { hunger: -15 }, effText: "饥饿 -15", qty: 0 },
+  gun: { id: "gun", icon: "🔫", name: "冲锋枪", kind: "weapon", effect: {}, effText: "在家不可使用，出门可携带", qty: 0 },
+  bandage: { id: "bandage", icon: "🩹", name: "绷带", kind: "consume", effect: { health: 20 }, effText: "健康 +20", qty: 0 },
+  pills: { id: "pills", icon: "💊", name: "镇静剂", kind: "consume", effect: { sanity: 25 }, effText: "精神 +25", qty: 0 },
+  scrap: { id: "scrap", icon: "🔩", name: "废铁", kind: "material", effect: {}, effText: "材料：交易时消耗", qty: 0 },
 };
+
+const INIT_STATS = { sanity: 60, health: 50, hunger: 30, thirst: 30 };
 
 const COMPANIONS = [
   { id: "rin", name: "凛", av: "👩‍🔧", role: "机械师", status: "健康",
@@ -43,22 +46,17 @@ const COMPANIONS = [
     ask: "「装备还能修，就是零件不够。出门记得帮我留意废铁。」" },
   { id: "doc", name: "老K", av: "🧓", role: "军医", status: "轻伤",
     detail: "退役军医，擅长急救与药品识别。腿部旧伤，长途移动消耗更多行动点。", hp: 55, mood: "疲惫",
-    skill: { id: "heal", label: "应急治疗", icon: "🩹", effect: { hp: 14 },
-      line: "老K为你清创、上药、注射消炎针。伤口不再渗血。HP +14。", note: "恢复 HP · 每天一次" },
+    skill: { id: "heal", label: "应急治疗", icon: "🩹", effect: { health: 14 },
+      line: "老K为你清创、上药、注射消炎针。伤口不再渗血。健康 +14。", note: "恢复 健康 · 每天一次" },
     ask: "「药品快见底了，真正的重伤我也救不回来。省着点用。」" },
 ];
 
 // Destinations for 选择目的地
 const DESTINATIONS = [
-  { id: "hospital", icon: "🏥", name: "废弃医院", danger: 3, reward: "药品 / 绷带",
-    ap: 3, generated: true, by: "雾",
-    confirm: "确定前往废弃医院？据点深处疑似有机械守卫。" },
-  { id: "market", icon: "🏪", name: "塌陷超市", danger: 2, reward: "食物 / 净水", ap: 2,
-    confirm: "确定前往塌陷超市？结构不稳，可能坍塌。" },
-  { id: "station", icon: "📻", name: "广播电台", danger: 4, reward: "情报 / 信号枪", ap: 4,
-    confirm: "确定前往广播电台？高处暴露，危险等级高。" },
-  { id: "tunnel", icon: "🚇", name: "地铁隧道", danger: 3, reward: "通道线索", ap: 3,
-    confirm: "确定前往地铁隧道？黑暗中有未知生物的声音。" },
+  { id: "factory", icon: "🏭", name: "废弃工厂", danger: 2, reward: "废铁 / 零件", ap: 3, confirm: "确定前往废弃工厂？里面的机器可能还在运转..." },
+  { id: "market", icon: "🏪", name: "大型超市", danger: 3, reward: "食物 / 日用品", ap: 3, confirm: "确定前往大型超市？里面有各种智能产品，危机重重！" },
+  { id: "wjx", icon: "🏠", name: "王金鑫家", danger: 1, reward: "未知", ap: 2, generated: true, by: "观众投票", confirm: "确定前往王金鑫家？你不知道王金鑫是谁，但家里一般有物资。" },
+  { id: "whitehouse", icon: "🏛️", name: "白宫", danger: 4, reward: "武器 / 战时储备", ap: 4, generated: true, by: "观众评论", confirm: "确定前往白宫？路途遥远且危险重重。" },
 ];
 
 // NPC for map encounter
@@ -143,6 +141,6 @@ const SPAM_USERS = [
 ];
 
 Object.assign(window, {
-  AMBIENT_COMMENTS, ITEMS, COMPANIONS, DESTINATIONS, MAP_NPC, HEX_TILES,
+  AMBIENT_COMMENTS, ITEMS, INIT_STATS, COMPANIONS, DESTINATIONS, MAP_NPC, HEX_TILES,
   TIMELINE, LEADERBOARD, GLOBAL_STATS, WIN_RECAP, SPAM_PHRASES, SPAM_USERS,
 });

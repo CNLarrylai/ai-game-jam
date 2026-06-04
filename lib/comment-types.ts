@@ -28,14 +28,15 @@ export type NarrativeContext =
 
 export interface GameState {
   day: number;
-  hp: number;
-  food: number;
-  sanity: number;
+  sanity: number;      // 精神值 60/100, high=good, <10=game over
+  health: number;      // 健康值 50/100, high=good, =0=game over
+  hunger: number;      // 饥饿值 30/100, INVERTED: 0=full, 100=starved, =100=game over
+  thirst: number;      // 口渴值 30/100, INVERTED: 0=full, 100=dehydrated, =100=game over
   actionPoints: number;
   companions: string[];
   inventory: string[];
   karma: number;
-  history: string[]; // recent event summaries
+  history: string[];
 }
 
 export interface NarrativeRequest {
@@ -49,7 +50,7 @@ export interface NarrativeResponse {
   narrative: string;
   choices: NarrativeChoice[];
   resourceChanges: Partial<
-    Record<"hp" | "food" | "sanity" | "actionPoints", number>
+    Record<"sanity" | "health" | "hunger" | "thirst" | "actionPoints", number>
   >;
   newItems: string[];
   newCompanions: string[];
@@ -59,8 +60,8 @@ export interface NarrativeResponse {
 
 export interface NarrativeChoice {
   text: string;
-  cost: Partial<Record<"hp" | "food" | "sanity", number>>;
-  reward: Partial<Record<"hp" | "food" | "sanity", number>>;
+  cost: Partial<Record<"sanity" | "health" | "hunger" | "thirst", number>>;
+  reward: Partial<Record<"sanity" | "health" | "hunger" | "thirst", number>>;
   karma: number;
   successRate: number;
 }

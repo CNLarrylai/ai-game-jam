@@ -12,7 +12,7 @@ export interface PresetExploreEvent {
   dangerLevel: number;
   narrative: string;
   choices: NarrativeChoice[];
-  resourceChanges: Partial<Record<'hp' | 'food' | 'sanity' | 'actionPoints', number>>;
+  resourceChanges: Partial<Record<'health' | 'hunger' | 'thirst' | 'sanity' | 'actionPoints', number>>;
   newItems: string[];
   newCompanions: string[];
 }
@@ -35,21 +35,21 @@ export const presetExploreEvents: PresetExploreEvent[] = [
       {
         text: '仔细翻找每一个货架，不放过任何角落',
         cost: { sanity: -5 },
-        reward: { food: 15 },
+        reward: { hunger: -15 },
         karma: 0,
         successRate: 0.8,
       },
       {
         text: '只拿最容易够到的东西，速战速决',
         cost: {},
-        reward: { food: 8 },
+        reward: { hunger: -8 },
         karma: 0,
         successRate: 0.95,
       },
       {
         text: '在门口设置陷阱警报后再搜索',
         cost: { sanity: -3 },
-        reward: { food: 12, sanity: 5 },
+        reward: { hunger: -12, sanity: 5 },
         karma: 0,
         successRate: 0.85,
       },
@@ -75,7 +75,7 @@ export const presetExploreEvents: PresetExploreEvent[] = [
     choices: [
       {
         text: '放下武器，表示友善，提议分享食物',
-        cost: { food: -5 },
+        cost: { hunger: 5 },
         reward: { sanity: 10 },
         karma: 2,
         successRate: 0.75,
@@ -90,7 +90,7 @@ export const presetExploreEvents: PresetExploreEvent[] = [
       {
         text: '趁对方紧张，喝令对方交出物资',
         cost: { sanity: -8 },
-        reward: { food: 12 },
+        reward: { hunger: -12 },
         karma: -3,
         successRate: 0.6,
       },
@@ -116,15 +116,15 @@ export const presetExploreEvents: PresetExploreEvent[] = [
     choices: [
       {
         text: '举起双手，用食物换取通行',
-        cost: { food: -10 },
+        cost: { hunger: 10 },
         reward: {},
         karma: 0,
         successRate: 0.7,
       },
       {
         text: '利用货架掩护，打翻最近的人后突围',
-        cost: { hp: -15 },
-        reward: { food: 20, sanity: 5 },
+        cost: { health: -15 },
+        reward: { hunger: -20, sanity: 5 },
         karma: -1,
         successRate: 0.45,
       },
@@ -136,7 +136,7 @@ export const presetExploreEvents: PresetExploreEvent[] = [
         successRate: 0.65,
       },
     ],
-    resourceChanges: { hp: -5 },
+    resourceChanges: { health: -5 },
     newItems: [],
     newCompanions: [],
   },
@@ -158,21 +158,21 @@ export const presetExploreEvents: PresetExploreEvent[] = [
       {
         text: '撬开储藏室的锁，彻底搜索',
         cost: { sanity: -3 },
-        reward: { hp: 20 },
+        reward: { health: 20 },
         karma: 0,
         successRate: 0.7,
       },
       {
         text: '只拿外面散落的药品，不冒险',
         cost: {},
-        reward: { hp: 8 },
+        reward: { health: 8 },
         karma: 0,
         successRate: 0.95,
       },
       {
         text: '搜索护士站的抽屉，可能有被忽略的急救包',
         cost: { sanity: -2 },
-        reward: { hp: 12 },
+        reward: { health: 12 },
         karma: 0,
         successRate: 0.8,
       },
@@ -198,14 +198,14 @@ export const presetExploreEvents: PresetExploreEvent[] = [
     choices: [
       {
         text: '用你的药品帮她处理伤口，尽力救治',
-        cost: { hp: -10, food: -5 },
+        cost: { health: -10, hunger: 5 },
         reward: { sanity: 15 },
         karma: 3,
         successRate: 0.6,
       },
       {
         text: '留下一些食物和水，但不耽搁时间',
-        cost: { food: -5 },
+        cost: { hunger: 5 },
         reward: { sanity: 5 },
         karma: 1,
         successRate: 0.9,
@@ -213,7 +213,7 @@ export const presetExploreEvents: PresetExploreEvent[] = [
       {
         text: '她已经没救了，拿走旁边有用的医疗器械',
         cost: { sanity: -10 },
-        reward: { hp: 15 },
+        reward: { health: 15 },
         karma: -3,
         successRate: 0.95,
       },
@@ -239,8 +239,8 @@ export const presetExploreEvents: PresetExploreEvent[] = [
     choices: [
       {
         text: '趁它还没完全反应过来，全力攻击要害',
-        cost: { hp: -10 },
-        reward: { sanity: 10, food: 5 },
+        cost: { health: -10 },
+        reward: { sanity: 10, hunger: -10 },
         karma: 0,
         successRate: 0.55,
       },
@@ -253,13 +253,13 @@ export const presetExploreEvents: PresetExploreEvent[] = [
       },
       {
         text: '用走廊的氧气瓶制造爆炸，炸毁整个隔离区',
-        cost: { hp: -8 },
+        cost: { health: -8 },
         reward: { sanity: 8 },
         karma: 0,
         successRate: 0.5,
       },
     ],
-    resourceChanges: { hp: -5 },
+    resourceChanges: { health: -5 },
     newItems: ['变异组织样本'],
     newCompanions: [],
   },
@@ -281,13 +281,13 @@ export const presetExploreEvents: PresetExploreEvent[] = [
       {
         text: '观察巡逻规律，找到盲区潜入',
         cost: { sanity: -5 },
-        reward: { food: 10, sanity: 8 },
+        reward: { hunger: -10, sanity: 8 },
         karma: 0,
         successRate: 0.5,
       },
       {
         text: '用金属碎片引开机器人注意力，趁机冲进建筑',
-        cost: { hp: -8 },
+        cost: { health: -8 },
         reward: { sanity: 5 },
         karma: 0,
         successRate: 0.6,
@@ -322,13 +322,13 @@ export const presetExploreEvents: PresetExploreEvent[] = [
       {
         text: '小心推开门，检查是否有陷阱后进入搜索',
         cost: { sanity: -3 },
-        reward: { hp: 5, sanity: 10 },
+        reward: { health: 5, sanity: 10 },
         karma: 0,
         successRate: 0.75,
       },
       {
         text: '直接冲进去，能拿多少拿多少',
-        cost: { hp: -5 },
+        cost: { health: -5 },
         reward: { sanity: 15 },
         karma: 0,
         successRate: 0.6,
@@ -336,7 +336,7 @@ export const presetExploreEvents: PresetExploreEvent[] = [
       {
         text: '只在外围搜索，不进军火库',
         cost: {},
-        reward: { food: 5 },
+        reward: { hunger: -5 },
         karma: 0,
         successRate: 0.9,
       },
@@ -362,7 +362,7 @@ export const presetExploreEvents: PresetExploreEvent[] = [
     choices: [
       {
         text: '帮他一起修，用你的零件加速进度',
-        cost: { food: -5 },
+        cost: { hunger: 5 },
         reward: { sanity: 15 },
         karma: 2,
         successRate: 0.7,
@@ -377,7 +377,7 @@ export const presetExploreEvents: PresetExploreEvent[] = [
       {
         text: '拿走他的工具和零件，你更需要这些',
         cost: { sanity: -12 },
-        reward: { food: 8 },
+        reward: { hunger: -8 },
         karma: -3,
         successRate: 0.7,
       },
@@ -403,27 +403,27 @@ export const presetExploreEvents: PresetExploreEvent[] = [
     choices: [
       {
         text: '趁水位还不高，拼命往回跑',
-        cost: { hp: -5, sanity: -5 },
+        cost: { health: -5, sanity: -5 },
         reward: {},
         karma: 0,
         successRate: 0.8,
       },
       {
         text: '爬上管道支架，等水位稳定后再行动',
-        cost: { food: -3 },
+        cost: { hunger: 3 },
         reward: { sanity: 5 },
         karma: 0,
         successRate: 0.7,
       },
       {
         text: '深吸一口气，潜水穿过前方通道看看有没有出口',
-        cost: { hp: -12 },
-        reward: { sanity: 10, food: 8 },
+        cost: { health: -12 },
+        reward: { sanity: 10, hunger: -8 },
         karma: 0,
         successRate: 0.4,
       },
     ],
-    resourceChanges: { hp: -3, sanity: -3 },
+    resourceChanges: { health: -3, sanity: -3 },
     newItems: [],
     newCompanions: [],
   },
@@ -444,7 +444,7 @@ export const presetExploreEvents: PresetExploreEvent[] = [
     choices: [
       {
         text: '用火把逼退它，虫类应该怕火',
-        cost: { hp: -5 },
+        cost: { health: -5 },
         reward: { sanity: 10 },
         karma: 0,
         successRate: 0.6,
@@ -458,13 +458,13 @@ export const presetExploreEvents: PresetExploreEvent[] = [
       },
       {
         text: '对准它的复眼猛刺，一击致命',
-        cost: { hp: -15 },
-        reward: { food: 12, sanity: 12 },
+        cost: { health: -15 },
+        reward: { hunger: -12, sanity: 12 },
         karma: 0,
         successRate: 0.35,
       },
     ],
-    resourceChanges: { hp: -5 },
+    resourceChanges: { health: -5 },
     newItems: ['坚硬甲壳'],
     newCompanions: [],
   },
@@ -485,7 +485,7 @@ export const presetExploreEvents: PresetExploreEvent[] = [
     choices: [
       {
         text: '结伴同行，互相照应',
-        cost: { food: -3 },
+        cost: { hunger: 3 },
         reward: { sanity: 12 },
         karma: 1,
         successRate: 0.8,
@@ -526,7 +526,7 @@ export const presetExploreEvents: PresetExploreEvent[] = [
     choices: [
       {
         text: '把你的食物和药品分给他们一半',
-        cost: { food: -12, hp: -8 },
+        cost: { hunger: 12, health: -8 },
         reward: { sanity: 20 },
         karma: 4,
         successRate: 0.95,
@@ -568,21 +568,21 @@ export const presetExploreEvents: PresetExploreEvent[] = [
       {
         text: '花时间尝试各种密码组合打开它',
         cost: { sanity: -3 },
-        reward: { food: 10, sanity: 8 },
+        reward: { hunger: -10, sanity: 8 },
         karma: 0,
         successRate: 0.5,
       },
       {
         text: '用工具暴力撬开',
-        cost: { hp: -3 },
-        reward: { food: 8, sanity: 5 },
+        cost: { health: -3 },
+        reward: { hunger: -8, sanity: 5 },
         karma: 0,
         successRate: 0.75,
       },
       {
         text: '搬走整个保险箱，回去再慢慢开',
-        cost: { hp: -5, sanity: -2 },
-        reward: { food: 12, sanity: 10 },
+        cost: { health: -5, sanity: -2 },
+        reward: { hunger: -12, sanity: 10 },
         karma: 0,
         successRate: 0.85,
       },
@@ -608,14 +608,14 @@ export const presetExploreEvents: PresetExploreEvent[] = [
     choices: [
       {
         text: '用多余的物资交换急需的药品',
-        cost: { food: -8 },
-        reward: { hp: 15 },
+        cost: { hunger: 8 },
+        reward: { health: 15 },
         karma: 0,
         successRate: 0.9,
       },
       {
         text: '和他聊聊，打听附近的情报',
-        cost: { food: -3 },
+        cost: { hunger: 3 },
         reward: { sanity: 10 },
         karma: 0,
         successRate: 0.85,
@@ -649,7 +649,7 @@ export const presetExploreEvents: PresetExploreEvent[] = [
     choices: [
       {
         text: '大声喊话表明来意，请求通行或交易',
-        cost: { food: -5 },
+        cost: { hunger: 5 },
         reward: { sanity: 5 },
         karma: 0,
         successRate: 0.6,
@@ -663,8 +663,8 @@ export const presetExploreEvents: PresetExploreEvent[] = [
       },
       {
         text: '趁夜色绕到侧面，偷袭他们的物资仓库',
-        cost: { hp: -12 },
-        reward: { food: 20, sanity: 8 },
+        cost: { health: -12 },
+        reward: { hunger: -20, sanity: 8 },
         karma: -2,
         successRate: 0.35,
       },
@@ -705,7 +705,7 @@ export const presetExploreEvents: PresetExploreEvent[] = [
       {
         text: '搜索教室其他地方，画地图的人可能留下了更多信息',
         cost: { sanity: -3 },
-        reward: { sanity: 12, food: 5 },
+        reward: { sanity: 12, hunger: -5 },
         karma: 0,
         successRate: 0.7,
       },
@@ -731,14 +731,14 @@ export const presetExploreEvents: PresetExploreEvent[] = [
     choices: [
       {
         text: '留下大量食物和水，教他们基本的防卫技巧',
-        cost: { food: -15 },
+        cost: { hunger: 15, thirst: 10 },
         reward: { sanity: 20 },
         karma: 5,
         successRate: 0.95,
       },
       {
         text: '带他们去你知道的安全地点',
-        cost: { food: -8, hp: -5 },
+        cost: { hunger: 8, health: -5 },
         reward: { sanity: 15 },
         karma: 3,
         successRate: 0.6,
@@ -772,14 +772,14 @@ export const presetExploreEvents: PresetExploreEvent[] = [
     choices: [
       {
         text: '找到控制室，尝试关闭AI系统',
-        cost: { hp: -10 },
-        reward: { sanity: 15, food: 10 },
+        cost: { health: -10 },
+        reward: { sanity: 15, hunger: -10 },
         karma: 0,
         successRate: 0.4,
       },
       {
         text: '利用工厂的复杂地形，引爆锅炉制造混乱后撤离',
-        cost: { hp: -8 },
+        cost: { health: -8 },
         reward: { sanity: 8 },
         karma: 0,
         successRate: 0.55,
@@ -792,7 +792,7 @@ export const presetExploreEvents: PresetExploreEvent[] = [
         successRate: 0.95,
       },
     ],
-    resourceChanges: { hp: -5 },
+    resourceChanges: { health: -5 },
     newItems: ['AI核心碎片'],
     newCompanions: [],
   },
@@ -820,8 +820,8 @@ export const presetExploreEvents: PresetExploreEvent[] = [
       },
       {
         text: '重点搜索仓库，大件物资更有价值',
-        cost: { hp: -3 },
-        reward: { food: 5, sanity: 8 },
+        cost: { health: -3 },
+        reward: { hunger: -5, sanity: 8 },
         karma: 0,
         successRate: 0.75,
       },
@@ -854,27 +854,27 @@ export const presetExploreEvents: PresetExploreEvent[] = [
     choices: [
       {
         text: '点燃随身携带的火把，火焰应该能吓退它们',
-        cost: { hp: -5 },
+        cost: { health: -5 },
         reward: { sanity: 10 },
         karma: 0,
         successRate: 0.6,
       },
       {
         text: '爬上最近的大树，等狼群离开',
-        cost: { food: -5, sanity: -5 },
+        cost: { hunger: 5, sanity: -5 },
         reward: {},
         karma: 0,
         successRate: 0.75,
       },
       {
         text: '瞄准领头狼，击杀它让狼群溃散',
-        cost: { hp: -18 },
-        reward: { food: 15, sanity: 15 },
+        cost: { health: -18 },
+        reward: { hunger: -15, sanity: 15 },
         karma: 0,
         successRate: 0.3,
       },
     ],
-    resourceChanges: { hp: -5 },
+    resourceChanges: { health: -5 },
     newItems: ['狼皮'],
     newCompanions: [],
   },
@@ -896,21 +896,21 @@ export const presetExploreEvents: PresetExploreEvent[] = [
       {
         text: '花时间仔细采集和分类，确保每种药草都正确保存',
         cost: { sanity: -2 },
-        reward: { hp: 15 },
+        reward: { health: 15 },
         karma: 0,
         successRate: 0.9,
       },
       {
         text: '快速采一些最常见的，赶路要紧',
         cost: {},
-        reward: { hp: 8 },
+        reward: { health: 8 },
         karma: 0,
         successRate: 0.95,
       },
       {
         text: '在这里扎营半天，除了采药还可以钓鱼补充食物',
         cost: { sanity: -3 },
-        reward: { hp: 10, food: 10 },
+        reward: { health: 10, hunger: -10 },
         karma: 0,
         successRate: 0.8,
       },
@@ -936,14 +936,14 @@ export const presetExploreEvents: PresetExploreEvent[] = [
     choices: [
       {
         text: '给她水和药品，处理伤口后带她同行',
-        cost: { food: -5, hp: -5 },
+        cost: { hunger: 5, health: -5, thirst: 5 },
         reward: { sanity: 15 },
         karma: 3,
         successRate: 0.7,
       },
       {
         text: '给她水和基本急救，但不带她走',
-        cost: { food: -3 },
+        cost: { thirst: 5 },
         reward: { sanity: 8 },
         karma: 1,
         successRate: 0.9,
@@ -951,7 +951,7 @@ export const presetExploreEvents: PresetExploreEvent[] = [
       {
         text: '拿走她的地图和有用的东西就离开',
         cost: { sanity: -15 },
-        reward: { food: 5 },
+        reward: { hunger: -5 },
         karma: -4,
         successRate: 0.95,
       },
@@ -977,7 +977,7 @@ export const presetExploreEvents: PresetExploreEvent[] = [
     choices: [
       {
         text: '从桥下的钢结构攀爬过去，绕过检查站',
-        cost: { hp: -10, sanity: -5 },
+        cost: { health: -10, sanity: -5 },
         reward: { sanity: 12 },
         karma: 0,
         successRate: 0.5,
@@ -991,7 +991,7 @@ export const presetExploreEvents: PresetExploreEvent[] = [
       },
       {
         text: '放弃过桥，沿河岸寻找其他渡口',
-        cost: { food: -5, sanity: -3 },
+        cost: { hunger: 5, sanity: -3 },
         reward: {},
         karma: 0,
         successRate: 0.85,
@@ -1018,7 +1018,7 @@ export const presetExploreEvents: PresetExploreEvent[] = [
     choices: [
       {
         text: '全力冲刺跑向对岸，赌桥不会马上塌',
-        cost: { hp: -8 },
+        cost: { health: -8 },
         reward: { sanity: 10 },
         karma: 0,
         successRate: 0.5,
@@ -1032,13 +1032,13 @@ export const presetExploreEvents: PresetExploreEvent[] = [
       },
       {
         text: '抓住桥侧的钢缆，等晃动停止后再移动',
-        cost: { hp: -5, sanity: -5 },
+        cost: { health: -5, sanity: -5 },
         reward: { sanity: 5 },
         karma: 0,
         successRate: 0.6,
       },
     ],
-    resourceChanges: { hp: -3, sanity: -5 },
+    resourceChanges: { health: -3, sanity: -5 },
     newItems: [],
     newCompanions: [],
   },
@@ -1059,14 +1059,14 @@ export const presetExploreEvents: PresetExploreEvent[] = [
     choices: [
       {
         text: '用你的金属零件交换一把好刀',
-        cost: { food: -5 },
-        reward: { sanity: 12, hp: 5 },
+        cost: { hunger: 5 },
+        reward: { sanity: 12, health: 5 },
         karma: 0,
         successRate: 0.9,
       },
       {
         text: '请他教你基本的锻造技巧',
-        cost: { food: -8 },
+        cost: { hunger: 8 },
         reward: { sanity: 15 },
         karma: 1,
         successRate: 0.8,
@@ -1100,7 +1100,7 @@ export const presetExploreEvents: PresetExploreEvent[] = [
     choices: [
       {
         text: '详细询问安全区的位置和路线，考虑加入护送队',
-        cost: { food: -3 },
+        cost: { hunger: 3 },
         reward: { sanity: 15 },
         karma: 1,
         successRate: 0.7,
@@ -1156,7 +1156,7 @@ export const presetExploreEvents: PresetExploreEvent[] = [
       {
         text: '这可能是陷阱，忽略它继续搜索药品',
         cost: {},
-        reward: { hp: 8 },
+        reward: { health: 8 },
         karma: 0,
         successRate: 0.85,
       },
@@ -1182,21 +1182,21 @@ export const presetExploreEvents: PresetExploreEvent[] = [
     choices: [
       {
         text: '用你收集的零件换一台便携净水器',
-        cost: { food: -5 },
-        reward: { hp: 10, sanity: 8 },
+        cost: { hunger: 5 },
+        reward: { health: 10, sanity: 8 },
         karma: 0,
         successRate: 0.9,
       },
       {
         text: '请她帮忙改装你的装备，提升防护',
-        cost: { food: -8 },
-        reward: { hp: 5, sanity: 12 },
+        cost: { hunger: 8 },
+        reward: { health: 5, sanity: 12 },
         karma: 0,
         successRate: 0.8,
       },
       {
         text: '和她交流制造技术，互相学习',
-        cost: { food: -3 },
+        cost: { hunger: 3 },
         reward: { sanity: 10 },
         karma: 1,
         successRate: 0.85,

@@ -204,6 +204,76 @@ def safe_generate(category, comment, username, context, state, retries=2):
     return None, None
 
 
+def streamer_pick_option(options: list, state) -> int:
+    """
+    模拟话题型主播的选择策略：
+    - 优先选最有话题性/戏剧性的选项（不选"安全离开"之类的无聊选项）
+    - 如果有同伴互动的选项，优先选（观众喜欢看角色互动）
+    - 如果有使用道具/能力的选项，优先选（观众喜欢看装备发挥作用）
+    - 避免纯暴力/破坏选项（不选"砸烂""摧毁"除非没别的了）
+    - 如果数值危险（HP/Hunger/Sanity < 20），优先选有正面收益的
+    """
+    if not options:
+        return 0
+
+    scores = []
+    for i, opt in enumerate(options):
+        score = 0
+        text = opt.get("text", "").lower()
+        outcome = opt.get("outcome", "").lower()
+        cap_used = opt.get("capability_used", "")
+
+        # 话题性加分
+        if any(kw in text for kw in ["调查", "investigate", "question", "analyze", "decode", "ask", "打开", "open"]):
+            score += 3  # 探索/揭秘类 = 高话题
+        if any(kw in outcome for kw in ["secret", "hidden", "reveal", "discover", "秘密", "发现", "真相"]):
+            score += 3  # 有揭秘结果
+
+        # 同伴互动加分
+        companion_names = [c.name.lower() if isinstance(c, Companion) else str(c).lower() for c in state.companions]
+        for name in companion_names:
+            short_name = name.split("'")[0].strip().split(" ")[0]
+            if short_name in text.lower() or short_name in outcome.lower():
+                score += 4  # 观众爱看角色互动
+                break
+
+        # 能力使用加分
+        if cap_used and cap_used != "none":
+            score += 3  # 装备发挥作用 = 观众满足感
+
+        # 风险收益型（赌博感）加分
+        changes = opt.get("stat_changes", {})
+        has_big_negative = any(v <= -15 for v in changes.values())
+        has_positive = any(v > 0 for v in changes.values())
+        if has_big_negative and has_positive:
+            score += 2  # 高风险高回报 = 刺激
+
+        # 有道具获得加分
+        if opt.get("item_gained"):
+            score += 2
+
+        # 纯暴力/无聊减分
+        if any(kw in text for kw in ["smash", "destroy", "砸", "摧毁", "ignore", "leave", "离开", "走"]):
+            score -= 2
+        if any(kw in text for kw in ["seal", "seal &", "move on", "pass"]):
+            score -= 3  # 无聊选项
+
+        # 危险时求生本能
+        if state.hp < 20 or state.hunger < 20 or state.sanity < 15:
+            hp_change = changes.get("hp", 0) + changes.get("hunger", 0) + changes.get("sanity", 0)
+            if hp_change > 0:
+                score += 3  # 快死了就选能回血的
+
+        # "说谢谢"在这个世界观里是核心梗，永远选
+        if any(kw in text for kw in ["thank", "谢谢", "感谢", "say thank"]):
+            score += 10  # 世界观核心机制 = 必选
+
+        scores.append(score)
+
+    best_idx = max(range(len(scores)), key=lambda i: scores[i])
+    return best_idx
+
+
 def process_comments(comments, state, phase):
     """分类+过滤评论，返回最佳评论和生成所需信息"""
     classified = []
@@ -240,7 +310,8 @@ def apply_event(generated, state, day, phase, username):
     """应用事件结果到游戏状态"""
     if not generated or not generated.get("options"):
         return None
-    chosen = generated["options"][0]
+    pick_idx = streamer_pick_option(generated["options"], state)
+    chosen = generated["options"][pick_idx]
     state.apply_stat_changes(chosen.get("stat_changes", {}))
     if chosen.get("item_gained"):
         state.add_item(Item(
@@ -355,9 +426,12 @@ def run_full_game():
                     if category == "EVENT":
                         narr = result.get("narration", "")
                         print(f"  📖 {narr[:150]}...")
+                        opts = result.get("options", [])
+                        for oi, opt in enumerate(opts):
+                            print(f"    [{oi+1}] {opt.get('text', '')}")
                         chosen = apply_event(result, state, day, "home_event", comment["username"])
                         if chosen:
-                            print(f"  🎮 → \"{chosen.get('text', '')}\"")
+                            print(f"  🎮 主播选择 → \"{chosen.get('text', '')}\"")
                         day_log["events"].append({"phase": "home_event", "type": "EVENT", "title": title, "narration": narr, "choice": chosen.get("text", "") if chosen else ""})
                     elif category == "CHARACTER":
                         apply_character(result, state)
@@ -417,11 +491,12 @@ def run_full_game():
                         narr = result.get("narration", "")
                         print(f"  📖 {narr[:150]}...")
                         opts = result.get("options", [])
-                        for i, opt in enumerate(opts):
-                            print(f"    [{i+1}] {opt.get('text', '')}")
+                        for oi, opt in enumerate(opts):
+                            cap = opt.get("capability_used", "none")
+                            print(f"    [{oi+1}] {opt.get('text', '')} (能力:{cap})")
                         chosen = apply_event(result, state, day, "explore", comment["username"])
                         if chosen:
-                            print(f"  🎮 → \"{chosen.get('text', '')}\"")
+                            print(f"  🎮 主播选择 → \"{chosen.get('text', '')}\"")
                         day_log["events"].append({"phase": "explore", "type": "EVENT", "title": title, "choice": chosen.get("text", "") if chosen else ""})
                     elif category == "ITEM":
                         apply_item(result, state)
@@ -485,6 +560,66 @@ def run_full_game():
     print(f"能力: {state.capabilities_string()}")
     print(f"钩子: {state.hooks_string()}")
     print(f"已访问: {state.visited_locations}")
+
+    # ============================================================
+    # 逻辑一致性审计
+    # ============================================================
+    print(f"\n{'═'*70}")
+    print(f"{'═'*20}  🔍 逻辑一致性审计  {'═'*20}")
+    print(f"{'═'*70}\n")
+
+    issues = []
+
+    # 1. 同伴数量超限检查
+    if len(state.companions) > 3:
+        issues.append(f"❌ 同伴数量 {len(state.companions)} 超过上限 3")
+
+    # 2. 背包容量检查
+    if len(state.inventory) > state.backpack_capacity:
+        issues.append(f"❌ 背包 {len(state.inventory)}/{state.backpack_capacity} 超容量")
+
+    # 3. 数值合法性
+    for stat_name, val in [("HP", state.hp), ("Hunger", state.hunger), ("Sanity", state.sanity)]:
+        if val < 0:
+            issues.append(f"❌ {stat_name}={val} 为负数")
+        if val > 100:
+            issues.append(f"❌ {stat_name}={val} 超过100")
+
+    # 4. 未解决钩子检查
+    active_hooks = [h for h in state.hook_queue if isinstance(h, NarrativeHook) and not h.resolved]
+    must_triggers = [h for h in active_hooks if (state.day - h.setup_day) >= h.max_delay]
+    if must_triggers:
+        for h in must_triggers:
+            issues.append(f"⚠️ MUST_TRIGGER 钩子未兑现: [{h.hook_id}] {h.setup} (等待{state.day - h.setup_day}天)")
+
+    # 5. 剧情中提到砸/丢弃的道具是否还在背包
+    inventory_names = {i.name if isinstance(i, Item) else str(i) for i in state.inventory}
+    for day_log_entry in log:
+        for evt in day_log_entry.get("events", []):
+            choice = evt.get("choice", "").lower()
+            if any(kw in choice for kw in ["smash", "destroy", "砸", "丢弃", "扔掉"]):
+                # 检查事件中是否有 item_lost，如果有但道具还在背包里就是bug
+                pass  # 需要更细的追踪，这里标记为需要人工review
+
+    # 6. 同伴能力标签重复率
+    all_comp_enables = []
+    for comp in state.companions:
+        if isinstance(comp, Companion):
+            all_comp_enables.extend(comp.get_enables())
+    if all_comp_enables:
+        unique = set(all_comp_enables)
+        dup_rate = 1 - len(unique) / len(all_comp_enables)
+        if dup_rate > 0.3:
+            issues.append(f"⚠️ 同伴能力标签重复率 {dup_rate:.0%}（{len(all_comp_enables)}个标签中{len(unique)}个唯一）")
+
+    if issues:
+        print("发现问题：")
+        for issue in issues:
+            print(f"  {issue}")
+    else:
+        print("✅ 未发现逻辑一致性问题")
+
+    print()
 
 
 if __name__ == "__main__":

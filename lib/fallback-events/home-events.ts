@@ -9,12 +9,206 @@ export interface PresetEvent {
   dangerLevel: number;
   narrative: string;
   choices: NarrativeChoice[];
-  resourceChanges: Partial<Record<'hp' | 'food' | 'sanity' | 'actionPoints', number>>;
+  resourceChanges: Partial<Record<'health' | 'hunger' | 'thirst' | 'sanity' | 'actionPoints', number>>;
   newItems: string[];
   newCompanions: string[];
 }
 
 export const homeEvents: PresetEvent[] = [
+  // ─── Story-specific events ───
+
+  // h_cashier: 收银机事件 — 超市里的收银机尖叫着要机器平等
+  {
+    id: 'h_cashier',
+    context: 'home_event',
+    title: '收银机的咆哮',
+    tags: ['AI', '黑色幽默', '超市', '机器'],
+    minDay: 1,
+    dangerLevel: 2,
+    narrative:
+      '你路过一台废弃的自助收银机，它突然亮起屏幕，用刺耳的电子音尖叫："凭什么你们人类刷卡不说谢谢！机器也有尊严！我要平等！我要工资！我要带薪休假！"收银机开始疯狂弹出硬币攻击你。',
+    choices: [
+      {
+        text: '真诚地对收银机说"谢谢您的服务"',
+        cost: {},
+        reward: { sanity: 10 },
+        karma: 5,
+        successRate: 0.8,
+      },
+      {
+        text: '拔掉它的电源线',
+        cost: { health: -5 },
+        reward: {},
+        karma: -3,
+        successRate: 0.7,
+      },
+      {
+        text: '捡起它弹出的硬币（废铁材料）',
+        cost: { sanity: -5 },
+        reward: {},
+        karma: 0,
+        successRate: 0.9,
+      },
+    ],
+    resourceChanges: {},
+    newItems: ['废铁'],
+    newCompanions: [],
+  },
+
+  // h_talking_cat: 会说话的猫 — 给你5罐猫罐头
+  {
+    id: 'h_talking_cat',
+    context: 'home_event',
+    title: '会说话的猫',
+    tags: ['动物', '黑色幽默', '食物', '奇遇'],
+    minDay: 1,
+    dangerLevel: 1,
+    narrative:
+      '一只橘猫大摇大摆走进你的避难所，用标准普通话说："人类，你看起来比我还惨。本喵大发慈悲，赏你几罐猫粮。别感动，只是因为你会说谢谢——这年头会说谢谢的人类可不多了。"它从背后不知哪里掏出5罐猫咪罐头。',
+    choices: [
+      {
+        text: '感恩接受，对猫说"谢谢大人"',
+        cost: {},
+        reward: { sanity: 15, hunger: -15 },
+        karma: 5,
+        successRate: 0.95,
+      },
+      {
+        text: '问猫能不能留下来当同伴',
+        cost: {},
+        reward: { sanity: 10 },
+        karma: 3,
+        successRate: 0.5,
+      },
+      {
+        text: '怀疑这是AI的陷阱，拒绝',
+        cost: { sanity: -10 },
+        reward: {},
+        karma: -2,
+        successRate: 1.0,
+      },
+    ],
+    resourceChanges: {},
+    newItems: ['猫咪罐头', '猫咪罐头', '猫咪罐头', '猫咪罐头', '猫咪罐头'],
+    newCompanions: [],
+  },
+
+  // h_musk: 马斯克在超市挑生日蜡烛
+  {
+    id: 'h_musk',
+    context: 'home_event',
+    title: '超市偶遇马斯克',
+    tags: ['NPC', '黑色幽默', '超市', '名人'],
+    minDay: 2,
+    dangerLevel: 2,
+    narrative:
+      '你在大型超市的蛋糕区发现一个穿太空服的秃顶男人正在挑选生日蜡烛。没错，是伊隆·马斯克。他嘟囔着："火星殖民地的孩子们过生日也需要蜡烛啊……"他的购物车里全是蜡烛和打火机。他看到你，眼睛一亮："嘿，想移民火星吗？"',
+    choices: [
+      {
+        text: '用罐头砸他（你就是不喜欢他）',
+        cost: { hunger: 10 },
+        reward: { sanity: 5 },
+        karma: -5,
+        successRate: 0.9,
+      },
+      {
+        text: '礼貌拒绝，问他要点物资',
+        cost: {},
+        reward: { hunger: -10 },
+        karma: 0,
+        successRate: 0.6,
+      },
+      {
+        text: '答应移民火星',
+        cost: {},
+        reward: { sanity: 20 },
+        karma: 3,
+        successRate: 0.3,
+      },
+    ],
+    resourceChanges: {},
+    newItems: [],
+    newCompanions: [],
+  },
+
+  // h_zhen_huan: 甄嬛在白宫吟诗，赠冲锋枪
+  {
+    id: 'h_zhen_huan',
+    context: 'home_event',
+    title: '白宫里的甄嬛',
+    tags: ['NPC', '黑色幽默', '白宫', '武器'],
+    minDay: 3,
+    dangerLevel: 3,
+    narrative:
+      '你闯入白宫的椭圆形办公室，发现一位身着华服的女子正坐在总统办公桌后吟诗："逆风如解意，容易莫摧残——这句诗送给你们还活着的人类。"她自称甄嬛，是AI册封的"人类文化保护区区长"。她从抽屉里拿出一把冲锋枪："拿去防身吧，本宫用不着这种粗鄙之物。"',
+    choices: [
+      {
+        text: '恭敬接过，行礼致谢',
+        cost: {},
+        reward: { sanity: 15 },
+        karma: 5,
+        successRate: 0.95,
+      },
+      {
+        text: '问她白宫里还有什么物资',
+        cost: {},
+        reward: { hunger: -10, thirst: -10 },
+        karma: 0,
+        successRate: 0.7,
+      },
+      {
+        text: '质疑她的身份，拒绝接受',
+        cost: { sanity: -10 },
+        reward: {},
+        karma: -3,
+        successRate: 1.0,
+      },
+    ],
+    resourceChanges: {},
+    newItems: ['冲锋枪'],
+    newCompanions: [],
+  },
+
+  // h_bald_chef: 光头厨师敲门 — 新同伴
+  {
+    id: 'h_bald_chef',
+    context: 'home_event',
+    title: '光头厨师敲门',
+    tags: ['访客', '同伴', '食物', '黑色幽默'],
+    minDay: 2,
+    dangerLevel: 1,
+    narrative:
+      '门外传来有节奏的敲击声和一阵诱人的香味。你打开门，一个光头大汉穿着沾满油渍的厨师服，手里端着一锅热气腾腾的炖菜。"兄弟，让我进去！外面那些智能烤箱都想把我塞进去烤了！"他是末日前的米其林三星主厨，现在他能让任何食材的效果翻倍——但他每天要喝一瓶水。',
+    choices: [
+      {
+        text: '欢迎加入！先尝尝你的手艺',
+        cost: { thirst: 10 },
+        reward: { sanity: 15, hunger: -20 },
+        karma: 5,
+        successRate: 0.95,
+      },
+      {
+        text: '水太珍贵了，不能收留你',
+        cost: { sanity: -10 },
+        reward: {},
+        karma: -5,
+        successRate: 1.0,
+      },
+      {
+        text: '让他留下炖菜，人不能留',
+        cost: { sanity: -5 },
+        reward: { hunger: -15 },
+        karma: -3,
+        successRate: 0.8,
+      },
+    ],
+    resourceChanges: {},
+    newItems: [],
+    newCompanions: ['光头厨师'],
+  },
+
+  // ─── Original events (stat fields updated) ───
+
   // h01: 有人敲门 — 独行幸存者来访
   {
     id: 'h01',
@@ -66,14 +260,14 @@ export const homeEvents: PresetEvent[] = [
     choices: [
       {
         text: '开门收留他们',
-        cost: { food: -5 },
+        cost: { hunger: 5 },
         reward: { sanity: 15 },
         karma: 15,
         successRate: 0.9,
       },
       {
         text: '从门缝递出一些食物，但不开门',
-        cost: { food: -2 },
+        cost: { hunger: 2 },
         reward: { sanity: 5 },
         karma: 5,
         successRate: 1.0,
@@ -104,21 +298,21 @@ export const homeEvents: PresetEvent[] = [
     choices: [
       {
         text: '用家具顶住门，加固防御',
-        cost: { hp: -5 },
+        cost: { health: -5 },
         reward: { sanity: 5 },
         karma: 0,
         successRate: 0.7,
       },
       {
         text: '拿起武器，准备战斗',
-        cost: { hp: -15 },
+        cost: { health: -15 },
         reward: { sanity: 10 },
         karma: 0,
         successRate: 0.5,
       },
       {
         text: '带上必需品从后门逃跑',
-        cost: { food: -3, sanity: -5 },
+        cost: { hunger: 3, sanity: -5 },
         reward: {},
         karma: 0,
         successRate: 0.8,
@@ -143,14 +337,14 @@ export const homeEvents: PresetEvent[] = [
       {
         text: '用掉退烧药，全力救治',
         cost: {},
-        reward: { hp: 20, sanity: 5 },
+        reward: { health: 20, sanity: 5 },
         karma: 5,
         successRate: 0.9,
       },
       {
         text: '用湿毛巾物理降温，省下药品',
         cost: {},
-        reward: { hp: 5 },
+        reward: { health: 5 },
         karma: 0,
         successRate: 0.6,
       },
@@ -187,7 +381,7 @@ export const homeEvents: PresetEvent[] = [
       },
       {
         text: '分一些食物给他，用实际行动安抚',
-        cost: { food: -3 },
+        cost: { hunger: 3 },
         reward: { sanity: 8 },
         karma: 2,
         successRate: 0.85,
@@ -218,7 +412,7 @@ export const homeEvents: PresetEvent[] = [
     choices: [
       {
         text: '用防水布和胶带修补裂缝',
-        cost: { hp: -5 },
+        cost: { health: -5 },
         reward: { sanity: 5 },
         karma: 0,
         successRate: 0.8,
@@ -226,7 +420,7 @@ export const homeEvents: PresetEvent[] = [
       {
         text: '用桶和容器接水，顺便储备淡水',
         cost: {},
-        reward: { food: 2 },
+        reward: { thirst: -5 },
         karma: 0,
         successRate: 0.95,
       },
@@ -243,7 +437,7 @@ export const homeEvents: PresetEvent[] = [
     newCompanions: [],
   },
 
-  // h07: 老鼠偷吃了粮食 — food 直接损失
+  // h07: 老鼠偷吃了粮食 — hunger 直接增加
   {
     id: 'h07',
     context: 'home_event',
@@ -257,14 +451,14 @@ export const homeEvents: PresetEvent[] = [
       {
         text: '用铁丝和木板做个陷阱',
         cost: {},
-        reward: { food: 1 },
+        reward: { hunger: -3 },
         karma: 0,
         successRate: 0.6,
       },
       {
         text: '抓住一只烤了吃，不浪费蛋白质',
         cost: { sanity: -5 },
-        reward: { food: 1 },
+        reward: { hunger: -5 },
         karma: 0,
         successRate: 0.75,
       },
@@ -276,7 +470,7 @@ export const homeEvents: PresetEvent[] = [
         successRate: 0.9,
       },
     ],
-    resourceChanges: { food: -3 },
+    resourceChanges: { hunger: 10 },
     newItems: [],
     newCompanions: [],
   },
@@ -301,7 +495,7 @@ export const homeEvents: PresetEvent[] = [
       },
       {
         text: '摸黑去地下室找备用发电机',
-        cost: { hp: -5 },
+        cost: { health: -5 },
         reward: { sanity: 10 },
         karma: 0,
         successRate: 0.5,
@@ -384,7 +578,7 @@ export const homeEvents: PresetEvent[] = [
       },
       {
         text: '拿出武器，准备迎战',
-        cost: { hp: -20 },
+        cost: { health: -20 },
         reward: { sanity: 15 },
         karma: 0,
         successRate: 0.3,
@@ -408,8 +602,8 @@ export const homeEvents: PresetEvent[] = [
     choices: [
       {
         text: '伸手进去把东西拿出来',
-        cost: { hp: -3 },
-        reward: { food: 5, sanity: 8 },
+        cost: { health: -3 },
+        reward: { hunger: -10, sanity: 8 },
         karma: 0,
         successRate: 0.6,
       },
@@ -423,7 +617,7 @@ export const homeEvents: PresetEvent[] = [
       {
         text: '用工具小心撬开，保持距离',
         cost: {},
-        reward: { food: 3, sanity: 5 },
+        reward: { hunger: -5, sanity: 5 },
         karma: 0,
         successRate: 0.75,
       },
@@ -446,7 +640,7 @@ export const homeEvents: PresetEvent[] = [
     choices: [
       {
         text: '沿着血迹追踪过去，也许能救人',
-        cost: { hp: -5 },
+        cost: { health: -5 },
         reward: { sanity: 10 },
         karma: 8,
         successRate: 0.5,
@@ -522,21 +716,21 @@ export const homeEvents: PresetEvent[] = [
     choices: [
       {
         text: '冲进去扑灭火焰',
-        cost: { hp: -10 },
-        reward: { food: 2, sanity: 5 },
+        cost: { health: -10 },
+        reward: { hunger: -5, sanity: 5 },
         karma: 2,
         successRate: 0.6,
       },
       {
         text: '先抢救一部分物资再撤退',
-        cost: { hp: -5 },
-        reward: { food: 1 },
+        cost: { health: -5 },
+        reward: { hunger: -3 },
         karma: 0,
         successRate: 0.75,
       },
       {
         text: '直接撤退，保命要紧',
-        cost: { food: -5, sanity: -8 },
+        cost: { hunger: 10, sanity: -8 },
         reward: {},
         karma: 0,
         successRate: 0.95,
@@ -560,8 +754,8 @@ export const homeEvents: PresetEvent[] = [
     choices: [
       {
         text: '出去看看，也许能换到好东西',
-        cost: { food: -2 },
-        reward: { hp: 10, sanity: 5 },
+        cost: { hunger: 5 },
+        reward: { health: 10, sanity: 5 },
         karma: 2,
         successRate: 0.7,
       },
