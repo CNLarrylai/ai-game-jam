@@ -1,0 +1,155 @@
+[
+  {
+    "id": "idris_midnight_flight",
+    "title": "雪夜叩门",
+    "desc": "瘟疫尚远,危机却已在家门内。伊德丽丝半夜叩响你的门:她母亲——退位的王后——要在黎明前给她下药、由奥地利人押送出海,逼她另嫁。她浑身发抖,求你此刻就带她走。窗外是没膝的夜雪。",
+    "generated": true,
+    "icon": "❄️",
+    "choices": [
+      {
+        "id": "flee_with_her_now",
+        "label": "立刻带她顶雪私奔,抢在黎明之前",
+        "hint": "你拉起她的手就往雪夜里冲,只是这一步迈出去,有些人会恨你一辈子。",
+        "costs": [ {"res": "morale", "d": 3}, {"res": "health", "d": -1} ],
+        "risk": true,
+        "outcome": {
+          "emoji": "💞",
+          "title": "雪地里的私奔",
+          "body": "你顶着风雪把她带离城堡,在天亮前完成了婚约。你赢得了挚爱——可你也就此和那位恋权的前王后结下死仇,她的恨意会像阴影一样跟随你们多年。"
+        },
+        "next": "raymond_tears_the_star",
+        "effects": ["与 ex-queen 结仇 → 日后家族纷争的根源", "Idris 成为你最珍视、也最需守护的人"]
+      },
+      {
+        "id": "seek_lawful_protection",
+        "label": "不私奔,连夜去求阿德里安出面阻止",
+        "hint": "走正路或许体面些,可天就要亮了,你赌得起这点时间吗?",
+        "costs": [ {"res": "morale", "d": -2}, {"res": "health", "d": 1} ],
+        "risk": false,
+        "outcome": {
+          "emoji": "⚖️",
+          "title": "体面的迟疑",
+          "body": "你不愿背负'诱拐'之名,转身去找阿德里安。可黎明的钟点不等人,你在体面与时机之间犹豫,几乎让她被押上驶往奥地利的船。"
+        },
+        "next": "raymond_tears_the_star",
+        "effects": ["守住了名声 → 却把她推到险些被强行带走的边缘"]
+      },
+      {
+        "id": "refuse_protect_self",
+        "label": "不掺和王室家事,关门避祸",
+        "hint": "这是天家的纷争,惹不起。",
+        "costs": [ {"res": "morale", "d": -3} ],
+        "risk": false,
+        "outcome": {
+          "emoji": "🚪",
+          "title": "关上的门",
+          "body": "你不愿卷入王室的恩怨,合上了门。你保全了自己,却任凭她独自面对被强嫁的命运——这一夜的怯懦,会在你心里烂很久。"
+        },
+        "next": "raymond_tears_the_star",
+        "effects": ["明哲保身 → 失去挚爱,士气重创"]
+      }
+    ]
+  },
+  {
+    "id": "raymond_tears_the_star",
+    "title": "扯下的星章",
+    "desc": "婚姻被背叛击碎的雷蒙德,当众扯下护国公的星章,宣布退位,要重返希腊去打仗——他高喊'我连自己都管不住,如何治理国家',并邀阿德里安同往。你拽住他喊'三思',他不听。最高权力的位子,就要在愤怒中被弃。",
+    "generated": true,
+    "icon": "🎖️",
+    "choices": [
+      {
+        "id": "ride_to_war_with_him",
+        "label": "随他东去希腊参战,不让挚友独行",
+        "hint": "你不能看他一个人冲向战火——尽管你说不清那条路尽头有什么在等着。",
+        "costs": [ {"res": "morale", "d": 2}, {"res": "health", "d": -2} ],
+        "risk": true,
+        "outcome": {
+          "emoji": "⚔️",
+          "title": "向东的马蹄",
+          "body": "你随他奔赴希腊战场,以为只是去成全一场荣耀。你尚不知道:这条向东的路,正把你们整个小圈子一步步引向瘟疫的源头。"
+        },
+        "next": "sail_to_greece_for_raymond",
+        "effects": ["把团队带向东方战场 → 灾难矢量被亲手拉近", "战争见闻重创心神,体力透支"]
+      },
+      {
+        "id": "hold_england_together",
+        "label": "留下,设法维系失去护国公的英格兰秩序",
+        "hint": "总得有人守住这摊子,趁它还没散。",
+        "costs": [ {"res": "morale", "d": -1}, {"res": "food", "d": 1} ],
+        "risk": false,
+        "outcome": {
+          "emoji": "🏛️",
+          "title": "守住将散的秩序",
+          "body": "你选择留下,尽力让这个突然失去最高执政者的国家照常运转。秩序暂时没垮,仓廪还算充盈,但所有人都看得出:雷蒙德留下的窟窿，迟早要塌。"
+        },
+        "next": "sail_to_greece_for_raymond",
+        "effects": ["维持了本土秩序与补给 → 为后续争取了喘息"]
+      },
+      {
+        "id": "let_him_go",
+        "label": "既不拦也不随,回去守自己的小家",
+        "hint": "他的命他自己选,你只想护住眼前人。",
+        "costs": [ {"res": "morale", "d": -2} ],
+        "risk": false,
+        "outcome": {
+          "emoji": "🌫️",
+          "title": "目送他走入暗处",
+          "body": "你松开了手,看着那位领袖独自走入愤怒与战火。你回到自己的炉火旁,却始终甩不掉一个念头:也许你本可以拦下他。"
+        },
+        "next": "sail_to_greece_for_raymond",
+        "effects": ["袖手旁观 → 愧疚缠身,士气下滑"]
+      }
+    ]
+  },
+  {
+    "id": "sail_to_greece_for_raymond",
+    "title": "启航向东",
+    "desc": "马克里一役,雷蒙德失踪,疑被土军秘密处决。佩迪塔不顾一切要渡海去希腊寻夫。这意味着离开安全的英格兰、抛下伊德丽丝,亲身驶入战乱与死亡笼罩的东方。海港的船,正在风里等一个决定。",
+    "generated": true,
+    "icon": "⛵",
+    "choices": [
+      {
+        "id": "sail_with_perdita",
+        "label": "陪佩迪塔登船东渡,涉险寻人",
+        "hint": "你说服自己只是去寻一个人——可这片海的另一头,是你从未踏足的死亡地带。",
+        "costs": [ {"res": "health", "d": -2}, {"res": "morale", "d": 2} ],
+        "risk": true,
+        "outcome": {
+          "emoji": "🌊",
+          "title": "驶离安全的海岸",
+          "body": "你别过伊德丽丝,随佩迪塔扬帆东去。这是你第一次离开那个被叮嘱要守护的世界——越过这片海,你将第一次直面瘟疫的真容。回不了头了。"
+        },
+        "next": "rough_harbor_reunion",
+        "effects": ["视角角色首次离开安全区 → 正式踏入末日主线", "把自己暴露于东方的战乱与疫源"]
+      },
+      {
+        "id": "stay_with_idris",
+        "label": "留在英格兰,守住妻儿不冒险",
+        "hint": "你的家、你的孩子,才是你必须先保住的。",
+        "costs": [ {"res": "morale", "d": -3} ],
+        "risk": false,
+        "outcome": {
+          "emoji": "🏰",
+          "title": "留下的代价",
+          "body": "你拒绝出海,把家人护在身边。理智上你没错,可你眼睁睁让姐姐独自驶向战火——这份袖手,日后每每想起都揪心。"
+        },
+        "next": "",
+        "effects": ["保全了家人 → 但弃姐独行,士气重创"]
+      },
+      {
+        "id": "send_escort",
+        "label": "派一队人护送佩迪塔,自己留守",
+        "hint": "出钱出人,换一份两全的心安——但别人未必拿命替你尽心。",
+        "costs": [ {"res": "food", "d": -2}, {"res": "morale", "d": -1} ],
+        "risk": false,
+        "outcome": {
+          "emoji": "🤝",
+          "title": "托付出去的牵挂",
+          "body": "你拨出人手和盘缠护送佩迪塔东行,自己留在英格兰。补给因此吃紧,愧疚也只压下了一半——毕竟,真正的凶险还是要她一个人去闯。"
+        },
+        "next": "",
+        "effects": ["消耗补给换取折中 → 牵挂仍未放下"]
+      }
+    ]
+  }
+]
