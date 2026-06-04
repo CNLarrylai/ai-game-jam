@@ -1,0 +1,377 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>最后的人 · 冷开场</title>
+<!--
+  末日生存冷开场 — 《最后的人》(The Last Man, Mary Shelley)
+  视觉系统:沿用 Claude Design「末日·暗调视觉系统」(frontend/doom.css)
+  内容:来自本项目的世界圣经(dist/world_bible.json)+ 卡点 V2-CVII「孤舍里的弃者」(build/cards/V2-CVII.json)
+  形式:三层递进(世界铺陈 → 幸存者群像 → 首个抉择 → 屏息·揭晓 → 接入正式游戏)
+  自包含:直接用浏览器打开即可游玩(需联网加载 React CDN)。
+-->
+<link rel="stylesheet" href="doom.css" />
+</head>
+<body>
+<div id="root"></div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+/* ====== 内容:全部来自《最后的人》的世界圣经与卡点 ====== */
+
+// 取自 world_bible.json 的 catastrophe.progression_phases —— 阶段 2/3:瘟疫本土爆发、退守温莎
+const WORLD_LINES = [
+  { t: '瘟疫从东方蔓延而来,越过了海峡。', cls: '' },
+  { t: '英格兰的城市,一座接一座沉默。', cls: '' },
+  { t: '你带着最后的亲人,退守温莎的高墙之内。', cls: 'accent2' },
+  { t: '粮食、药,还有人心,正一天天见底。', cls: 'accent' },
+];
+
+const DAY = 612; // 瘟疫纪日(示意)
+
+// 取自 world_bible.json 的 cast —— 温莎高墙内你要守护的人(一人带悬念)
+const CREW = [
+  { key: 'idris',  name: '伊德丽丝', tag: '你的妻子',     line: ['她的眼里,只剩下', '孩子的安危。'],
+    rim: 'oklch(0.66 0.07 70 / 0.45)', silTop: 'oklch(0.3 0.025 70)', detail: 'pony' },
+  { key: 'clara',  name: '克拉拉',   tag: '雷蒙德的遗女', line: ['她还不懂,为什么', '大人都不再说话。'],
+    rim: 'oklch(0.6 0.06 30 / 0.5)',  silTop: 'oklch(0.27 0.02 55)', detail: 'cross' },
+  { key: 'adrian', name: '阿德里安', tag: '病弱的挚友',   line: ['他咳嗽的样子,', '你不敢多看。'],
+    rim: 'oklch(0.6 0.06 200 / 0.4)', silTop: 'oklch(0.22 0.02 240)', detail: 'hood', suspense: true },
+];
+
+// 取自卡点 V2-CVII「孤舍里的弃者」
+const SITUATION = [
+  { t: '墙外,一队逃难者把染疫的同伴,丢在了水闸旁的破屋里。', cls: '' },
+  { t: '方圆半英里,没人敢靠近。', cls: '' },
+  { t: '村民拦住你——去救他,也许就再回不到妻儿身边。', cls: 'dusk' },
+];
+
+const CHOICES = [
+  {
+    id: 'tend_him', num: '1', act: '进屋照料他', hint: '良心会安稳,但那扇门后的东西,未必如你所想',
+    tone: 'bad', risk: true,
+    costs: [{ res: 'morale', d: +2 }, { res: 'health', d: -1 }],
+    title: '他早已冰冷',
+    body: '你推开虚掩的门——稻草上的人早死了,屋里弥漫着致命的恶气。你夺门而逃。几小时后你确认自己并未染病:你什么也没带回家,只带回了一张<span class="tox">永远忘不掉的脸</span>。',
+    foot: '你做了该做的事。代价,刻进了记忆里。',
+  },
+  {
+    id: 'leave_supplies', num: '2', act: '在屋外留下水和干粮', hint: '一点物资,换一夜不必愧疚的睡眠',
+    tone: 'neutral',
+    costs: [{ res: 'food', d: -2 }, { res: 'morale', d: +1 }],
+    title: '隔着门槛的善意',
+    body: '你把水囊和干粮放在门口就退开了。你不知道他是否还活着取用——但你没有像旁人那样彻底背弃他,也没让任何东西靠近自家门。',
+    foot: '没有英雄,只有一个不愿全然冷血的人。',
+  },
+  {
+    id: 'turn_back', num: '3', act: '转身回家,把家人放在第一位', hint: '安全,但有些东西会留在你心里',
+    tone: 'bad',
+    costs: [{ res: 'morale', d: -3 }],
+    title: '你走开了',
+    body: '你随村民一起退去。家人安然,你身上没有半分疫气——可那个独自等死的人,从此住进了你的夜里。',
+    foot: '活下来的人,都带着没回头的那一眼。',
+  },
+];
+
+const START_RES = { food: 3, health: 6, morale: 5 };
+const RES_DEF = [
+  { id: 'food',   ic: '🥫', label: 'Food' },
+  { id: 'health', ic: '💊', label: 'Health' },
+  { id: 'morale', ic: '🔥', label: 'Morale' },
+];
+
+/* ====== 环境音 + 音效(WebAudio,自包含) ====== */
+let _ac, _drone;
+function ensureAudio() { if (_ac) return _ac; try { _ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} return _ac; }
+function startDrone() {
+  const ac = ensureAudio(); if (!ac || _drone) return;
+  const o1 = ac.createOscillator(), o2 = ac.createOscillator(), g = ac.createGain();
+  o1.type = 'sine'; o1.frequency.value = 55; o2.type = 'sine'; o2.frequency.value = 82.5;
+  g.gain.value = 0; o1.connect(g); o2.connect(g); g.connect(ac.destination);
+  o1.start(); o2.start(); g.gain.linearRampToValueAtTime(0.05, ac.currentTime + 3);
+  _drone = { g, ac };
+}
+function setMute(m) { if (_drone) _drone.g.gain.linearRampToValueAtTime(m ? 0 : 0.05, _drone.ac.currentTime + 0.4); }
+function sfx(type) {
+  const ac = ensureAudio(); if (!ac) return; if (ac.state === 'suspended') ac.resume();
+  const now = ac.currentTime;
+  const tone = (f, t0, dur, vol, wave) => {
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = wave || 'sine'; o.frequency.setValueAtTime(f, now + t0);
+    g.gain.setValueAtTime(0, now + t0); g.gain.linearRampToValueAtTime(vol, now + t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + t0 + dur);
+    o.connect(g).connect(ac.destination); o.start(now + t0); o.stop(now + t0 + dur + 0.03);
+  };
+  if (type === 'tick') tone(180, 0, 0.16, 0.05, 'triangle');
+  else if (type === 'hold') tone(98, 0, 0.7, 0.08, 'sine');
+  else if (type === 'bad') { tone(73, 0, 0.9, 0.13, 'sawtooth'); tone(58, 0.2, 0.9, 0.1, 'sawtooth'); }
+  else if (type === 'good') { tone(196, 0, 0.4, 0.07); tone(262, 0.14, 0.5, 0.07); }
+}
+
+/* ====== 灰烬粒子 ====== */
+function Ash() {
+  const bits = useRef(Array.from({ length: 26 }).map(() => ({
+    left: Math.random() * 100, dur: 9 + Math.random() * 12, delay: -Math.random() * 18,
+    sway: (Math.random() * 80 - 40) + 'px', size: 2 + Math.random() * 2.5, op: 0.3 + Math.random() * 0.4,
+  })));
+  return (
+    <div className="ash">
+      {bits.current.map((b, i) => (
+        <i key={i} style={{ left: b.left + '%', width: b.size, height: b.size, opacity: b.op,
+          '--sway': b.sway, animationDuration: b.dur + 's', animationDelay: b.delay + 's' }}></i>
+      ))}
+    </div>
+  );
+}
+
+/* ====== 木刻风幸存者剪影(纯 CSS,见 doom.css .bust) ====== */
+function Bust({ c }) {
+  return (
+    <div className="bust" style={{ '--rim': c.rim, '--silTop': c.silTop }}>
+      <div className="glow"></div>
+      {c.detail === 'pony' && <div className="ponytail"></div>}
+      <div className="sil"></div>
+      <div className="head"></div>
+      {c.detail === 'pony' && <div className="hair"></div>}
+      <div className="rim"></div>
+      {c.detail === 'hood' && <><div className="hood"></div><div className="faceshadow"></div></>}
+      {c.detail === 'cross' && <div className="cross"></div>}
+      {c.suspense && <div className="mark"></div>}
+    </div>
+  );
+}
+
+function ResBar({ values, deltas, show }) {
+  return (
+    <div className={`resbar ${show ? 'show' : ''}`}>
+      {RES_DEF.map(r => {
+        const v = values[r.id];
+        return (
+          <div key={r.id} className={`res ${r.id}`}>
+            <span className="ic">{r.ic}</span>
+            <div className="col">
+              <span className="rl">{r.label}</span>
+              <div className="seg">{Array.from({ length: 10 }).map((_, i) => <span key={i} className={i < v ? 'on' : ''}></span>)}</div>
+            </div>
+            {deltas[r.id] != null && deltas[r.id] !== 0 && (
+              <span className={`delta ${deltas[r.id] > 0 ? 'up' : 'down'}`}>{deltas[r.id] > 0 ? '+' : ''}{deltas[r.id]}</span>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function App() {
+  const [phase, setPhase] = useState('world'); // world | crew | choice | ending
+  const [lineN, setLineN] = useState(0);
+  const [sitN, setSitN] = useState(0);
+  const [crewN, setCrewN] = useState(0);
+  const [choicesIn, setChoicesIn] = useState(false);
+  const [resShow, setResShow] = useState(false);
+  const [dayShow, setDayShow] = useState(false);
+  const [values, setValues] = useState(START_RES);
+  const [deltas, setDeltas] = useState({});
+  const [reveal, setReveal] = useState(null);
+  const [flash, setFlash] = useState(null);
+  const [shake, setShake] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const [hairline, setHairline] = useState(8);
+
+  const firstClick = useRef(false);
+  const onFirstInteract = () => { if (!firstClick.current) { firstClick.current = true; startDrone(); } };
+
+  useEffect(() => {
+    if (phase !== 'world') return;
+    setTimeout(() => setDayShow(true), 600);
+    if (lineN < WORLD_LINES.length) {
+      const t = setTimeout(() => { setLineN(n => n + 1); sfx('tick'); }, lineN === 0 ? 900 : 2100);
+      return () => clearTimeout(t);
+    }
+  }, [phase, lineN]);
+
+  const worldAdvance = () => {
+    onFirstInteract();
+    if (lineN < WORLD_LINES.length) setLineN(WORLD_LINES.length);
+    else goCrew();
+  };
+  const goCrew = () => { setPhase('crew'); setHairline(36); setTimeout(() => setResShow(true), 1400); };
+
+  useEffect(() => {
+    if (phase !== 'crew') return;
+    if (crewN < CREW.length) {
+      const t = setTimeout(() => { setCrewN(n => n + 1); sfx('tick'); }, crewN === 0 ? 500 : 900);
+      return () => clearTimeout(t);
+    }
+  }, [phase, crewN]);
+
+  const goChoice = () => { onFirstInteract(); setPhase('choice'); setHairline(64); setResShow(true); };
+
+  useEffect(() => {
+    if (phase !== 'choice') return;
+    if (sitN < SITUATION.length) {
+      const t = setTimeout(() => { setSitN(n => n + 1); sfx('tick'); }, sitN === 0 ? 500 : 1500);
+      return () => clearTimeout(t);
+    } else if (!choicesIn) {
+      const t = setTimeout(() => setChoicesIn(true), 500);
+      return () => clearTimeout(t);
+    }
+  }, [phase, sitN]);
+
+  const skipToChoice = () => {
+    onFirstInteract(); setPhase('choice'); setResShow(true); setDayShow(true);
+    setSitN(SITUATION.length); setChoicesIn(true); setHairline(64);
+  };
+
+  const pick = (choice) => {
+    if (reveal) return;
+    onFirstInteract();
+    const net = choice.costs.reduce((s, c) => s + c.d, 0);
+    const good = net > 0 && choice.tone === 'good';
+    setHairline(100);
+    setReveal({ phase: 'hold', choice }); sfx('hold');
+    setTimeout(() => setReveal({ phase: 'show', choice, nums: false }), 1100);
+    setTimeout(() => {
+      const d = {}; choice.costs.forEach(c => { d[c.res] = c.d; });
+      setDeltas(d);
+      setValues(prev => { const n = { ...prev }; choice.costs.forEach(c => { n[c.res] = Math.max(0, Math.min(10, n[c.res] + c.d)); }); return n; });
+      setReveal(r => r ? { ...r, nums: true } : r);
+      if (good) { setFlash('good'); sfx('good'); } else { setFlash('bad'); setShake(true); sfx('bad'); }
+      setTimeout(() => { setFlash(null); setShake(false); setDeltas({}); }, 1100);
+    }, 2200);
+  };
+
+  const goEnding = () => { setReveal(null); setPhase('ending'); };
+  const replay = () => {
+    setPhase('world'); setLineN(0); setSitN(0); setCrewN(0); setChoicesIn(false);
+    setResShow(false); setValues(START_RES); setDeltas({}); setReveal(null); setFlash(null); setHairline(8);
+  };
+  const toggleMute = () => { const m = !muted; setMuted(m); setMute(m); };
+
+  return (
+    <div className={`world ${shake ? 'shake' : ''}`}>
+      <div className="horizon"></div>
+      <Ash />
+      <div className="grain"></div>
+      <div className="vignette"></div>
+
+      {phase === 'world' && <div className="tap-zone" onClick={worldAdvance}></div>}
+
+      <div className="stage">
+        <div className="topbar">
+          <div className={`daystamp ${dayShow ? 'show' : ''}`}>
+            <span className="d-plague">PLAGUE</span>
+            <span className="d-num">DAY <b>{DAY}</b></span>
+          </div>
+          <ResBar values={values} deltas={deltas} show={resShow} />
+        </div>
+
+        <div className={`center ${phase === 'choice' ? 'choice-mode' : ''}`}>
+          {phase === 'world' && (
+            <div className="phase">
+              <div className="world-lines">
+                {WORLD_LINES.map((l, i) => (
+                  <div key={i} className={`wline ${l.cls} ${i < lineN ? 'in' : ''} ${lineN >= WORLD_LINES.length && i < WORLD_LINES.length - 1 ? 'dim' : ''}`}>{l.t}</div>
+                ))}
+              </div>
+              <div className={`advance-hint ${lineN >= WORLD_LINES.length ? 'show' : ''}`} onClick={worldAdvance}>▸ 继续</div>
+            </div>
+          )}
+
+          {phase === 'crew' && (
+            <div className="phase">
+              <div className="crew-intro">— 高墙之内,你还守着这三个人 —</div>
+              <div className="crew-row">
+                {CREW.map((c, i) => (
+                  <div key={c.key} className={`survivor ${c.suspense ? 'suspense' : ''} ${i < crewN ? 'in' : ''}`} style={{ transitionDelay: (i * 0.04) + 's' }}>
+                    <Bust c={c} />
+                    <div className="s-name">{c.name}</div>
+                    <div className="s-tag">{c.tag}</div>
+                    <div className="s-line">{c.line.map((ln, k) => <div key={k}>{k === c.line.length - 1 ? <b>{ln}</b> : ln}</div>)}</div>
+                  </div>
+                ))}
+              </div>
+              <button className={`continue ${crewN >= CREW.length ? 'in' : ''}`} onClick={goChoice}>往前走 ▸</button>
+            </div>
+          )}
+
+          {phase === 'choice' && (
+            <div className="phase">
+              <div className="situation">
+                {SITUATION.map((s, i) => (
+                  <div key={i} className={`sit-line ${s.cls} ${i < sitN ? 'in' : ''}`}>{s.t}</div>
+                ))}
+              </div>
+              <div className="choice-list">
+                {CHOICES.map((c, i) => (
+                  <button key={c.id} className={`choice ${choicesIn ? 'in' : ''}`} style={{ transitionDelay: (i * 0.12) + 's' }} onClick={() => pick(c)}>
+                    <span className="c-num">{c.num}</span>
+                    <span className="c-body">
+                      <span className="c-act">{c.act}</span>
+                      <span className="c-hint">{c.hint}</span>
+                    </span>
+                    <span className="c-arrow">▸</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {phase === 'ending' && (
+            <div className="ending">
+              <div className="e-title">最 后 的 人</div>
+              <div className="e-sub">这只是瘟疫之年的一个清晨。<br />你能在温莎的高墙里撑过多少个这样的清晨,取决于接下来每一个抉择。</div>
+              <div className="e-note">— 冷开场到此 · 《最后的人》正式游戏在此接入 —</div>
+              <button className="e-replay" onClick={replay}>↺ 重看开场</button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {reveal && (
+        <React.Fragment>
+          <div className="reveal-scrim"></div>
+          <div className={`reveal-box ${reveal.phase === 'show' ? (reveal.choice.tone === 'good' ? 'good' : 'bad') : ''}`}>
+            {reveal.phase === 'hold' ? (
+              <div className="rv-hold">屏息<div className="dots"><i></i><i></i><i></i></div></div>
+            ) : (
+              <React.Fragment>
+                <div className="rv-kicker">结果</div>
+                <div className="rv-title">{reveal.choice.title}</div>
+                <div className="rv-body" dangerouslySetInnerHTML={{ __html: reveal.choice.body }}></div>
+                {reveal.nums && (
+                  <div className="rv-deltas">
+                    {reveal.choice.costs.map((c, i) => {
+                      const def = RES_DEF.find(r => r.id === c.res);
+                      return <span key={i} className={`rv-delta ${c.d > 0 ? 'up' : 'down'}`}>{def.ic} {c.d > 0 ? '+' : ''}{c.d}</span>;
+                    })}
+                  </div>
+                )}
+                {reveal.nums && <div className="rv-foot">{reveal.choice.foot}</div>}
+                {reveal.nums && <button className="rv-cont" onClick={goEnding}>故事继续 ▸</button>}
+              </React.Fragment>
+            )}
+          </div>
+        </React.Fragment>
+      )}
+
+      {flash && <div className={`flash ${flash}`}></div>}
+
+      <div className="hairline" style={{ width: hairline + '%' }}></div>
+      {(phase === 'world' || phase === 'crew') && <button className="skip" onClick={skipToChoice}>跳过 ⏩</button>}
+      <button className="mute" onClick={toggleMute} title="环境音">{muted ? '🔇' : '🔊'}</button>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
