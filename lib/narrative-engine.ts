@@ -47,7 +47,10 @@ function buildPrompt(request: NarrativeRequest): string {
       contextPrompt = "场景：玩家在避难所内，突然发生了一件事。";
       break;
     case "resource_adjust":
-      contextPrompt = `场景：玩家想要进行操作："${playerAction}"。判断这个操作是否合理，并描述结果。`;
+      contextPrompt = `场景：玩家想要进行操作："${playerAction}"。判断这个操作是否合理，并描述结果。
+注意：这是直接操作，不需要给choices选项（choices留空数组[]）。直接在resourceChanges里写出数值变化。
+例如吃鲱鱼罐头：resourceChanges应为{"sanity":-10,"health":0,"hunger":-10,"thirst":0}（饥饿减少=好事，精神下降=鲱鱼很难吃）
+例如喝矿泉水：resourceChanges应为{"sanity":0,"health":0,"hunger":0,"thirst":-10}（口渴减少=好事）`;
       break;
     case "map_choice":
       contextPrompt =
