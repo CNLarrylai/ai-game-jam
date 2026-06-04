@@ -31,6 +31,48 @@
   .rv-bonus { margin-top: 10px; font-family: var(--f-stamp); font-size: 11px; letter-spacing: 1px; color: var(--cyan); }
   .start-btn { margin: 30px auto 0; display: block; font-family: var(--f-stamp); font-size: 14px; letter-spacing: 3px; text-transform: uppercase; color: var(--fog); cursor: pointer; background: transparent; border: 1px solid var(--line); padding: 13px 34px; border-radius: 8px; transition: all .25s; }
   .start-btn:hover { border-color: var(--ember); color: var(--ember); background: oklch(0.25 0.03 50 / 0.2); }
+  /* 命脉三卡(开篇规则页) */
+  .pillars { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin: 4px 0 22px; }
+  .pillar { width: 152px; background: linear-gradient(180deg, var(--panel), var(--panel-2)); border: 1px solid var(--line-soft); border-radius: 12px; padding: 16px 12px; text-align: center; }
+  .pillar .pe { font-size: 30px; line-height: 1; }
+  .pillar .pn { font-family: var(--f-serif); font-weight: 600; font-size: 16px; margin: 8px 0 4px; letter-spacing: 1px; color: var(--fog); }
+  .pillar .pm { font-family: var(--f-sans); font-size: 12px; color: var(--fog-dim); line-height: 1.5; }
+  .pillar.food .pn { color: var(--wheat); } .pillar.health .pn { color: var(--cyan); } .pillar.morale .pn { color: var(--rust); }
+  /* 人物图鉴 */
+  .char-link { color: var(--ember); border-bottom: 1px dashed oklch(0.6 0.1 55 / 0.5); cursor: pointer; }
+  .char-link:hover { color: var(--fog); border-bottom-color: var(--ember); }
+  .cast-btn { position: fixed; top: 28px; left: 30px; z-index: 14; font-family: var(--f-stamp); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--fog-dim); background: oklch(0.2 0.018 250 / 0.6); border: 1px solid var(--line-soft); border-radius: 8px; padding: 7px 12px; cursor: pointer; }
+  .cast-btn:hover { color: var(--fog); border-color: var(--line); }
+  .codex-scrim { position: fixed; inset: 0; z-index: 30; background: oklch(0.07 0.01 250 / 0.72); backdrop-filter: blur(2px); }
+  .codex-card { position: fixed; left: 50%; top: 50%; transform: translate(-50%,-50%); z-index: 32; width: min(90%,420px); max-height: 84vh; overflow-y: auto; background: linear-gradient(180deg, var(--panel), var(--panel-2)); border: 1px solid var(--line); border-radius: 16px; padding: 24px; box-shadow: 0 50px 100px -40px oklch(0.02 0.01 250); }
+  .cc-top { display: flex; gap: 16px; align-items: center; }
+  .cc-name { font-family: var(--f-serif); font-weight: 600; font-size: 22px; color: var(--fog); letter-spacing: 1px; }
+  .cc-tag { font-family: var(--f-stamp); font-size: 10px; letter-spacing: 1px; text-transform: uppercase; color: var(--ember); margin-top: 5px; }
+  .cc-bg { font-family: var(--f-serif); font-size: 14.5px; line-height: 1.75; color: var(--fog-soft); margin: 16px 0; }
+  .cc-rel-h { font-family: var(--f-stamp); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--fog-dim); margin-bottom: 8px; }
+  .cc-rel { display: flex; flex-wrap: wrap; gap: 8px; }
+  .cc-rel button { font-family: var(--f-sans); font-size: 12.5px; color: var(--fog-soft); background: var(--panel-2); border: 1px solid var(--line-soft); border-radius: 20px; padding: 5px 11px; cursor: pointer; }
+  .cc-rel button:hover { border-color: var(--ember); color: var(--fog); }
+  .cc-rel button b { color: var(--fog-dim); font-weight: 400; margin-left: 5px; font-size: 11px; }
+  .cc-close { margin-top: 18px; width: 100%; font-family: var(--f-stamp); font-size: 12px; letter-spacing: 2px; color: var(--fog-dim); background: transparent; border: 1px solid var(--line-soft); border-radius: 8px; padding: 10px; cursor: pointer; }
+  .cc-close:hover { color: var(--fog); }
+  .cast-list { display: flex; flex-direction: column; gap: 6px; }
+  .cast-list button { text-align: left; font-family: var(--f-serif); font-size: 15px; color: var(--fog-soft); background: var(--panel-2); border: 1px solid var(--line-soft); border-radius: 10px; padding: 10px 14px; cursor: pointer; }
+  .cast-list button:hover { border-color: var(--ember); color: var(--fog); }
+  .cast-list button span { font-family: var(--f-stamp); font-size: 10px; letter-spacing: 1px; color: var(--fog-dim); margin-left: 8px; }
+  /* 顶栏身份条 + 手记 */
+  .topleft { display: flex; align-items: center; gap: 14px; }
+  .idchip { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; background: oklch(0.2 0.018 250 / 0.6); border: 1px solid var(--line-soft); border-left: 2px solid var(--ember); border-radius: 8px; padding: 6px 13px; cursor: pointer; transition: border-color .2s; }
+  .idchip:hover { border-color: var(--ember); }
+  .idchip .idwho { font-family: var(--f-stamp); font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--ember); }
+  .idchip .idname { font-family: var(--f-serif); font-weight: 600; font-size: 14px; color: var(--fog); letter-spacing: 1px; }
+  .jrn-btn { position: fixed; top: 28px; right: 30px; z-index: 14; font-family: var(--f-stamp); font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--fog-dim); background: oklch(0.2 0.018 250 / 0.6); border: 1px solid var(--line-soft); border-radius: 8px; padding: 7px 12px; cursor: pointer; }
+  .jrn-btn:hover { color: var(--fog); border-color: var(--line); }
+  .jrn-list { display: flex; flex-direction: column; gap: 9px; }
+  .jrn-item { font-family: var(--f-serif); font-size: 13px; line-height: 1.55; color: var(--fog-soft); border-left: 2px solid var(--line); padding: 5px 0 5px 12px; }
+  .jrn-item b { color: var(--fog); font-weight: 500; }
+  .jrn-item .jc { color: var(--ember); }
+  .jrn-empty { color: var(--fog-dim); font-size: 13px; font-style: italic; }
 </style>
 </head>
 <body>
@@ -70,6 +112,47 @@ function sfx(t){ const a=ac(); if(!a) return; if(a.state==='suspended')a.resume(
 function Ash(){ const b=useRef(Array.from({length:24}).map(()=>({left:Math.random()*100,dur:9+Math.random()*12,delay:-Math.random()*18,sway:(Math.random()*80-40)+'px',size:2+Math.random()*2.5,op:0.3+Math.random()*0.4})));
   return <div className="ash">{b.current.map((x,i)=><i key={i} style={{left:x.left+'%',width:x.size,height:x.size,opacity:x.op,'--sway':x.sway,animationDuration:x.dur+'s',animationDelay:x.delay+'s'}}></i>)}</div>; }
 
+/* ---- opening content + woodcut crew (CSS bust) ---- */
+const IDENTITY=[ {t:'你是莱昂内尔·维尼。',cls:''}, {t:'瘟疫之前,你有挚友、有妻儿、有一整个未来。',cls:''}, {t:'如今,你只想护住还握在手里的人。',cls:'accent'} ];
+const CREW=[
+  {key:'idris',name:'伊德丽丝',tag:'你的妻子',line:'她的眼里,只剩孩子的安危。',rim:'oklch(0.66 0.07 70 / 0.45)',silTop:'oklch(0.3 0.025 70)',detail:'pony'},
+  {key:'clara',name:'克拉拉',tag:'雷蒙德的遗女',line:'她还不懂,大人为何不再说话。',rim:'oklch(0.6 0.06 30 / 0.5)',silTop:'oklch(0.27 0.02 55)',detail:'cross'},
+  {key:'adrian',name:'阿德里安',tag:'病弱的挚友',line:'他咳嗽的样子,你不敢多看。',rim:'oklch(0.6 0.06 200 / 0.4)',silTop:'oklch(0.22 0.02 240)',detail:'hood',suspense:true},
+];
+function Bust({c}){ return (<div className="bust" style={{'--rim':c.rim,'--silTop':c.silTop}}><div className="glow"></div>{c.detail==='pony'&&<div className="ponytail"></div>}<div className="sil"></div><div className="head"></div>{c.detail==='pony'&&<div className="hair"></div>}<div className="rim"></div>{c.detail==='hood'&&<React.Fragment><div className="hood"></div><div className="faceshadow"></div></React.Fragment>}{c.detail==='cross'&&<div className="cross"></div>}{c.suspense&&<div className="mark"></div>}</div>); }
+
+/* ---- 人物图鉴:正文人名 → 可点链接;弹窗显示背景+关系 ---- */
+const ALIASES = G.aliases || {};
+const CODEX = G.codex || {};
+const CNAMES = Object.keys(CODEX).concat(Object.keys(ALIASES)).sort((a,b)=>b.length-a.length);
+function esc(s){ return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }
+const CNAME_RE = CNAMES.length ? new RegExp('('+CNAMES.map(esc).join('|')+')','g') : null;
+function linkify(text,onName){
+  if(!text||!CNAME_RE) return text;
+  const out=[]; let last=0,m; CNAME_RE.lastIndex=0;
+  while((m=CNAME_RE.exec(text))){ if(m.index>last) out.push(text.slice(last,m.index)); const nm=m[0], key=ALIASES[nm]||nm;
+    out.push(<span className="char-link" key={m.index+'-'+nm} onClick={(e)=>{e.stopPropagation();onName(key);}}>{nm}</span>); last=m.index+nm.length; }
+  if(last<text.length) out.push(text.slice(last));
+  return out;
+}
+function CodexModal({ck,onSel,onClose}){
+  if(ck==='__list__'){
+    return (<React.Fragment><div className="codex-scrim" onClick={onClose}></div>
+      <div className="codex-card"><div className="cc-rel-h">出场人物</div>
+        <div className="cast-list">{Object.keys(CODEX).map(k=><button key={k} onClick={()=>onSel(k)}>{k}<span>{CODEX[k].tag}</span></button>)}</div>
+        <button className="cc-close" onClick={onClose}>关闭</button></div></React.Fragment>);
+  }
+  const c=CODEX[ck]; if(!c) return null;
+  return (<React.Fragment><div className="codex-scrim" onClick={onClose}></div>
+    <div className="codex-card">
+      <div className="cc-top">{c.bust&&<Bust c={c.bust}/>}<div><div className="cc-name">{ck}</div><div className="cc-tag">{c.tag}</div></div></div>
+      <div className="cc-bg">{c.bg}</div>
+      {c.rel&&c.rel.length>0&&<React.Fragment><div className="cc-rel-h">关系</div>
+        <div className="cc-rel">{c.rel.map((r,i)=><button key={i} onClick={()=>onSel(r[0])}>{r[0]}<b>{r[1]}</b></button>)}</div></React.Fragment>}
+      <button className="cc-close" onClick={onClose}>关闭</button>
+    </div></React.Fragment>);
+}
+
 function ResBar({res,deltas,show}){
   return <div className={`resbar ${show?'show':''}`}>{G.res_def.map(r=>{ const v=res[r.id]; return (
     <div key={r.id} className={`res ${r.id}`}><span className="ic">{r.ic}</span><div className="col"><span className="rl">{r.label}</span>
@@ -79,20 +162,26 @@ function ResBar({res,deltas,show}){
 
 function App(){
   const [phase,setPhase]=useState('opening'); // opening | play | ending
-  const [lineN,setLineN]=useState(0); const [crewN,setCrewN]=useState(0);
+  const [lineN,setLineN]=useState(0); const [idN,setIdN]=useState(0); const [crewN,setCrewN]=useState(0); const [ostep,setOstep]=useState(0);
   const [gs,setGs]=useState(null);
   const [reveal,setReveal]=useState(null); // {choice, info, phase:'hold'|'show', followed, donorBet}
   const [deltas,setDeltas]=useState({});
   const [flash,setFlash]=useState(null); const [shake,setShake]=useState(false);
   const [donorMsg,setDonorMsg]=useState(null);
   const [muted,setMuted]=useState(false);
+  const [codexK,setCodexK]=useState(null);
+  const [journal,setJournal]=useState([]); const [met,setMet]=useState({}); const [jrnOpen,setJrnOpen]=useState(false);
   const [sceneIn,setSceneIn]=useState(false);
   const fc=useRef(false); const firstInteract=()=>{ if(!fc.current){fc.current=true;drone();} };
 
-  // opening world lines
-  useEffect(()=>{ if(phase!=='opening')return; if(lineN<G.worldLines.length){ const t=setTimeout(()=>{setLineN(n=>n+1);sfx('tick');}, lineN===0?900:2000); return()=>clearTimeout(t);} },[phase,lineN]);
-  // crew stagger handled by button
-  useEffect(()=>{ if(phase==='play'){ setSceneIn(false); const t=setTimeout(()=>setSceneIn(true),40); return()=>clearTimeout(t);} },[phase, gs&&gs.node]);
+  // opening: world -> identity -> crew (auto-reveal per substep)
+  useEffect(()=>{ if(phase!=='opening'||ostep!==0)return; if(lineN<G.worldLines.length){ const t=setTimeout(()=>{setLineN(n=>n+1);sfx('tick');}, lineN===0?800:1900); return()=>clearTimeout(t);} },[phase,ostep,lineN]);
+  useEffect(()=>{ if(phase!=='opening'||ostep!==1)return; if(idN<IDENTITY.length){ const t=setTimeout(()=>{setIdN(n=>n+1);sfx('tick');}, idN===0?500:1700); return()=>clearTimeout(t);} },[phase,ostep,idN]);
+  useEffect(()=>{ if(phase!=='opening'||ostep!==2)return; if(crewN<CREW.length){ const t=setTimeout(()=>{setCrewN(n=>n+1);sfx('tick');}, crewN===0?400:850); return()=>clearTimeout(t);} },[phase,ostep,crewN]);
+  useEffect(()=>{ if(phase!=='play'||!gs){ return; } setSceneIn(false); const t=setTimeout(()=>setSceneIn(true),40);
+    const nd=E.getNode(G,gs); const txt=(nd.title||'')+'｜'+(nd.desc||'');
+    setMet(prev=>{ const m={...prev}; Object.keys(CODEX).forEach(k=>{ if(txt.indexOf(k)>=0) m[k]=true; }); Object.keys(ALIASES).forEach(a=>{ if(txt.indexOf(a)>=0) m[ALIASES[a]]=true; }); return m; });
+    return()=>clearTimeout(t); },[phase, gs&&gs.node]);
 
   const startGame=()=>{ firstInteract(); setGs(E.newGame(G)); setPhase('play'); };
   const node = gs ? E.getNode(G,gs) : null;
@@ -116,8 +205,10 @@ function App(){
       setTimeout(()=>{ setFlash(null); setShake(false); },1100);
     },2200);
   };
-  const cont=()=>{ const out=reveal.out; setReveal(null); setGs(out.state); if(out.state.status!=='playing'){ setTimeout(()=>setPhase('ending'),60);} };
-  const replay=()=>{ setGs(null); setLineN(0); setPhase('opening'); setReveal(null); setFlash(null); };
+  const cont=()=>{ const out=reveal.out; const nd=E.getNode(G,gs); const ch=reveal.choice;
+    setJournal(j=>[...j,{step:gs.steps+1,nodeTitle:nd.title,choice:ch.label,outcome:ch.outcome.title}]);
+    setReveal(null); setGs(out.state); if(out.state.status!=='playing'){ setTimeout(()=>setPhase('ending'),60);} };
+  const replay=()=>{ setGs(null); setLineN(0); setIdN(0); setCrewN(0); setOstep(0); setPhase('opening'); setReveal(null); setFlash(null); setJournal([]); setMet({}); setJrnOpen(false); setCodexK(null); };
   const toggleMute=()=>{ const m=!muted; setMuted(m); setMute(m); };
 
   const progress = gs ? Math.round(100*(gs.steps)/(G.campaign.length)) : (phase==='opening'?6:0);
@@ -131,19 +222,45 @@ function App(){
 
       <div className="stage">
         <div className="topbar">
-          <div className={`daystamp show`}><span className="d-plague">PLAGUE</span><span className="d-num">幕 <b>{gs?gs.steps+1:1}</b>/{G.campaign.length}</span></div>
+          <div className="topleft">
+            {gs && <button className="idchip" onClick={()=>setCodexK('莱昂内尔')}><span className="idwho">你</span><span className="idname">莱昂内尔·维尼</span></button>}
+            <div className={`daystamp show`}><span className="d-plague">PLAGUE</span><span className="d-num">幕 <b>{gs?gs.steps+1:1}</b>/{G.campaign.length}</span></div>
+          </div>
           {gs && <ResBar res={gs.res} deltas={reveal&&reveal.nums?deltas:null} show={true}/>}
         </div>
 
         <div className={`center ${phase==='play'?'choice-mode':''}`}>
           {phase==='opening' && (
             <div className="phase">
-              {lineN<=G.worldLines.length && (
+              {ostep===0 && <React.Fragment>
                 <div className="world-lines">{G.worldLines.map((l,i)=><div key={i} className={`wline ${l.cls} ${i<lineN?'in':''}`}>{l.t}</div>)}</div>
-              )}
-              {lineN>=G.worldLines.length && (
+                {lineN>=G.worldLines.length && <button className="start-btn" onClick={()=>{firstInteract();setOstep(1);}}>▸ 继续</button>}
+              </React.Fragment>}
+
+              {ostep===1 && <React.Fragment>
+                <div className="world-lines">{IDENTITY.map((l,i)=><div key={i} className={`wline ${l.cls} ${i<idN?'in':''}`}>{l.t}</div>)}</div>
+                {idN>=IDENTITY.length && <button className="start-btn" onClick={()=>setOstep(2)}>▸ 你身后还有谁</button>}
+              </React.Fragment>}
+
+              {ostep===2 && <React.Fragment>
+                <div className="crew-intro">— 高墙之内,你还守着这三个人 —</div>
+                <div className="crew-row">{CREW.map((c,i)=>(
+                  <div key={c.key} className={`survivor ${c.suspense?'suspense':''} ${i<crewN?'in':''}`}>
+                    <Bust c={c}/><div className="s-name">{c.name}</div><div className="s-tag">{c.tag}</div><div className="s-line"><b>{c.line}</b></div>
+                  </div>))}</div>
+                {crewN>=CREW.length && <button className="start-btn" onClick={()=>setOstep(3)}>▸ 该上路了</button>}
+              </React.Fragment>}
+
+              {ostep===3 && <React.Fragment>
+                <div className="world-lines" style={{marginBottom:18}}><div className="wline in">撑下去,只靠这三样。</div></div>
+                <div className="pillars">
+                  <div className="pillar food"><div className="pe">🥫</div><div className="pn">食物</div><div className="pm">见底,就会饿死</div></div>
+                  <div className="pillar health"><div className="pe">💊</div><div className="pn">健康</div><div className="pm">归零,就会病倒</div></div>
+                  <div className="pillar morale"><div className="pe">🔥</div><div className="pn">士气</div><div className="pm">耗尽,就撑不下去</div></div>
+                </div>
+                <div className="desc" style={{maxWidth:460}}>每个选择都有代价,任一耗尽,你便走到了头。<br/><span style={{color:'var(--cyan)'}}>看你直播的人,会投票、会打赏、与你共担这一局。</span></div>
                 <button className="start-btn" onClick={startGame}>进入幸存 ▸</button>
-              )}
+              </React.Fragment>}
             </div>
           )}
 
@@ -151,10 +268,10 @@ function App(){
             <div className="phase">
               <div className="scene-card">
                 <div className={`scene-emoji ${sceneIn?'in':''}`}>{node.icon}</div>
-                <div className="node-title">{node.title}</div>
+                <div className="node-title">{linkify(node.title,setCodexK)}</div>
                 <div className="node-chip">{(G.nodeChapter[node.id]||'').replace('PROLOGUE','序章')}</div>
               </div>
-              <div className="desc">{node.desc}</div>
+              <div className="desc">{linkify(node.desc,setCodexK)}</div>
               <div className="aud-hint">◂ 观众实时投票 · 顺应民意者士气 +1 ▸</div>
               <div className="choice-list">
                 {node.choices.map((c,i)=>{ const pc=aud?aud.pct[i]:0; const fav=aud&&c.id===aud.favId; return (
@@ -206,6 +323,20 @@ function App(){
 
       {flash && <div className={`flash ${flash}`}></div>}
       {donorMsg && <div className="donor-toast">{donorMsg}</div>}
+      {phase==='play' && <button className="cast-btn" onClick={()=>setCodexK('__list__')}>☰ 人物</button>}
+      {codexK && <CodexModal ck={codexK} onSel={setCodexK} onClose={()=>setCodexK(null)}/>}
+      {phase==='play' && <button className="jrn-btn" onClick={()=>setJrnOpen(true)}>✎ 手记</button>}
+      {jrnOpen && (<React.Fragment>
+        <div className="codex-scrim" onClick={()=>setJrnOpen(false)}></div>
+        <div className="codex-card">
+          <div className="cc-rel-h">我是谁</div>
+          <div className="cc-bg" style={{margin:'0 0 16px'}}>你是 <b style={{color:'var(--fog)'}}>莱昂内尔·维尼</b>——{CODEX['莱昂内尔'].tag}。{CODEX['莱昂内尔'].bg}</div>
+          <div className="cc-rel-h">已遇见的人</div>
+          <div className="cc-rel" style={{marginBottom:16}}>{Object.keys(met).length? Object.keys(met).map(k=><button key={k} onClick={()=>{setJrnOpen(false);setCodexK(k);}}>{k}</button>) : <span className="jrn-empty">尚未遇见旁人</span>}</div>
+          <div className="cc-rel-h">历程 · 你的抉择</div>
+          <div className="jrn-list">{journal.length? journal.map((e,i)=><div className="jrn-item" key={i}>幕{e.step} · <b>{e.nodeTitle}</b><br/>↳ 你选择 <span className="jc">{e.choice}</span> ⇒ {e.outcome}</div>) : <span className="jrn-empty">还没有做出任何抉择</span>}</div>
+          <button className="cc-close" onClick={()=>setJrnOpen(false)}>关闭</button>
+        </div></React.Fragment>)}
       <div className="hairline" style={{width:progress+'%'}}></div>
       <button className="mute" onClick={toggleMute} title="环境音">{muted?'🔇':'🔊'}</button>
     </div>
