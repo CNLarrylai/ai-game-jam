@@ -6,8 +6,8 @@
   var TUNING = {
     clampMax: 10,
     deathAt: 0,            // 任一资源 <= 0 即出局
-    donorEvery: 4,         // 每 N 次抉择,金主给最低资源回血(模拟观众支援)
-    donorAmount: 1,
+    donorEvery: 3,         // 每 N 次抉择,金主给最低资源回血(模拟观众支援)
+    donorAmount: 2,
     pollFollowBonus: 1,    // 顺应观众民意 → 士气 +1
     predictResonanceBonus: 1, // 你的结果与观众多数押注一致 → 士气 +1
   };
