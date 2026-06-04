@@ -1,0 +1,172 @@
+/* ===== avatar.jsx — 角色生成器 (expanded woodcut recipe + audience-as-characters) ===== */
+const { useState, useMemo } = React;
+
+/* ---- filter defs (rough edges) ---- */
+function AvatarDefs() {
+  return (
+    <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
+      <defs>
+        <filter id="aRough"><feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="9" result="n" /><feDisplacementMap in="SourceGraphic" in2="n" scale="5.5" /></filter>
+        <pattern id="aHatch" width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(118)"><line x1="0" y1="0" x2="0" y2="5" stroke="#0a0b0e" strokeWidth="1.1" /></pattern>
+        <radialGradient id="aVig" cx="0.5" cy="0.44" r="0.72"><stop offset="0.5" stopColor="#06070a" stopOpacity="0" /><stop offset="1" stopColor="#06070a" stopOpacity="0.5" /></radialGradient>
+      </defs>
+    </svg>
+  );
+}
+
+/* ---- option libraries (the extractable traits) ---- */
+const SKIN = {
+  porcelain: { b: 'oklch(0.73 0.025 60)', s: 'oklch(0.53 0.03 50)', label: '瓷白' },
+  light:     { b: 'oklch(0.67 0.032 56)', s: 'oklch(0.47 0.036 46)', label: '浅' },
+  tan:       { b: 'oklch(0.59 0.042 54)', s: 'oklch(0.41 0.046 44)', label: '小麦' },
+  brown:     { b: 'oklch(0.49 0.042 52)', s: 'oklch(0.35 0.04 44)', label: '棕' },
+  deep:      { b: 'oklch(0.4 0.036 50)', s: 'oklch(0.29 0.032 42)', label: '深棕' },
+  ebony:     { b: 'oklch(0.32 0.03 48)', s: 'oklch(0.23 0.025 40)', label: '乌墨' },
+};
+const HAIRCOL = {
+  black: 'oklch(0.18 0.012 50)', darkbrown: 'oklch(0.27 0.026 50)', brown: 'oklch(0.38 0.04 55)',
+  blonde: 'oklch(0.66 0.07 80)', gray: 'oklch(0.62 0.008 250)', red: 'oklch(0.45 0.12 35)',
+  teal: 'oklch(0.48 0.06 200)', pink: 'oklch(0.54 0.08 350)',
+};
+const HAIRCOL_LABEL = { black: '黑', darkbrown: '深棕', brown: '棕', blonde: '金', gray: '灰白', red: '红', teal: '青', pink: '粉' };
+const HAIR = ['short', 'long', 'bun', 'afro', 'buzz', 'bald', 'hijab', 'hood'];
+const HAIR_LABEL = { short: '短发', long: '长发', bun: '丸子头', afro: '卷发', buzz: '寸头', bald: '光头', hijab: '头巾', hood: '兜帽' };
+const ACCESSORY = ['none', 'glasses', 'cap', 'mask', 'headphones'];
+const ACC_LABEL = { none: '无', glasses: '眼镜', cap: '帽子', mask: '口罩', headphones: '耳机' };
+const FACIAL = ['none', 'stubble', 'beard'];
+const FACIAL_LABEL = { none: '无', stubble: '胡茬', beard: '络腮' };
+const EMBLEM = ['none', 'armband', 'cross', 'strap'];
+const EMB_LABEL = { none: '无', armband: '袖标', cross: '医者十字', strap: '背包带' };
+const BODY = ['tall', 'mid', 'small'];
+const BODY_LABEL = { tall: '高', mid: '中', small: '小' };
+const ROLE = {
+  none: { label: '普通观众', ring: 'var(--line)', badge: '', tint: null },
+  active: { label: '活跃评论', ring: 'oklch(0.74 0.08 70)', badge: '💬', tint: 'oklch(0.74 0.08 70)' },
+  mic: { label: '上麦嘉宾', ring: 'oklch(0.72 0.09 200)', badge: '🎙️', tint: 'oklch(0.72 0.09 200)' },
+  donor: { label: '金主', ring: 'oklch(0.8 0.13 80)', badge: '👑', tint: 'oklch(0.8 0.13 80)' },
+};
+
+const GEO = {
+  tall:  { sx: 'M6 156 L12 110 Q22 88 52 82 L88 82 Q118 88 128 112 L134 156 Z', cx: 70, cy: 54, rx: 26, ry: 29 },
+  mid:   { sx: 'M12 156 L18 116 Q28 94 52 90 L88 90 Q114 96 122 118 L128 156 Z', cx: 70, cy: 60, rx: 25, ry: 27 },
+  small: { sx: 'M22 156 L28 122 Q36 104 54 100 L86 100 Q104 104 112 124 L118 156 Z', cx: 70, cy: 64, rx: 22, ry: 24 },
+};
+
+/* ---- the builder ---- */
+function avatarSVG(r) {
+  const G = GEO[r.body] || GEO.mid;
+  const cx = G.cx, cy = G.cy, rx = G.rx, ry = G.ry;
+  const lit = r.lit !== false;
+  const sk = SKIN[r.skin] || SKIN.tan;
+  const hair = HAIRCOL[r.hairColor] || HAIRCOL.black;
+  const cloth = lit ? (r.cloth || 'oklch(0.26 0.025 250)') : '#13110d';
+  const faceBase = lit ? sk.b : '#13110d';
+  const faceShade = lit ? sk.s : '#0d0b08';
+  const id = r.id || 'av';
+  let p = '';
+  // bg tint
+  const tint = r.bg || (r.roleTint) || 'oklch(0.5 0.04 240)';
+  p += `<defs><radialGradient id="bg_${id}" cx="0.5" cy="0.42" r="0.62"><stop offset="0" stop-color="${tint}" stop-opacity="0.26"/><stop offset="1" stop-color="${tint}" stop-opacity="0"/></radialGradient>`;
+  p += `<clipPath id="head_${id}"><ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"/></clipPath></defs>`;
+  p += `<rect width="140" height="156" fill="url(#bg_${id})"/>`;
+  // body/clothes
+  p += `<path d="${G.sx}" fill="${cloth}" filter="url(#aRough)"/>`;
+  // hair back (for long/hijab)
+  if (lit && (r.hair === 'long')) p += `<path d="M${cx - rx - 4} ${cy - 6} Q${cx - rx - 8} ${cy + 40} ${cx - rx + 6} ${cy + 46} L${cx + rx - 6} ${cy + 46} Q${cx + rx + 8} ${cy + 40} ${cx + rx + 4} ${cy - 6} Z" fill="${hair}" filter="url(#aRough)"/>`;
+  // neck
+  if (lit) p += `<rect x="${cx - 9}" y="${cy + ry - 8}" width="18" height="20" fill="${faceShade}"/>`;
+  // head base
+  p += `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${faceShade}" filter="url(#aRough)"/>`;
+  // lit side (diagonal terminator) — woodcut 2-tone
+  if (lit) p += `<g clip-path="url(#head_${id})"><rect x="${cx - rx - 6}" y="${cy - ry - 6}" width="${rx + 14}" height="${2 * ry + 12}" fill="${faceBase}" transform="rotate(-10 ${cx} ${cy})"/></g>`;
+  if (!lit) p += `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="#13110d" filter="url(#aRough)"/>`;
+  // ears
+  if (lit) { p += `<circle cx="${cx - rx + 2}" cy="${cy + 4}" r="5" fill="${faceShade}"/><circle cx="${cx + rx - 2}" cy="${cy + 4}" r="5" fill="${faceShade}"/>`; }
+  // facial features (lit only)
+  if (lit) {
+    const ed = faceShade;
+    // eye-socket / gaunt shadows (fatigue)
+    p += `<ellipse cx="${cx - 9}" cy="${cy + 1}" rx="7" ry="5" fill="${faceShade}" opacity="0.4"/><ellipse cx="${cx + 9}" cy="${cy + 1}" rx="7" ry="5" fill="${faceShade}" opacity="0.4"/>`;
+    p += `<path d="M${cx - 17} ${cy + 6} Q${cx - 20} ${cy + 16} ${cx - 14} ${cy + 22}" stroke="${faceShade}" stroke-width="3" fill="none" opacity="0.3"/>`;
+    // furrowed brows
+    p += `<path d="M${cx - 16} ${cy - 6} L${cx - 5} ${cy - 2}" stroke="#16120e" stroke-width="2.4" stroke-linecap="round" opacity="0.85"/><path d="M${cx + 16} ${cy - 6} L${cx + 5} ${cy - 2}" stroke="#16120e" stroke-width="2.4" stroke-linecap="round" opacity="0.85"/>`;
+    // tired eyes + eyebags
+    p += `<ellipse cx="${cx - 9}" cy="${cy + 2}" rx="2.6" ry="2" fill="#120f0b"/><ellipse cx="${cx + 9}" cy="${cy + 2}" rx="2.6" ry="2" fill="#120f0b"/>`;
+    p += `<path d="M${cx - 13} ${cy + 6} q4 1.5 8 0" stroke="${faceShade}" stroke-width="1.4" fill="none" opacity="0.5"/><path d="M${cx + 5} ${cy + 6} q4 1.5 8 0" stroke="${faceShade}" stroke-width="1.4" fill="none" opacity="0.5"/>`;
+    // nose
+    p += `<path d="M${cx} ${cy + 2} q-3 8 -2 10" stroke="${ed}" stroke-width="2" fill="none" opacity="0.5"/>`;
+    // weary mouth (flat, faint downturn)
+    p += `<path d="M${cx - 6} ${cy + 17} q6 1 12 0" stroke="${ed}" stroke-width="2" fill="none" opacity="0.65"/>`;
+    // facial hair
+    if (r.facial === 'stubble') p += `<path d="M${cx - 16} ${cy + 8} Q${cx} ${cy + ry + 2} ${cx + 16} ${cy + 8} Q${cx + 12} ${cy + 18} ${cx} ${cy + 20} Q${cx - 12} ${cy + 18} ${cx - 16} ${cy + 8} Z" fill="${faceShade}" opacity="0.4"/>`;
+    if (r.facial === 'beard') p += `<path d="M${cx - 18} ${cy + 4} Q${cx} ${cy + ry + 8} ${cx + 18} ${cy + 4} Q${cx + 14} ${cy + 22} ${cx} ${cy + 24} Q${cx - 14} ${cy + 22} ${cx - 18} ${cy + 4} Z" fill="${hair}" filter="url(#aRough)"/>`;
+  }
+  // hair / head-cover on top
+  p += hairShape(r.hair, cx, cy, rx, ry, hair, lit, faceShade);
+  // accessory
+  p += accessoryShape(r.accessory, cx, cy, rx, ry, r);
+  // emblem on chest
+  const em = r.emblem || 'none';
+  if (em === 'cross') p += `<g transform="translate(${cx},134)" filter="url(#aRough)"><rect x="-3" y="-8.5" width="6" height="17" fill="oklch(0.56 0.18 28)"/><rect x="-8.5" y="-3" width="17" height="6" fill="oklch(0.56 0.18 28)"/></g>`;
+  else if (em === 'armband') p += `<rect x="${cx + 16}" y="112" width="22" height="9" rx="2" fill="${r.accentCol || 'oklch(0.6 0.16 30)'}" opacity="0.9" transform="rotate(22 ${cx + 26} 116)"/>`;
+  else if (em === 'strap') p += `<path d="M${cx - 12} 104 L${cx + 10} 156" stroke="#0c0a07" stroke-width="8" stroke-linecap="round" opacity="0.9"/>`;
+  // suspense mark
+  if (r.suspense) p += `<ellipse cx="${cx + 20}" cy="${cy + ry + 2}" rx="8" ry="5.5" fill="oklch(0.6 0.13 150)" opacity="0.45" filter="url(#aRough)"/>`;
+  // woodcut grit: hatch on shadow side + vignette
+  if (lit) p += `<g clip-path="url(#head_${id})"><rect x="${cx - 4}" y="${cy - ry - 8}" width="${rx + 10}" height="${2 * ry + 16}" fill="url(#aHatch)" opacity="0.22" transform="rotate(-10 ${cx} ${cy})"/></g>`;
+  p += `<rect width="140" height="156" fill="url(#aVig)"/>`;
+  return p;
+}
+
+function hairShape(style, cx, cy, rx, ry, col, lit, shade) {
+  const top = cy - ry;
+  switch (style) {
+    case 'short': return `<path d="M${cx - rx - 2} ${cy} Q${cx - rx} ${top - 6} ${cx} ${top - 8} Q${cx + rx} ${top - 6} ${cx + rx + 2} ${cy} Q${cx + rx - 4} ${cy - 14} ${cx + 10} ${cy - 16} Q${cx} ${cy - 12} ${cx - 10} ${cy - 16} Q${cx - rx + 4} ${cy - 14} ${cx - rx - 2} ${cy} Z" fill="${col}" filter="url(#aRough)"/>`;
+    case 'long': return `<path d="M${cx - rx - 3} ${cy + 6} Q${cx - rx - 2} ${top - 8} ${cx} ${top - 10} Q${cx + rx + 2} ${top - 8} ${cx + rx + 3} ${cy + 6} Q${cx + rx - 4} ${cy - 12} ${cx + 8} ${cy - 15} Q${cx} ${cy - 11} ${cx - 8} ${cy - 15} Q${cx - rx + 4} ${cy - 12} ${cx - rx - 3} ${cy + 6} Z" fill="${col}" filter="url(#aRough)"/>`;
+    case 'bun': return `<ellipse cx="${cx}" cy="${top - 8}" rx="11" ry="9" fill="${col}"/><path d="M${cx - rx} ${cy - 6} Q${cx - rx} ${top} ${cx} ${top - 2} Q${cx + rx} ${top} ${cx + rx} ${cy - 6} Q${cx + rx - 4} ${cy - 14} ${cx} ${cy - 14} Q${cx - rx + 4} ${cy - 14} ${cx - rx} ${cy - 6} Z" fill="${col}" filter="url(#aRough)"/>`;
+    case 'afro': return `<path d="M${cx - rx - 8} ${cy - 6} Q${cx - rx - 12} ${top - 16} ${cx} ${top - 18} Q${cx + rx + 12} ${top - 16} ${cx + rx + 8} ${cy - 6} Q${cx + rx} ${cy - 18} ${cx} ${cy - 20} Q${cx - rx} ${cy - 18} ${cx - rx - 8} ${cy - 6} Z" fill="${col}" filter="url(#aRough)"/>`;
+    case 'buzz': return `<path d="M${cx - rx + 1} ${cy - 8} Q${cx - rx + 2} ${top - 1} ${cx} ${top - 2} Q${cx + rx - 2} ${top - 1} ${cx + rx - 1} ${cy - 8} Q${cx + rx - 6} ${cy - 14} ${cx} ${cy - 15} Q${cx - rx + 6} ${cy - 14} ${cx - rx + 1} ${cy - 8} Z" fill="${col}" opacity="0.78" filter="url(#aRough)"/>`;
+    case 'bald': return lit ? `<path d="M${cx - rx + 3} ${cy + 2} Q${cx - 14} ${cy - 4} ${cx} ${cy - 4} Q${cx + 14} ${cy - 4} ${cx + rx - 3} ${cy + 2} Q${cx + rx - 6} ${cy - 9} ${cx} ${cy - 9} Q${cx - rx + 6} ${cy - 9} ${cx - rx + 3} ${cy + 2} Z" fill="${col}" opacity="0.5"/>` : '';
+    case 'hijab': return `<path d="M${cx - rx - 5} ${cy + ry + 6} Q${cx - rx - 8} ${top - 10} ${cx} ${top - 12} Q${cx + rx + 8} ${top - 10} ${cx + rx + 5} ${cy + ry + 6} Q${cx + rx - 2} ${cy + 4} ${cx + rx - 4} ${cy} Q${cx + 4} ${cy - 10} ${cx - 4} ${cy - 10} Q${cx - rx + 4} ${cy} ${cx - rx + 5} ${cy + 4} Z" fill="${col}" filter="url(#aRough)"/>`;
+    case 'hood': return `<path d="M${cx - rx - 10} ${cy + ry + 8} Q${cx - rx - 12} ${top - 14} ${cx} ${top - 16} Q${cx + rx + 12} ${top - 14} ${cx + rx + 10} ${cy + ry + 8} Q${cx + rx} ${cy - 6} ${cx} ${cy - 2} Q${cx - rx} ${cy - 6} ${cx - rx - 10} ${cy + ry + 8} Z" fill="#120f0c" filter="url(#aRough)"/>${lit ? '' : `<path d="M${cx - 16} ${cy + 6} Q${cx} ${cy + 22} ${cx + 16} ${cy + 6} Q${cx + 8} ${cy + 16} ${cx} ${cy + 17} Q${cx - 8} ${cy + 16} ${cx - 16} ${cy + 6} Z" fill="#0a0807"/>`}`;
+    default: return '';
+  }
+}
+
+function accessoryShape(acc, cx, cy, rx, ry, r) {
+  switch (acc) {
+    case 'glasses': return `<g fill="none" stroke="${r.lit !== false ? 'oklch(0.2 0.01 50)' : (r.rim || 'oklch(0.78 0.06 215)')}" stroke-width="2.2" opacity="0.82"><circle cx="${cx - 9}" cy="${cy + 1}" r="7.5"/><circle cx="${cx + 9}" cy="${cy + 1}" r="7.5"/><path d="M${cx - 1.5} ${cy + 1} H${cx + 1.5}"/></g>`;
+    case 'cap': return `<g filter="url(#aRough)" fill="#15120e"><path d="M${cx - rx - 1} ${cy - ry + 10} Q${cx} ${cy - ry - 14} ${cx + rx + 1} ${cy - ry + 10} L${cx + rx + 14} ${cy - ry + 16} L${cx + rx} ${cy - ry + 10} Z"/></g>`;
+    case 'mask': return `<path d="M${cx - 15} ${cy + 6} Q${cx} ${cy + 26} ${cx + 15} ${cy + 6} L${cx + 13} ${cy + 20} Q${cx} ${cy + 28} ${cx - 13} ${cy + 20} Z" fill="oklch(0.82 0.02 220)" opacity="0.9"/>`;
+    case 'headphones': return `<g fill="none" stroke="#1a1714" stroke-width="4"><path d="M${cx - rx - 4} ${cy} Q${cx} ${cy - ry - 14} ${cx + rx + 4} ${cy}"/></g><rect x="${cx - rx - 9}" y="${cy - 4}" width="9" height="16" rx="3" fill="${r.accentCol || 'oklch(0.62 0.1 200)'}"/><rect x="${cx + rx}" y="${cy - 4}" width="9" height="16" rx="3" fill="${r.accentCol || 'oklch(0.62 0.1 200)'}"/>`;
+    default: return '';
+  }
+}
+
+function Avatar({ recipe, size = 132 }) {
+  const html = useMemo(() => avatarSVG(recipe), [JSON.stringify(recipe)]);
+  return (
+    <span className="av" style={{ width: size, height: size * 156 / 140 }}>
+      <svg viewBox="0 0 140 156" style={{ width: '100%', height: '100%', display: 'block' }} dangerouslySetInnerHTML={{ __html: html }}></svg>
+      <span className="av-grain"></span>
+    </span>
+  );
+}
+
+/* ---- randomizer (generic audience member, no photo needed) ---- */
+const pick = (a) => a[Math.floor(Math.random() * a.length)];
+let _rid = 0;
+function randomAvatar(role) {
+  const skins = Object.keys(SKIN), hcols = Object.keys(HAIRCOL);
+  const lit = true;
+  let hair = pick(HAIR.filter(h => h !== 'hood'));
+  return {
+    id: 'r' + (++_rid), lit, body: pick(BODY), skin: pick(skins),
+    hair, hairColor: pick(hcols),
+    accessory: Math.random() < 0.5 ? pick(ACCESSORY) : 'none',
+    facial: Math.random() < 0.35 ? pick(FACIAL) : 'none',
+    emblem: 'none', role: role || 'none',
+  };
+}
+
+Object.assign(window, { AvatarDefs, Avatar, avatarSVG, randomAvatar, SKIN, HAIRCOL, HAIRCOL_LABEL, HAIR, HAIR_LABEL, ACCESSORY, ACC_LABEL, FACIAL, FACIAL_LABEL, EMBLEM, EMB_LABEL, BODY, BODY_LABEL, ROLE });

@@ -1,0 +1,60 @@
+{
+  "_about": "《最后的人》角色库。每个 recipe 直接喂给 frontend 的 Avatar 生成器(avatar.jsx)出木刻头像。字段枚举见 docs/ART_STYLE.md §8。name/note 为元数据,recipe 为生成参数。",
+  "_recipe_schema": {
+    "lit": "true=写实有脸 / false=纯剪影(未知·神秘·已逝)",
+    "body": "tall | mid | small",
+    "skin": "porcelain | light | tan | brown | deep | ebony",
+    "hair": "short | long | bun | afro | buzz | bald | hijab | hood",
+    "hairColor": "black | darkbrown | brown | blonde | gray | red | teal | pink",
+    "accessory": "none | glasses | cap | mask | headphones",
+    "facial": "none | stubble | beard",
+    "emblem": "none | armband | cross | strap",
+    "role": "none | active | mic | donor (直播身份)",
+    "suspense": "true=病变绿斑(悬念/疑似感染)"
+  },
+
+  "cast": [
+    { "id": "lionel", "name": "莱昂内尔·维尼", "note": "主角/叙事者(玩家化身),从牧羊少年到最后的人",
+      "recipe": { "id": "lionel", "lit": true, "body": "mid", "skin": "tan", "hair": "short", "hairColor": "brown", "accessory": "none", "facial": "stubble", "emblem": "none", "role": "none", "suspense": false } },
+    { "id": "idris", "name": "伊德丽丝", "note": "主角之妻,为孩子安危耗尽心血",
+      "recipe": { "id": "idris", "lit": true, "body": "mid", "skin": "light", "hair": "long", "hairColor": "darkbrown", "accessory": "none", "facial": "none", "emblem": "none", "role": "none", "suspense": false } },
+    { "id": "adrian", "name": "阿德里安", "note": "病弱的理想主义挚友,健康precarious",
+      "recipe": { "id": "adrian", "lit": true, "body": "tall", "skin": "porcelain", "hair": "short", "hairColor": "darkbrown", "accessory": "none", "facial": "none", "emblem": "none", "role": "none", "suspense": true } },
+    { "id": "perdita", "name": "佩迪塔", "note": "莱昂内尔之姐,骄傲隐忍,殉夫",
+      "recipe": { "id": "perdita", "lit": true, "body": "mid", "skin": "light", "hair": "bun", "hairColor": "darkbrown", "accessory": "none", "facial": "none", "emblem": "none", "role": "none", "suspense": false } },
+    { "id": "raymond", "name": "雷蒙德", "note": "魅力型领袖/战争英雄,野心拖团队入险",
+      "recipe": { "id": "raymond", "lit": true, "body": "tall", "skin": "tan", "hair": "short", "hairColor": "black", "accessory": "none", "facial": "beard", "emblem": "armband", "role": "none", "suspense": false } },
+    { "id": "clara", "name": "克拉拉", "note": "雷蒙德与佩迪塔之女,被灾难夺走童年",
+      "recipe": { "id": "clara", "lit": true, "body": "small", "skin": "light", "hair": "long", "hairColor": "brown", "accessory": "none", "facial": "none", "emblem": "none", "role": "none", "suspense": false } },
+    { "id": "countess", "name": "温莎伯爵夫人", "note": "退位王后,冷酷恋权的旧秩序反派",
+      "recipe": { "id": "countess", "lit": true, "body": "mid", "skin": "porcelain", "hair": "bun", "hairColor": "gray", "accessory": "none", "facial": "none", "emblem": "none", "role": "none", "suspense": false } },
+    { "id": "evadne", "name": "伊娃德妮", "note": "没落希腊贵族,骄傲拒援、战场临终诅咒",
+      "recipe": { "id": "evadne", "lit": true, "body": "mid", "skin": "tan", "hair": "long", "hairColor": "black", "accessory": "none", "facial": "none", "emblem": "none", "role": "none", "suspense": false } }
+  ],
+
+  "npcs": [
+    { "id": "old_nurse", "name": "老保姆", "note": "把伊德丽丝带大的人,染疫病逝于城堡(V2-CVII)",
+      "recipe": { "id": "old_nurse", "lit": true, "body": "mid", "skin": "light", "hair": "bun", "hairColor": "gray", "accessory": "none", "facial": "none", "emblem": "cross", "role": "none", "suspense": true } },
+    { "id": "doom_prophet", "name": "末日疯先生", "note": "温莎街头预言末日的疯子,丧妻丧子(V2-CVII)",
+      "recipe": { "id": "doom_prophet", "lit": true, "body": "tall", "skin": "deep", "hair": "long", "hairColor": "gray", "accessory": "none", "facial": "beard", "emblem": "none", "role": "none", "suspense": false } },
+    { "id": "abandoned_man", "name": "破屋里的弃者", "note": "被逃难队丢下的染疫者,门后的未知(V2-CVII risk)",
+      "recipe": { "id": "abandoned_man", "lit": false, "body": "mid", "skin": "deep", "hair": "hood", "hairColor": "black", "accessory": "none", "facial": "none", "emblem": "none", "role": "none", "suspense": true } },
+    { "id": "centenarian", "name": "百岁老人", "note": "躲疫一生终染疫,爬到城堡门前(V2-CVIII)",
+      "recipe": { "id": "centenarian", "lit": true, "body": "small", "skin": "deep", "hair": "short", "hairColor": "gray", "accessory": "none", "facial": "none", "emblem": "none", "role": "none", "suspense": true } },
+    { "id": "refugee", "name": "逃难者(通用)", "note": "涌上路的难民,可批量复用",
+      "recipe": { "id": "refugee", "lit": false, "body": "mid", "skin": "brown", "hair": "hood", "hairColor": "black", "accessory": "none", "facial": "none", "emblem": "none", "role": "none", "suspense": false } },
+    { "id": "mutineer", "name": "哗变士兵", "note": "南逃途中哗变的队伍(V3-CVI)",
+      "recipe": { "id": "mutineer", "lit": true, "body": "tall", "skin": "tan", "hair": "buzz", "hairColor": "black", "accessory": "none", "facial": "stubble", "emblem": "armband", "role": "none", "suspense": false } }
+  ],
+
+  "audience_examples": [
+    { "id": "aud_donor", "name": "金主观众", "note": "示例:打赏金主 → 戴冠入场",
+      "recipe": { "id": "aud_donor", "lit": true, "body": "mid", "skin": "light", "hair": "short", "hairColor": "blonde", "accessory": "glasses", "facial": "none", "emblem": "none", "role": "donor", "suspense": false } },
+    { "id": "aud_mic", "name": "上麦嘉宾", "note": "示例:连麦观众 → 持麦入场",
+      "recipe": { "id": "aud_mic", "lit": true, "body": "tall", "skin": "brown", "hair": "buzz", "hairColor": "black", "accessory": "headphones", "facial": "stubble", "emblem": "none", "role": "mic", "suspense": false } },
+    { "id": "aud_active", "name": "活跃评论", "note": "示例:高频弹幕观众 → 带框入场",
+      "recipe": { "id": "aud_active", "lit": true, "body": "small", "skin": "porcelain", "hair": "bun", "hairColor": "pink", "accessory": "none", "facial": "none", "emblem": "none", "role": "active", "suspense": false } },
+    { "id": "aud_viewer", "name": "普通观众", "note": "示例:没传头像的观众 → 一键随机通用角色",
+      "recipe": { "id": "aud_viewer", "lit": true, "body": "mid", "skin": "tan", "hair": "short", "hairColor": "darkbrown", "accessory": "cap", "facial": "none", "emblem": "none", "role": "none", "suspense": false } }
+  ]
+}

@@ -88,3 +88,34 @@ ending 接入正式游戏
 - 已配:伊德丽丝(mid+ponytail+strap)、克拉拉(small+scarf)、阿德里安(tall+hood+mark+eyes)
 
 **结论**:逐章铺内容时,每张卡可同时产出 `scene`(场景配方)与新出场人物的 `recipe`,渲染端零图片、纯 SVG 即得统一木刻插画。这套配方将并入 `SPEC.md`,让卡点生成顺带产出配图参数。
+
+---
+
+## 8. 角色生成器(团队/NPC/观众入场)
+
+来源:Claude Design「末日·角色生成器」。可玩工具 `frontend/character-generator.html`(双击打开),源码 `frontend/design-ref/avatar.*`,渲染组件 `Avatar(recipe)`。比 §7 的肖像配方更完整,**一套版画语言覆盖"末日匿名剪影 ↔ 写实可认头像"**。
+
+**recipe 字段(全部可枚举,见 `dist/characters.json`)**
+| 字段 | 取值 |
+|---|---|
+| `lit` | `true` 写实有脸 / `false` 纯剪影(未知·神秘·已逝) |
+| `body` | tall / mid / small |
+| `skin` | porcelain / light / tan / brown / deep / ebony |
+| `hair` | short / long / bun / afro / buzz / bald / hijab / hood |
+| `hairColor` | black / darkbrown / brown / blonde / gray / red / teal / pink |
+| `accessory` | none / glasses / cap / mask / headphones |
+| `facial` | none / stubble / beard |
+| `emblem` | none / armband / cross(医者) / strap(背包带) |
+| `role` | none / active(活跃💬) / mic(上麦🎙️) / donor(金主👑) |
+| `suspense` | `true` 病变绿斑(疑似感染/悬念) |
+
+脸部默认是"末日疲惫"长相(凹陷阴影、皱眉、眼袋、倦容);`lit:false` 退化为纯剪影,适合"门后的未知""逃难者群像"。
+
+**两类用途(已落地 `dist/characters.json`)**
+1. **团队角色 + 剧情 NPC**:`cast`(主角群 8 人)+ `npcs`(老保姆/末日疯先生/破屋弃者/百岁老人/逃难者/哗变兵)。新卡出场新人物时,顺手给一个 recipe 即可有配图。
+2. **观众入场(直播 → 游戏)**:`role` 系统把直播间身份映射成可识别角色——金主戴冠、上麦持麦、活跃带框。没传头像的观众用 `randomAvatar(role)` 一键生成通用角色,仿佛"入场"参与这一局。
+
+**未来:按观众信息生成相关 NPC(架构 + 隐私)**
+- 思路:把观众的**公开**信息(昵称/平台头像/打赏等级)确定性地映射成 recipe ——例如对昵称做 hash → 选 body/skin/hair/发色,打赏等级 → `role`。同一观众每次进场得到同一张脸(稳定代入感)。
+- ⚠️ **隐私红线**:只用观众**主动提供或平台公开**的信息,并应取得同意;不要抓取私密数据、不要把可识别个人信息落库。hackathon 演示建议"由公开昵称确定性派生",不存原始个人数据。
+- 落点:这层做成一个 `deriveRecipe(publicProfile) -> recipe` 的纯函数,接到直播端;游戏内容侧不感知。
