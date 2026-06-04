@@ -51,7 +51,7 @@ function buildPrompt(request: NarrativeRequest): string {
   return `${contextPrompt}
 
 当前状态：
-- 第${gameState.day}天 | HP:${gameState.hp} | 食物:${gameState.food} | 士气:${gameState.morale}
+- 第${gameState.day}天 | HP:${gameState.hp} | 食物:${gameState.food} | 士气:${gameState.sanity}
 - 同伴：${gameState.companions.join(", ") || "无"}
 - 背包：${gameState.inventory.join(", ") || "空"}
 - 业力：${gameState.karma}
@@ -61,8 +61,8 @@ ${commentText}
 请生成一个JSON格式的事件：
 {
   "narrative": "叙事文本",
-  "choices": [{"text":"选项","cost":{"hp":0,"food":0,"morale":0},"reward":{"hp":0,"food":0,"morale":0},"karma":0,"successRate":1.0}],
-  "resourceChanges": {"hp":0,"food":0,"morale":0},
+  "choices": [{"text":"选项","cost":{"hp":0,"food":0,"sanity":0},"reward":{"hp":0,"food":0,"sanity":0},"karma":0,"successRate":1.0}],
+  "resourceChanges": {"hp":0,"food":0,"sanity":0},
   "newItems": [],
   "newCompanions": []
 }`;

@@ -30,7 +30,7 @@ export interface GameState {
   day: number;
   hp: number;
   food: number;
-  morale: number;
+  sanity: number;
   actionPoints: number;
   companions: string[];
   inventory: string[];
@@ -49,7 +49,7 @@ export interface NarrativeResponse {
   narrative: string;
   choices: NarrativeChoice[];
   resourceChanges: Partial<
-    Record<"hp" | "food" | "morale" | "actionPoints", number>
+    Record<"hp" | "food" | "sanity" | "actionPoints", number>
   >;
   newItems: string[];
   newCompanions: string[];
@@ -59,8 +59,8 @@ export interface NarrativeResponse {
 
 export interface NarrativeChoice {
   text: string;
-  cost: Partial<Record<"hp" | "food" | "morale", number>>;
-  reward: Partial<Record<"hp" | "food" | "morale", number>>;
+  cost: Partial<Record<"hp" | "food" | "sanity", number>>;
+  reward: Partial<Record<"hp" | "food" | "sanity", number>>;
   karma: number;
   successRate: number;
 }
