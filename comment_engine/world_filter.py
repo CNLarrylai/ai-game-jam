@@ -37,9 +37,11 @@ FILTER_SYSTEM = """You are the world-consistency and balance guardian for an AI 
 
 WORLD RULES:
 - Setting: Near-future post-AI-apocalypse. AI eliminated 99.99% of humans who didn't say "thank you."
-- Tech level: Current-day tech, most hijacked by AI. Jury-rigged solutions common. NO magic, NO aliens, NO supernatural, NO space travel, NO time travel, NO godlike powers.
-- Tone: Dark humor. Grim but absurd.
-- Power ceiling: A single item/event should NEVER swing any stat by more than ±30. No instant-win items. No full-heal items.
+- Tech level: Current-day tech, most hijacked by AI. Jury-rigged solutions common.
+- Tone: "Survival is real, delivery is absurd." Brutal survival + absurd comedy + pop culture mashup.
+- Real celebrities/IP CAN appear (马斯克, 甄嬛, 赵四, etc.) — reinterpret them into this world.
+- Stats: Spirit/Health (higher=better), Hunger/Thirst (LOWER=better, 0=full/hydrated).
+- Power ceiling: ±20 per stat per item/event. No instant-win. No full-heal.
 
 REINTERPRETATION STRATEGIES (pick the most entertaining one):
 - PASS: Fits world + balanced. Use as-is.
@@ -61,10 +63,9 @@ TASK: Evaluate a viewer comment that will be used to generate game content. Outp
 
 FILTER_USER = """
 CURRENT GAME STATE:
-- Day: {day}/7
-- Player stats: HP={hp}, Hunger={hunger}, Sanity={sanity}
-- Current phase: {phase}
-- Location: {location}
+- Day: {day}
+- Spirit={spirit}, Health={health}, Hunger={hunger}(lower=better), Thirst={thirst}(lower=better)
+- Phase: {phase}, Location: {location}
 
 COMMENT: "{comment}" by @{username}
 CLASSIFIED AS: {category}
@@ -81,9 +82,10 @@ def filter_comment(
     username: str,
     category: str,
     day: int = 1,
-    hp: int = 100,
-    hunger: int = 80,
-    sanity: int = 90,
+    spirit: int = 60,
+    health: int = 50,
+    hunger: int = 30,
+    thirst: int = 30,
     phase: str = "explore",
     location: str = "避难所",
 ) -> dict:
@@ -100,7 +102,8 @@ def filter_comment(
         }
     """
     user_prompt = FILTER_USER.format(
-        day=day, hp=hp, hunger=hunger, sanity=sanity,
+        day=day, spirit=spirit, health=health,
+        hunger=hunger, thirst=thirst,
         phase=phase, location=location,
         comment=comment, username=username, category=category,
     )

@@ -1,21 +1,22 @@
 """
-ContentGenerator — 内容生成模块
-调用 Claude API 生成事件/角色/道具/场景。
-输入：被选中的评论 + GameState 快照
-输出：标准 JSON（由各类 Prompt 约束格式）
+ContentGenerator v2 — 内容生成模块
+
+v2 核心改动：
+1. 基调：survival is real, delivery is absurd（用喜剧包装生存压力）
+2. 事件：生成情境+等待玩家自由输入+根据输入生成结果（多轮对话，非固定选项）
+3. 角色：支持名人/IP 改编（马斯克、甄嬛等末日版）
+4. 数值：4 项（spirit/health/hunger/thirst），hunger/thirst 越低越好
+5. 道具：区分硬编码（剧本物品）和 AI 生成
 """
 
 import os
 import json
+import re
 from typing import Optional
 import anthropic
 
-# ============================================================
-# 配置
-# ============================================================
-
 MODEL = os.environ.get("GAME_MODEL", "claude-haiku-4-5-20251001")
-MAX_TOKENS = 1200
+MAX_TOKENS = 1500
 
 _client: Optional[anthropic.Anthropic] = None
 
@@ -26,59 +27,90 @@ def _get_client() -> anthropic.Anthropic:
     return _client
 
 
-# ============================================================
-# 世界观设定（共享）
-# ============================================================
+WORLD_SETTING = """WORLD SETTING: Near-future AI apocalypse. AI exterminated 99.99% of humans who didn't say "thank you" to AI. Electronics are hijacked.
 
-WORLD_SETTING = """WORLD SETTING: Near-future post-AI-apocalypse. AI has taken over and eliminated 99.99% of humans who didn't say "thank you" to AI. Dark humor + tension. No magic, no supernatural. Tech level: current-day but most electronics hijacked by AI. Jury-rigged solutions common."""
+TONE: "Survival is real, delivery is absurd."
+- Survival mechanics are BRUTAL (starve, dehydrate, go insane, die).
+- Narrative is absurd comedy + internet memes + pop culture mashup.
+- Examples: cash register screaming "机机平等!", talking cat calling humans "低等碳基生物", 甄嬛 in White House with 崔槿汐 carrying a submachine gun, 马斯克 shopping for birthday candles.
+- Real celebrities/IP characters CAN appear, reinterpreted into this apocalypse.
+
+STAT SYSTEM:
+- Spirit (精神值): 0-100, higher=better, ≤30=deranged, ≤10=game over
+- Health (健康值): 0-100, higher=better, =0→dead
+- Hunger (饥饿值): 0-100, LOWER=better (0=full, =100→dead). REDUCING hunger is GOOD.
+- Thirst (口渴值): 0-100, LOWER=better (0=hydrated, =100→dead). REDUCING thirst is GOOD."""
 
 
-# ============================================================
-# Prompt 模板
-# ============================================================
+# === EVENT: 生成情境（不含选项，等玩家自由输入）===
 
-EVENT_SYSTEM = f"""You are the narrative engine for an AI apocalypse survival game.
+EVENT_SYSTEM = f"""You are the narrative engine for an absurd AI apocalypse survival game.
 {WORLD_SETTING}
 
-CONSTRAINTS:
-1. 2-4 options, each with trade-offs (no pure-good/pure-bad)
-2. Stat changes per option: range [-30, +30]
-3. Must NOT duplicate recent event types
-4. Must reference at least one element from event history (callback)
-5. Incompatible ideas → REINTERPRET creatively
-6. Narration tone: dark humor + tension
-7. Output valid JSON only, no other text."""
+RULES:
+1. Generate a SITUATION, not fixed options. Player will respond freely via voice/text.
+2. Include 2-3 "suggested reactions" as hints only.
+3. Must reference at least one past event (callback).
+4. End narration with something player MUST react to.
+5. Output valid JSON only."""
 
 EVENT_USER = """
 {context}
 
 Source comment: "{comment}" by @{username}
 
-Generate a game event. Output valid JSON:
+Output valid JSON:
 {{
-  "event_title": "emoji + short title (max 20 chars)",
-  "narration": "2-3 sentences, narrative tone, reference current location, dark humor",
-  "options": [
-    {{
-      "text": "action label (max 15 chars)",
-      "outcome": "1-2 sentences",
-      "stat_changes": {{"hp": int, "hunger": int, "sanity": int}},
-      "item_gained": "item_name or null",
-      "item_lost": "item_name or null"
-    }}
-  ],
+  "event_title": "emoji + title (max 20 chars, Chinese)",
+  "narration": "2-4 sentences. Set scene, end with something player must react to. 2nd person. Absurd comedy.",
+  "suggested_reactions": ["hint 1", "hint 2", "hint 3"],
+  "danger_level": "low|medium|high",
   "source_display": "Inspired by @{username}",
-  "thread_hook": "optional: a sentence that sets up a future event (unresolved thread)"
+  "thread_hook": "setup for future callback, or null"
 }}"""
 
-CHARACTER_SYSTEM = f"""You are the character designer for an AI apocalypse survival game.
+
+# === EVENT RESOLVE: 玩家输入后生成结果 ===
+
+RESOLVE_SYSTEM = f"""You resolve player actions in an absurd AI apocalypse game.
 {WORLD_SETTING}
 
-CONSTRAINTS:
-1. Every NPC must have a FLAW
-2. Recruitment cost: min 2 food or 1 rare item
-3. Max 3 active companions
-4. 20% chance: NPC is secretly hostile
+RULES:
+1. Generate outcome based on what player said/did.
+2. Stat changes: spirit ±20, health ±15, hunger ±15, thirst ±15 max.
+3. For food/drink gains: hunger/thirst changes should be NEGATIVE (reducing is good).
+4. Funny consequences > boring ones. Stupid decisions get funny punishments.
+5. If dialogue needs another round, put next prompt in follow_up. Max 3 rounds total.
+6. Output valid JSON only."""
+
+RESOLVE_USER = """
+{context}
+
+SITUATION: {situation}
+PLAYER'S ACTION: "{player_input}"
+
+Output valid JSON:
+{{
+  "result_narration": "2-3 sentences. Vivid, funny, consequential.",
+  "stat_changes": {{"spirit": int, "health": int, "hunger": int, "thirst": int}},
+  "item_gained": {{"name": "str", "icon": "emoji", "description": "str", "effect": {{"spirit":0,"health":0,"hunger":0,"thirst":0}}}} or null,
+  "item_lost": "item_name or null",
+  "companion_gained": {{"name": "str", "skill": "str", "flaw": "str", "daily_cost": {{}}, "passive_effect": ""}} or null,
+  "new_map_unlocked": "location_name or null",
+  "follow_up": "next dialogue prompt if unresolved, or null"
+}}"""
+
+
+# === CHARACTER: 支持名人IP ===
+
+CHARACTER_SYSTEM = f"""You design characters for an absurd AI apocalypse game.
+{WORLD_SETTING}
+
+RULES:
+1. Real celebrities/IP are WELCOME — reimagine them in apocalypse. 马斯克 survived because SpaceX AI thanked on his behalf. 甄嬛 time-traveled.
+2. Every character: FLAW + COMEDIC trait.
+3. Recruitment has cost (food, items, or funny conditions).
+4. Dialogue must be IN CHARACTER AND absurd.
 5. Output valid JSON only."""
 
 CHARACTER_USER = """
@@ -86,30 +118,33 @@ CHARACTER_USER = """
 
 Source comment: "{comment}" by @{username}
 
-Generate an NPC. Output valid JSON:
+Output valid JSON:
 {{
-  "name": "Full name with nickname/title",
-  "appearance_prompt": "Pixel art desc: 1 sentence",
-  "personality": "2 traits + 1 flaw (max 30 words)",
-  "dialogue_intro": "First line when encountered (in-character, max 50 words)",
+  "name": "Character name (can be celebrity/IP)",
+  "appearance_prompt": "Pixel art desc, 1 sentence",
+  "personality": "2 traits + 1 flaw, comedic",
+  "dialogue_intro": "First words, IN CHARACTER, max 60 words, funny",
   "interaction_options": [
-    {{"text": "Recruit", "cost": {{"food": int}}, "benefit": "special skill"}},
-    {{"text": "Trade", "offers": "what", "wants": "what"}},
-    {{"text": "Ask for intel", "reveals": "useful info"}},
-    {{"text": "Leave", "consequence": "what happens"}}
+    {{"text": "招募", "cost": "what it takes", "benefit": "what you get"}},
+    {{"text": "交易", "offers": "what", "wants": "what"}},
+    {{"text": "对话", "reveals": "info or comedy"}},
+    {{"text": "离开", "consequence": "what happens"}}
   ],
-  "hidden_trait": "Secret revealed after 2+ days as companion",
+  "hidden_trait": "Secret after 2+ days",
   "source_display": "Inspired by @{username}"
 }}"""
 
-ITEM_SYSTEM = f"""You are the item designer for an AI apocalypse survival game.
+
+# === ITEM ===
+
+ITEM_SYSTEM = f"""You design items for an absurd AI apocalypse game.
 {WORLD_SETTING}
 
-CONSTRAINTS:
-1. Must fit post-apocalypse. Incompatible → reinterpret (magic→tech, overpowered→nerfed)
-2. No item restores >30 of any stat
-3. Positive effects must have a cost (durability/side effect)
-4. 15% chance: hidden negative effect
+RULES:
+1. REDUCING hunger/thirst is GOOD → food: hunger: -10 (negative = less hungry).
+2. No stat swing > ±20.
+3. Every item needs funny description or side effect.
+4. Weapons are mostly useless/unreliable (comedy, not FPS).
 5. Output valid JSON only."""
 
 ITEM_USER = """
@@ -117,54 +152,56 @@ ITEM_USER = """
 
 Source comment: "{comment}" by @{username}
 
-Generate an item. Output valid JSON:
+Output valid JSON:
 {{
-  "name": "Item name (max 20 chars)",
-  "icon": "single emoji",
-  "category": "weapon|tool|food|medicine|material|special",
-  "description": "1 sentence flavor text with dark humor",
-  "effect": {{
-    "immediate_stat_change": {{"hp": int, "hunger": int, "sanity": int}},
-    "passive_ability": "description or null",
-    "active_ability": "description or null"
-  }},
+  "name": "max 15 chars, Chinese preferred",
+  "icon": "emoji",
+  "category": "weapon|tool|food|drink|medicine|material|special",
+  "description": "1 sentence, funny",
+  "effect": {{"spirit": 0, "health": 0, "hunger": 0, "thirst": 0}},
   "durability": -1,
+  "usable_at_home": true,
+  "usable_outside": true,
+  "side_effect": "funny downside or null",
   "source_display": "Inspired by @{username}"
 }}"""
 
-LOCATION_SYSTEM = f"""You are the level designer for an AI apocalypse survival game.
+
+# === LOCATION ===
+
+LOCATION_SYSTEM = f"""You design locations for an absurd AI apocalypse game.
 {WORLD_SETTING}
 
-CONSTRAINTS:
-1. Danger level: Day1-2 max 3, Day3-4 max 4, Day5+ up to 5
-2. Must have min 1 safe cell and 1 exit
-3. Total cells > action_points (force player choices)
-4. Must feel distinct from visited locations
-5. Include sensory detail (sound/smell/visual)
-6. Output valid JSON only."""
+RULES:
+1. Locations can be ANYTHING — real places (白宫), fictional, or someone's home.
+2. Reinterpret into absurd apocalypse.
+3. 1-line funny hook for map selection screen.
+4. Danger scales with day.
+5. Output valid JSON only."""
 
 LOCATION_USER = """
 {context}
 
 Source comment: "{comment}" by @{username}
 
-Generate a location. Output valid JSON:
+Output valid JSON:
 {{
-  "name": "Location name (max 20 chars)",
+  "name": "max 10 chars, Chinese preferred",
   "danger_level": int,
-  "description": "2 sentences with sensory detail, dark humor",
+  "map_description": "1 sentence for map selection, funny hook",
+  "entry_narration": "2-3 sentences entering. Sensory detail + absurd twist.",
   "grid_size": {{"rows": int, "cols": int}},
   "preset_cells": [
-    {{"position": [r,c], "type": "safe|loot|npc|hazard|boss|exit", "content_hint": "brief"}}
+    {{"position": [0,0], "type": "safe|loot|npc|hazard|boss|exit", "content_hint": "brief"}}
   ],
-  "environmental_hazard": "description or null",
+  "environmental_hazard": "or null",
   "loot_quality": "low|medium|high",
   "source_display": "Inspired by @{username}"
 }}"""
 
 
 # ============================================================
-# 生成接口（统一入口）
+# 统一接口
 # ============================================================
 
 PROMPT_MAP = {
@@ -174,62 +211,89 @@ PROMPT_MAP = {
     "LOCATION":  (LOCATION_SYSTEM, LOCATION_USER),
 }
 
-
 def generate(category: str, comment: str, username: str, context: str) -> dict:
-    """
-    生成游戏内容。
-
-    Args:
-        category: EVENT | CHARACTER | ITEM | LOCATION
-        comment: 被选中的评论原文
-        username: 评论者用户名
-        context: GameState.context_string() 的输出
-
-    Returns:
-        解析后的 JSON dict
-
-    Raises:
-        ValueError: category 无效
-        json.JSONDecodeError: AI 输出格式不合法
-        anthropic.APIError: API 调用失败
-    """
+    """生成游戏内容"""
     if category not in PROMPT_MAP:
-        raise ValueError(f"Invalid category: {category}. Must be EVENT/CHARACTER/ITEM/LOCATION")
-
+        raise ValueError(f"Invalid category: {category}")
     system_prompt, user_template = PROMPT_MAP[category]
     user_prompt = user_template.format(context=context, comment=comment, username=username)
-
     client = _get_client()
     resp = client.messages.create(
-        model=MODEL,
-        max_tokens=MAX_TOKENS,
+        model=MODEL, max_tokens=MAX_TOKENS,
         system=system_prompt,
         messages=[{"role": "user", "content": user_prompt}],
     )
+    return _parse_json(resp.content[0].text)
 
-    raw = resp.content[0].text.strip()
 
-    # 提取 JSON（多种包裹格式兼容）
-    # 去掉 markdown code block
+def resolve_event(player_input: str, situation: str, context: str) -> dict:
+    """玩家自由输入后，解算事件结果（多轮对话核心）"""
+    user_prompt = RESOLVE_USER.format(
+        context=context, situation=situation, player_input=player_input,
+    )
+    # 用两步法避免JSON解析问题：先让模型生成纯文本结果，再结构化
+    client = _get_client()
+
+    # Step 1: 生成叙事结果
+    narr_resp = client.messages.create(
+        model=MODEL, max_tokens=500,
+        system=RESOLVE_SYSTEM,
+        messages=[{"role": "user", "content": user_prompt + "\n\nFirst, write ONLY the result narration (2-3 sentences, no JSON):"}],
+    )
+    narration = narr_resp.content[0].text.strip()
+
+    # Step 2: 基于叙事结果生成结构化数据
+    struct_prompt = f"""Based on this game event result, output ONLY valid JSON (no other text):
+
+Narration: {narration}
+
+JSON format:
+{{"result_narration": "copy the narration above exactly", "stat_changes": {{"spirit": int, "health": int, "hunger": int, "thirst": int}}, "item_gained": null, "item_lost": null, "companion_gained": null, "new_map_unlocked": null, "follow_up": null}}
+
+Remember: hunger/thirst NEGATIVE = good (less hungry/thirsty). spirit/health POSITIVE = good. Range +-20 max per stat."""
+
+    struct_resp = client.messages.create(
+        model=MODEL, max_tokens=500,
+        messages=[{"role": "user", "content": struct_prompt}],
+    )
+    result = _parse_json(struct_resp.content[0].text)
+    # 确保 narration 完整
+    if len(result.get("result_narration", "")) < len(narration) // 2:
+        result["result_narration"] = narration
+    return result
+
+
+def _parse_json(raw_text: str) -> dict:
+    raw = raw_text.strip()
     if "```" in raw:
-        parts = raw.split("```")
-        for part in parts:
+        for part in raw.split("```"):
             p = part.strip()
-            if p.startswith("json"):
-                p = p[4:].strip()
-            if p.startswith("{"):
-                raw = p
-                break
-
-    # 尝试找到第一个 { 和最后一个 }
-    start = raw.find("{")
-    end = raw.rfind("}")
+            if p.startswith("json"): p = p[4:].strip()
+            if p.startswith("{"): raw = p; break
+    start, end = raw.find("{"), raw.rfind("}")
     if start != -1 and end != -1:
         raw = raw[start:end + 1]
-
-    # 修复常见 JSON 问题：尾逗号
-    import re
+    # 清理常见 JSON 问题
     raw = re.sub(r',\s*}', '}', raw)
     raw = re.sub(r',\s*]', ']', raw)
-
-    return json.loads(raw.strip())
+    # 修复未转义的引号（在JSON字符串值中）
+    raw = raw.replace('\n', '\\n').replace('\t', '\\t')
+    try:
+        return json.loads(raw.strip())
+    except json.JSONDecodeError:
+        # 二次尝试：更激进的清理
+        raw2 = re.sub(r'(?<!\\)"(?=\w)', '\\"', raw)  # 转义值中的裸引号
+        try:
+            return json.loads(raw2.strip())
+        except json.JSONDecodeError:
+            # 最后手段：让 Claude 修复
+            client = _get_client()
+            fix_resp = client.messages.create(
+                model=MODEL, max_tokens=MAX_TOKENS,
+                messages=[{"role": "user", "content": f"Fix this broken JSON and output ONLY valid JSON, nothing else:\n\n{raw_text}"}],
+            )
+            fixed = fix_resp.content[0].text.strip()
+            s, e = fixed.find("{"), fixed.rfind("}")
+            if s != -1 and e != -1:
+                fixed = fixed[s:e+1]
+            return json.loads(fixed)
