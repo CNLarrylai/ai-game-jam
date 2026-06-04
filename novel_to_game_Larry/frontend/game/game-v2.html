@@ -584,6 +584,16 @@ function App(){
 
   const RES_CN={food:'食物',health:'健康',morale:'士气'};
   const RES_IC={food:'🥫',health:'💊',morale:'🔥'};
+  const effStr=(e)=>{ if(!e) return ''; const p=Object.keys(e).filter(k=>e[k]).map(k=>`${RES_IC[k]||''}${RES_CN[k]||k}${e[k]>0?'+':''}${e[k]}`); return p.length?(' · '+p.join(' ')):''; };
+  const genLabel=(g)=>{ if(!g) return ''; if(g.kind==='item') return `🎒 生成道具「${g.data.icon||''}${g.data.name}」${effStr(g.effect)}`; if(g.kind==='npc') return `👤 引来同行者「${g.data.name}」· ${g.data.skill}${effStr(g.effect)}`; return `📜 ${g.data.narration}${effStr(g.effect)}`; };
+  // 评论 → 生成真内容(离线池;真引擎就绪后由契约里的 generate() HTTP 分支替换)
+  const genFromPool=(comment,seed)=>{ const P=G.generated; if(!P) return null; const r=rng(hash((comment||'')+'|'+seed)); const txt=comment||''; let kind;
+    if(/药|粮|水|火|刀|枪|书|物资|罐头|装备|柴|表/.test(txt)) kind='item';
+    else if(/人|他|她|同伴|招募|医生|修女|船|兵|乐师|老者/.test(txt)) kind='npc';
+    else kind = r()<0.45?'event':(r()<0.5?'item':'npc');
+    if(kind==='item' && P.items.length){ const it=P.items[Math.floor(r()*P.items.length)]; return {kind:'item',data:it,effect:it.effect||{}}; }
+    if(kind==='npc' && P.npcs.length){ const n=P.npcs[Math.floor(r()*P.npcs.length)]; const eff=/健康/.test(n.skill)?{health:1}:{morale:1}; return {kind:'npc',data:n,effect:eff}; }
+    const ev=P.events[Math.floor(r()*P.events.length)]; let eff={}; if(ev&&ev.item_gained){ const it=P.items.find(x=>x.name===ev.item_gained); if(it) eff=it.effect||{}; } return {kind:'event',data:ev,effect:eff}; };
   /* 采纳一条创意:落地 + 给当前最低资源 +1 + 三件套反馈 */
   const adoptOne=()=>{
     if(adoptedThisNode.current) return; // 一程只采纳一次,避免倒计时与"立即采纳"重复
@@ -594,19 +604,14 @@ function App(){
     if(pool.length===0){ const txt=SEED_IDEAS[(gs?gs.steps:0)%SEED_IDEAS.length]; pool=[{user:FAKE_USERS[Math.floor(Math.random()*FAKE_USERS.length)], text:txt, mine:false}]; }
     const pick=pool[pool.length-1]; // 采纳最新一条(玩家若发言则采纳玩家的)
     candidateRef.current=[];
-    // 真帮到你:给当前最低资源 +1(保持 +1,别破坏平衡)。从当前 gs 同步算出要补的资源。
-    let bumped=null;
-    if(gs && gs.res){ const lo=E.lowestRes(gs.res); if(gs.res[lo]<E.TUNING.clampMax) bumped=lo; }
-    if(bumped){ setGs(prev=>{ if(!prev) return prev; const lo=E.lowestRes(prev.res); if(prev.res[lo]>=E.TUNING.clampMax) return prev;
-      return {...prev, res:{...prev.res, [lo]:Math.min(E.TUNING.clampMax, prev.res[lo]+1)}}; }); }
-    // 落地展示
-    setAdopted({user:pick.user, text:pick.text, bumped:bumped});
+    // 评论 → 生成真内容(离线《最后的人》池;真引擎就绪后由 generate() HTTP 分支替换)
+    const gen = genFromPool(pick.text, gs?gs.steps:0);
+    if(gen && gen.effect && gs){ setGs(prev=>{ if(!prev) return prev; const r={...prev.res};
+      Object.keys(gen.effect).forEach(k=>{ if(r[k]!=null) r[k]=Math.max(0,Math.min(E.TUNING.clampMax, r[k]+gen.effect[k])); }); return {...prev,res:r}; }); }
+    setAdopted({user:pick.user, text:pick.text, gen:gen});
     setAdoptStats(s=>{ const by={...s.byUser}; by[pick.user]=(by[pick.user]||0)+1; return {total:s.total+1, byUser:by}; });
-    // 评论高亮
     pushComment({user:pick.user, text:pick.text, mine:pick.mine, adopted:true});
-    // 公屏横幅:点明"观众的点子帮了你 · X+1"
-    const tail = bumped ? ` 观众的点子帮了你 · ${RES_CN[bumped]}+1` : '';
-    setBanner(`✨ @${pick.user} 的提议生效了!${tail}`);
+    setBanner(`✨ @${pick.user} 的提议生效了!${gen?(gen.kind==='item'?` 生成道具「${gen.data.name}」`:gen.kind==='npc'?` 引来同行者「${gen.data.name}」`:` 触发了一桩事件`):''}`);
     setTimeout(()=>setBanner(null),3200);
     // 画面光圈
     setAura(true); setTimeout(()=>setAura(false),2200);
@@ -738,7 +743,7 @@ function App(){
               <div className="as-body">
                 <div className="as-who">@{adopted.user} 的提议生效了</div>
                 <div className="as-text">{linkify(adopted.text,setCodexK)}</div>
-                <span className="as-tag">{adopted.bumped?`观众的点子帮了你 · ${RES_IC[adopted.bumped]} ${RES_CN[adopted.bumped]}+1`:'观众民意 · 已融入这一程'}</span>
+                <span className="as-tag">{adopted.gen?genLabel(adopted.gen):'观众民意 · 已融入这一程'}</span>
               </div>
             </div>}
 

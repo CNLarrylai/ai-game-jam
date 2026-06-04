@@ -1,0 +1,24 @@
+{
+  "_about": "《最后的人》离线内容池——模拟 cheney comment_engine 的生成产物(瘟疫文学悲剧腔),供本机无 Python/API 时演示'观众评论→生成真内容'。真引擎就绪后由 generate() 的 HTTP 分支替换。effect 用我们的资源(food/health/morale);schema 对齐契约。",
+  "items": [
+    { "name": "半箱军用罐头", "icon": "🥫", "category": "food", "description": "工厂角落翻出的存粮,够撑几日。", "effect": { "food": 3 }, "side_effect": "搬运沉重,体力耗损 健康-1" },
+    { "name": "一囊清水", "icon": "💧", "category": "drink", "description": "难得的干净饮水。", "effect": { "food": 2 }, "side_effect": null },
+    { "name": "半瓶鸦片酊", "icon": "💊", "category": "medicine", "description": "止痛安神的旧药。", "effect": { "health": 2, "morale": 1 }, "side_effect": "依赖之后,日后士气会更难维系" },
+    { "name": "一捆干柴", "icon": "🪵", "category": "material", "description": "夜里能生一堆驱寒的火。", "effect": { "morale": 2 }, "side_effect": null },
+    { "name": "旧版荷马史诗", "icon": "📖", "category": "special", "description": "夜里念给孩子听,人还像个人。", "effect": { "morale": 3 }, "side_effect": null },
+    { "name": "染血的怀表", "icon": "⌚", "category": "special", "description": "不知属于哪个逝者,滴答还在走。", "effect": { "morale": 1 }, "side_effect": "时时想起死去的人 士气-1" }
+  ],
+  "npcs": [
+    { "name": "迷途的修女", "appearance_prompt": "披灰袍、手持念珠的清瘦女子", "skill": "照料病弱(健康)", "flaw": "固执祈祷、不肯走夜路", "source_display": "灵感来源" },
+    { "name": "沉默的船夫", "appearance_prompt": "兜帽下只露半张脸的渡船人", "skill": "渡你过河、抄近路", "flaw": "索要高价、信不过", "source_display": "灵感来源" },
+    { "name": "失明的乐师", "appearance_prompt": "怀抱破琴、双目空洞的老者", "skill": "一曲抚平惊惧(士气)", "flaw": "行动迟缓、拖慢脚程", "source_display": "灵感来源" },
+    { "name": "落单的逃兵", "appearance_prompt": "甲胄残破、眼神警惕的年轻人", "skill": "护你过险地", "flaw": "也许哪天会反噬", "source_display": "灵感来源" }
+  ],
+  "events": [
+    { "narration": "循着评论指的方向,你们摸进废弃工厂——货架后面,真有人藏下过物资。", "item_gained": "半箱军用罐头", "companion_gained": null, "source_display": "灵感来源" },
+    { "narration": "路边土屋里,一个修女拦住你们,愿以照料病人换一程同行。", "item_gained": null, "companion_gained": "迷途的修女", "source_display": "灵感来源" },
+    { "narration": "渡口的雾里浮出一条小船,船夫一言不发地伸出手——要价不低。", "item_gained": null, "companion_gained": "沉默的船夫", "source_display": "灵感来源" },
+    { "narration": "断墙下,一个失明的老乐师正给空无一人的街道拉琴。他说,带上我,我替你们驱散夜里的鬼。", "item_gained": null, "companion_gained": "失明的乐师", "source_display": "灵感来源" },
+    { "narration": "你们在仓库深处发现一小堆别人来不及带走的东西。", "item_gained": "一捆干柴", "companion_gained": null, "source_display": "灵感来源" }
+  ]
+}

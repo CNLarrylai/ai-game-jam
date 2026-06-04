@@ -10,6 +10,7 @@ const rd = (p) => JSON.parse(readFileSync(join(ROOT, p), "utf8"));
 const prologue = rd("dist/prologue_cards.json");
 const map = rd("dist/map.json");
 const interactions = rd("dist/interactions.json");
+const generated = rd("dist/generated_pool.json"); // 离线《最后的人》内容池(模拟 comment_engine 生成)
 
 const ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
 const CHAPTERS = [...ROMAN.slice(0, 9).map((r) => `V2-C${r}`), ...ROMAN.slice(0, 10).map((r) => `V3-C${r}`)];
@@ -69,7 +70,7 @@ const GAME = {
     { id: "health", ic: "💊", label: "Health", cn: "健康" },
     { id: "morale", ic: "🔥", label: "Morale", cn: "士气" },
   ],
-  worldLines, crew, campaign, nodes, interactions, nodeChapter, codex, aliases,
+  worldLines, crew, campaign, nodes, interactions, nodeChapter, codex, aliases, generated,
 };
 
 mkdirSync(join(ROOT, "frontend", "game"), { recursive: true });
