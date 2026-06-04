@@ -85,7 +85,7 @@ export async function generateNarrative(
         "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: process.env.ANTHROPIC_MODEL || "claude-sonnet-4-20250514",
+        model: process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6",
         max_tokens: 800,
         system: APOCALYPSE_WORLD,
         messages: [{ role: "user", content: prompt }],
