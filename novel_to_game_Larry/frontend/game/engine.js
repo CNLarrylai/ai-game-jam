@@ -113,7 +113,7 @@
     // won
     var r = s.res, sum = r.food + r.health + r.morale;
     if (sum >= 18) return { kind: "won", title: "幸存者", body: "你护住了所剩无几的人,撑到了瘟疫退去的那一天。废墟之上,人类的名字得以延续。" };
-    if (r.morale <= 2) return { kind: "won", title: "最后的人", body: "你活了下来,身边却已空无一人。你提笔写下这一切,署名:世界上最后的人。" };
+    if (r.morale <= 2) return { kind: "won", title: "最后的人", body: "你活了下来——而身边,已空无一人。你在圣彼得的穹顶刻下「2100,世界的最后一年」,带上荷马与莎士比亚、一条牧羊犬,登上小船,沿着空寂的海岸漂流而去,去寻一个或许永不存在的同类。这部书,署名:世界上最后的人。" };
     return { kind: "won", title: "余生", body: "你们一路走到了尽头。失去太多,但毕竟,还活着。" };
   }
 
