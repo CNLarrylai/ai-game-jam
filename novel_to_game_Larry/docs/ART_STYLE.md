@@ -66,3 +66,25 @@ ending 接入正式游戏
 **结论**:`world_bible.json`(世界铺陈 + 人物 + 资源逻辑)→ 冷开场的 world/crew 两层;`map.json` 的任意卡点 → choice/reveal 两层。内容与美术彻底解耦,我们产的每张卡都能直接在这套视觉里播放。
 
 > 生产新内容时:文字走 serif 的克制末日腔;risk 选项的 `hint` 留白、`outcome` 里用"病变绿"语感的揭晓;`icon`/emoji 与资源色系一致(🥫/💊/🔥)。
+
+---
+
+## 7. 插画生成 guideline(每张卡自动配图)
+
+来源:`frontend/design-ref/doom-art.jsx`。**木刻剪影 SVG**,可按"配方"为任意场景/人物批量生成,无需外部图片。
+
+**通用画法(场景 `DoomScene`)** — viewBox `0 0 1000 560`:
+1. 天空:`<rect fill="url(#duskSky)">`(暮色四段渐变)+ `<ellipse fill="url(#duskGlow)">`(地平线余烬)
+2. 剪影:深色 `path/rect`(`#06070a`→`#0d0f14`)分层堆远→近,**全部套 `filter="url(#dRough)"`** 得到木刻毛边;`dRough2` 用于细物
+3. 一点不祥光:门窗/火光用 `oklch(0.66 0.13 58)` 低透明小矩形
+4. 人物:`svgSurvivor(x,y,scale)` 放前景小剪影
+5. 覆盖:`.scene-hatch`(斜向排线)+ `.scene-grain`(噪声),由 doom.css 自动加
+- 用法:`world-scene`(底部 46vh,subtle)/ `choice-scene`(顶部 64vh,向下渐隐到暗,卡片浮其上)
+- 已为本作自绘:`windsorDusk`(温莎城堡暮色)、`derelictHut`(水闸破屋)。**新卡 = 加一个 DOOM_SCENES 条目**,照上面 5 步堆该场景的标志物(如"城堡病榻""沉船""冰穴")。
+
+**人物配方(`portraitSVG`)** — 四参数即出新角色:
+`{ body: tall|mid|small, trait: glasses|ponytail|cap|scarf|hood, emblem: {type: cross|strap|armband|mark, color}, eyes }`
+- `trait` 一个就够(辨识度);`emblem` 一个点睛;`hood`+`eyes` = 悬念角色(阿德里安即用此)
+- 已配:伊德丽丝(mid+ponytail+strap)、克拉拉(small+scarf)、阿德里安(tall+hood+mark+eyes)
+
+**结论**:逐章铺内容时,每张卡可同时产出 `scene`(场景配方)与新出场人物的 `recipe`,渲染端零图片、纯 SVG 即得统一木刻插画。这套配方将并入 `SPEC.md`,让卡点生成顺带产出配图参数。
