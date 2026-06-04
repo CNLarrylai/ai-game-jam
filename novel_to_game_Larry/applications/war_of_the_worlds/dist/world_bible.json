@@ -1,0 +1,158 @@
+{
+  "meta": {
+    "title": "The War of the Worlds",
+    "author": "H. G. Wells",
+    "year": "1898",
+    "source_file": "data/pg36.txt"
+  },
+
+  "logline": "An ordinary man in late-Victorian Surrey survives the days when Mars invades Earth — fleeing heat-rays, tripods, and the black smoke as civilisation collapses around him — until the conquerors are unexpectedly killed by Earth's own microbes.",
+  "genre_mapping": "Maps to an apocalyptic survival-choice game: the player is a powerless civilian, not a hero. The core survival pressure is staying alive and unseen while an overwhelming, indifferent enemy dismantles the world. There is NO winning the war — only enduring it; the catastrophe ends by external force (bacteria), so the game is about what you do, who you stay human toward, and whether you keep your mind, in the meantime.",
+
+  "setting": {
+    "era": "Late 1890s / turn of the 20th century, late-Victorian England (the narrator dates it 'early in the twentieth century').",
+    "locations": [
+      "Woking & Horsell Common (Surrey) — the first cylinder's crater",
+      "Maybury, Byfleet, Weybridge, Shepperton, Walton (Thames-valley Surrey towns)",
+      "London & its suburbs (the great exodus north toward the coast)",
+      "Chelmsford / Essex coast (the brother's escape route, the Thunder Child)",
+      "Putney Hill & Dead London (the artilleryman's bolt-hole and the empty capital)"
+    ],
+    "scope": "Starts hyper-local (one common outside Woking) and ramps to national catastrophe — southern England overrun, London evacuated. Framed as global in stakes (Mars vs. Earth) but the lived experience is one county collapsing."
+  },
+
+  "catastrophe": {
+    "name": "The Martian Invasion",
+    "nature": "A technologically superior species exterminates and harvests humans the way humans exterminate vermin. Kills via the Heat-Ray (an invisible beam of heat that instantly ignites/vaporises), the Black Smoke (a poisonous gas), and the towering fighting-machines (tripods). Martians feed on human blood, injecting it directly. Order collapses not from disease but from terror, flight, and the uselessness of human arms.",
+    "origin": "Launched from Mars as a series of ten cylinders fired across space over successive nights, landing one per night in the Home Counties; the Martians emerge, assemble machines, and spread outward from each crater.",
+    "progression_phases": [
+      "Phase 0 — Normalcy: Late-Victorian peace. The narrator quarrels over trivialities, takes evening walks, his marriage and routine intact. Mars is an astronomer's curiosity, not a threat. (B1-C1 The Eve of the War)",
+      "Phase 1 — Distant omen: The falling star / the cylinder on Horsell Common. A crowd gathers as a spectacle; no one believes it is dangerous; the Martians are still in their pit. (B1-C2 to B1-C4)",
+      "Phase 2 — First blood, local: The Heat-Ray incinerates the crowd; the fighting-machines rise. Panic begins but stays regional; the narrator tries to get home, the military mobilises. (B1-C5 to B1-C11)",
+      "Phase 3 — Collapse & exodus: Towns destroyed (Weybridge, Shepperton), the Black Smoke deployed, London empties in a stampeding mass exodus toward the sea; the Thunder Child briefly fights back at sea. (B1-C12 to B1-C17)",
+      "Phase 4 — The Earth under the Martians: The narrator trapped under a ruined house beside the cylinder, the Red Weed spreading over the land, Dead London silent and abandoned, survivors reduced to rats — the curate cracks, the artilleryman fantasises. (B2-C1 to B2-C8)",
+      "Phase 5 — Deliverance by microbe: The Martians are found dead in their machines, killed by terrestrial putrefactive and disease bacteria their systems could not resist. Humanity did not win; it survived. Reconstruction and survivor's trauma. (B2-C8 to B2-C10)"
+    ]
+  },
+
+  "resource_logic": {
+    "life": "Physical survival / wounds. ↓ Heat-Ray exposure, Black Smoke, tripod attacks, drowning in the exodus, starvation while trapped. ↑ rest, food, shelter, sheer luck. At zero the run ends — death is cheap and arbitrary here, the whole point.",
+    "supply": "Food, water, and the means of travel (a cart, a dog-cart, money that no longer buys anything). ↓ days hiding under rubble with one dwindling larder, looting that turns up nothing, sharing with others. ↑ scavenging abandoned houses, stolen provisions, reaching an intact town before the panic strips it.",
+    "sanity": "The mind's grip under sustained terror and isolation. ↓ witnessing massacres, weeks trapped in the dark next to feeding Martians, the curate's hysteria, the artilleryman's grandiose delusions, believing your family dead. ↑ purpose, human company that holds together, small acts of normalcy. The curate is the cautionary NPC: sanity-zero is its own death.",
+    "concealment": "How hidden you are from Martian eyes (the inverse of exposure). ↓ moving in daylight, open ground, noise, fire/smoke, crowds that draw the Heat-Ray, the curate's wailing. ↑ cellars, drains, the ruined house, stillness, moving at night. The book's survival logic is overwhelmingly about NOT being seen rather than fighting — concealment is the axis that makes 'do nothing / stay hidden' a real, costly choice (it bleeds supply and sanity)."
+  },
+
+  "factions": [
+    { "name": "The Martians", "role": "The catastrophe itself — an indifferent superior species; not antagonists with a plan you can negotiate, just an extinction-grade force." },
+    { "name": "The British Army / artillery", "role": "Token resistance; brave and utterly outmatched. Briefly scores hits (a downed tripod, the Thunder Child) but collapses. Represents the futility of institutional protection." },
+    { "name": "The refugee multitude", "role": "The fleeing population — a stampede that is itself a hazard (trampling, robbery, drowning). Crowds attract the Heat-Ray; other survivors are as much threat as ally." },
+    { "name": "Terrestrial bacteria", "role": "The unwitting saviour — Earth's microbes kill the Martians. The deus ex machina the player can never count on and never see coming." }
+  ],
+
+  "cast": [
+    { "name": "The Narrator ('I')", "role": "protagonist", "arc": "A philosophical writer of comfortable habits, stripped down to a hunted animal and back to a haunted survivor reunited with his wife.", "game_use": "The player-character: an everyman civilian making survival choices, never a soldier." },
+    { "name": "The Narrator's wife", "role": "the stake", "arc": "Sent to safety in Leatherhead early; believed dead through the ordeal; reunited at the very end.", "game_use": "The off-screen reason to keep going — drives 'reach her' objectives and morale/sanity swings; the thing the catastrophe threatens." },
+    { "name": "The Brother", "role": "parallel protagonist", "arc": "A London medical student who lives the exodus from the capital and the Essex-coast escape — a separate POV survival thread.", "game_use": "An alternate/parallel scenario track: the urban-panic and sea-escape chapters (B1-C14 to C17)." },
+    { "name": "The Curate", "role": "burden / cautionary ally", "arc": "A clergyman who breaks under the horror, becomes hysterical and ravenous while trapped, and gets the narrator nearly killed before dying.", "game_use": "The classic liability NPC: helping him drains supply and concealment; abandoning or silencing him is a sanity/morale dilemma. Embodies the sanity resource failing." },
+    { "name": "The Artilleryman", "role": "false-hope ally", "arc": "A soldier with a grand survivalist vision of living in the drains and rebuilding humanity — which proves to be idle fantasy; he digs little and dreams much.", "game_use": "The charismatic-but-hollow ally: his plan is seductive (join him, dream big) but choosing it wastes supply/time. A tempting wrong path." },
+    { "name": "The Martians / Fighting-Machines / Heat-Ray", "role": "the threat made concrete", "arc": "Tentacled, blood-feeding intelligences in 100-foot tripods wielding the Heat-Ray and Black Smoke; ultimately killed by microbes.", "game_use": "The environmental death-source: their presence sets concealment stakes and triggers risk outcomes; never fought, only evaded." }
+  ],
+
+  "tone_and_motifs": {
+    "voice": "First-person retrospective memoir — a calm, scientific, almost detached intellect narrating unimaginable horror after the fact. Reflective, ironic about human complacency, prone to cosmic-scale comparisons (men as insects).",
+    "motifs": [
+      "Humanity-as-vermin (microscope, infusoria, ants, rabbits, bees smoked out)",
+      "Indifference of the cosmos / the 'envious eyes' across the gulf of space",
+      "Fire and the colour red (Heat-Ray glare, burning towns, the Red Weed)",
+      "Stillness and silence after catastrophe (Dead London, 'The Stillness')",
+      "The fragility of civilisation — how thin the veneer over panic"
+    ]
+  },
+
+  "signature_quotes": [
+    { "quote": "没有人会相信,在十九世纪最后的岁月里,这个世界正被某种比人类更伟大却同样难逃一死的智慧,锐利而冷静地注视着。", "use": "开场旁白 / 标题画面——立刻定调:人类自负而不自知,灾难已在暗处筹划。" },
+    { "quote": "横越空间的深渊,那些智慧之于我们的心智,正如我们之于将逝的野兽……冷峻、广大而毫无同情,觊觎着这颗地球,缓慢而坚定地拟定着对付我们的计划。", "use": "灾难首次现身时的旁白;点明敌人不可沟通、不可谈判。" },
+    { "quote": "火星人——死了!——被那些他们的身体毫无防备的腐败与疾病细菌所杀;在人类的一切器械都失败之后,被上帝以智慧置于这地上最卑微的东西所杀。", "use": "终局揭晓:解释为何活下来——不是赢了,是被微生物拯救;结算画面/真结局。" },
+    { "quote": "在我们审判他们太苛之前,应当记得,我们自己的物种曾对渡渡鸟和北美野牛施加过怎样彻底而残酷的毁灭。", "use": "中段反思旁白——把玩家代入'被当作害虫'的视角,强化道德反讽。" }
+  ],
+
+  "gameplay_density_map": "密度筛(火星入侵关键词集,见 scripts/split.mjs)给出明确的玩法金矿:最高密度集中在'本土爆发'与'地球沦陷'两阶段。Top 档:B2-C5 'The Stillness'(44.79)、B1-C5 'The Heat-Ray'(39.86,热射线首次屠杀)、B2-C8 'Dead London'(36.36,空城+细菌揭晓)、B1-C11 'At the Window'(33.0)。次档(28–33):B2-C6 'The Work of Fifteen Days'、B1-C13 'How I Fell in with the Curate'、B1-C6 'Heat-Ray in the Chobham Road'、B2-C3 'The Days of Imprisonment'、B1-C4 'The Cylinder Opens'、B2-C1 'Under Foot'。最低密度=世界观铺垫:B1-C1 'The Eve of the War'(10.77,纯科学背景+常态)、B2-C4 'The Death of the Curate'(11.18,虽是关键剧情但抒情/对话多、关键词稀)、B1-C16 'The Exodus from London'(12.23,长而反思)。注意:B2-C4 与 B1-C16 密度低但叙事张力高——它们是'低密度但高张力'的例外,挖卡时应靠世界圣经的张力评分而非纯密度补救(反哺:密度不是张力的充分条件)。",
+
+  "setup_to_preserve": [
+    "婚姻与日常:叙事者与妻子的关系、舒适的写作生活、傍晚散步的常态——这是灾难将逐一摧毁、玩家要'带着走'的东西(妻子=终极目标)。",
+    "'这只是奇观'的安全错觉:开篇人们把陨石/圆筒当热闹围观——玩家初期也应被允许低估威胁,代价随后兑现。",
+    "人类对自身文明/武力的信心:军队会保护我们、英格兰不可侵犯——这一信念在 Phase 2–3 被系统性击碎。",
+    "弟弟在伦敦的独立生活线:可作为平行幸存者视角的起点(城市恐慌+海上逃亡)。",
+    "叙事者的科学理性腔调:他始终试图'理解'灾难——这份冷静本身是 sanity 资源的锚点,也是最终被'细菌拯救'的反讽落点。"
+  ],
+
+  "spine_type": "journey",
+  "_spine_note": "地点持续在变(沃金→莱瑟黑德→哈利福德废宅→帕特尼地窖→死寂的伦敦),没有不动的家——典型 journey。游戏壳用'旅程图 + 沿途 POI',住所是会受损/更替的临时栖身处,而非固定基地。与《最后的人》同属 journey,直接复用旅程框架。",
+
+  "dwelling": {
+    "kind_progression": [
+      "自家居所 + 随身行囊(沃金/梅伯里):灾前的家,很快被迫弃守,只剩背上能带走的",
+      "借来的马车/单马车(送妻去莱瑟黑德):脆弱的移动栖身,暴风雨夜倾覆,你被甩下、与妻失散",
+      "与牧师困守的哈利福德废宅(B2):紧贴第五个圆柱落点的半塌房屋,既是庇护也是陷阱——出不去、断不了粮、邻着进食的火星人",
+      "炮兵在帕特尼山的地窖/排水沟('住进下水道'的幻想工事):看似宏图,实则只挖了几尺;舒适却虚妄的栖身",
+      "独行——再无住所:你成了死寂伦敦里唯一活动的活物,以空屋为夜栖,栖身处即'无处'"
+    ],
+    "attributes": {
+      "condition": "耐久:暴风雨、热射线、黑烟、第五个圆柱的撞击都会摧毁当前栖身",
+      "capacity": "容量:能带的人/物有限——多带一个牧师就多一份暴露与口粮消耗",
+      "exposure": "暴露度:马车在明处=高;废宅地窖=低但出不去;栖身越隐蔽,concealment 越高、supply/sanity 越紧"
+    },
+    "fragility_beats": [
+      "暴风雨夜:单马车在沃金路上倾覆,你被甩下马车、与送往莱瑟黑德的妻子永久失散(全篇最大的'失人'裂点)",
+      "哈利福德废宅被第五个圆柱直接砸中:房屋半塌,你与牧师被活埋在废墟与火星人坑之间,自此困守数周",
+      "牧师在废宅里精神崩溃、为食物嚎叫,声音将引来火星人——他的暴露逼你做出'制止/放弃他'的道德抉择,最终他被探入的触手拖走",
+      "炮兵'住进下水道、重建人类'的宏图被戳穿:他只挖了几尺便日日空想——栖身的安全感是假的,留下就是浪费补给与时间",
+      "栖身彻底消失:走出废宅,你独自走进红草蔓生、空无一人的伦敦,再无可守之处"
+    ]
+  },
+
+  "route": [
+    { "leg": 1, "place": "霍塞尔公地 · 沃金(围观奇观)", "phase": "Phase 1 远方的征兆", "chapters": ["B1-C1", "B1-C2", "B1-C3", "B1-C4"],
+      "kicker": "落星与人群", "summary": "灾前的常态被一颗坠落的'流星'打断。圆筒落在霍塞尔公地,人群当热闹围观,谁也不信它危险——直到盖子开始旋松。" },
+    { "leg": 2, "place": "霍塞尔公地火光 · 梅伯里(热射线初屠)", "phase": "Phase 2 本土爆发", "chapters": ["B1-C5", "B1-C6", "B1-C7", "B1-C8"],
+      "kicker": "看不见的火", "summary": "热射线点燃围观人群,坑边化作焦土。你侥幸逃回梅伯里的家,余惊未定地熬过一个相信'军队会处理'的周五夜。" },
+    { "leg": 3, "place": "送妻去莱瑟黑德 · 暴风雨夜的归途(失散)", "phase": "Phase 2→3 战起", "chapters": ["B1-C9", "B1-C10", "B1-C11"],
+      "kicker": "马车与雷雨", "summary": "战斗打响。你借来一辆单马车,连夜把妻子送到莱瑟黑德的亲戚处;返程的暴风雨夜里,三脚机现身,马车倾覆,你与一切熟悉的东西就此断裂。" },
+    { "leg": 4, "place": "弟弟的伦敦 · 大逃亡 · 雷之子(平行线)", "phase": "Phase 3 崩溃与大流亡", "chapters": ["B1-C12", "B1-C13", "B1-C14", "B1-C16", "B1-C17"],
+      "kicker": "百万人向北", "summary": "镜头切到伦敦的弟弟:黑烟逼近,首都在一夜间倾巢出逃,人潮本身成了杀人的洪流;海岸边,铁甲舰'雷之子'用一次壮烈的冲撞换得难民船逃生。(可作平行幸存者视角)" },
+    { "leg": 5, "place": "哈利福德废宅 · 与牧师困守(地球沦陷)", "phase": "Phase 4 地球在火星人脚下", "chapters": ["B2-C1", "B2-C2", "B2-C3", "B2-C4", "B2-C5"],
+      "kicker": "墙缝里的数周", "summary": "你与一个牧师困在紧邻火星人坑的废宅里,从墙缝目睹他们汲取人血。断粮、幽闭、牧师渐渐疯狂——直到他的嚎叫招来触手,你独自面对随之而来的死寂。" },
+    { "leg": 6, "place": "帕特尼山 · 炮兵的地窖(虚妄的希望)", "phase": "Phase 4 幸存者沦为鼠类", "chapters": ["B2-C6", "B2-C7"],
+      "kicker": "下水道里的新人类", "summary": "脱困后,你在帕特尼山遇到那个炮兵。他描绘'躲进下水道、重建人类文明'的宏图,诱人却空洞;一夜过后你看清:那只是空想,留下只是慢性沉沦。" },
+    { "leg": 7, "place": "死寂的伦敦 · 红草 · 解脱", "phase": "Phase 5 微生物的拯救", "chapters": ["B2-C8", "B2-C9", "B2-C10"],
+      "kicker": "空城里的铃声", "summary": "你独自走进红草蔓生、空无一人的伦敦,在绝望的边缘听见——火星人死了,被地球最卑微的细菌所杀。人类没有赢,只是活了下来。废墟、重建,与幸存者无法摆脱的创伤。" }
+  ],
+
+  "poi_bank": [
+    { "leg": 1, "name": "霍塞尔公地的陨石坑", "kind": "search", "from": "novel", "hook": "圆筒半埋在沙坑里,盖子在缓缓旋松——靠近看热闹,还是退到安全距离?" },
+    { "leg": 1, "name": "围观人群与小卖摊", "kind": "npc", "from": "novel", "hook": "天文学家奥格尔维、报童、卖姜汁啤酒的小贩——人人当这是一场奇观;你能从他们口中套到什么消息。" },
+    { "leg": 1, "name": "沙坑边的科学好奇", "kind": "hazard", "from": "audience", "hook": "[AI槽] 观众怂恿'再靠近一点看清楚'——好奇心 vs 第一束热射线的死线。" },
+    { "leg": 2, "name": "热射线扫过的焦土圈", "kind": "hazard", "from": "novel", "hook": "公地上一圈焦黑的尸体与燃烧的金雀花;穿过去近,绕过去慢——哪条路回梅伯里?" },
+    { "leg": 2, "name": "乔巴姆路上的逃难者", "kind": "npc", "from": "novel", "hook": "四散奔逃的邻人,有人受伤、有人在抢车;同行壮胆还是独自快走?" },
+    { "leg": 2, "name": "梅伯里自家的储藏室", "kind": "search", "from": "novel", "hook": "回到家,趁乱收拾能带走的水、食物、钱——多拿耽误时间,少拿日后断给。" },
+    { "leg": 2, "name": "酒馆里的醉言乱语", "kind": "npc", "from": "audience", "hook": "[AI槽] 观众贡献一个'坚信这只是德国人入侵'的酒客——情报真假参半。" },
+    { "leg": 3, "name": "借马车的店主", "kind": "npc", "from": "novel", "hook": "你向店主借/赁一辆单马车送妻去莱瑟黑德;讨价还价、押下重金,还是趁乱直接牵走?" },
+    { "leg": 3, "name": "莱瑟黑德的亲戚家", "kind": "shelter", "from": "novel", "hook": "把妻子托付给表亲——多留一刻陪她,还是立刻趁夜赶回(留得越久,归途越险)?" },
+    { "leg": 3, "name": "暴风雨夜路上的三脚机", "kind": "hazard", "from": "novel", "hook": "雷电照亮巨大的三脚机正跨过路面;翻进沟里藏匿,还是赌一把冲过去?(马车倾覆点)" },
+    { "leg": 4, "name": "圣马丁勒格朗的电报局", "kind": "search", "from": "novel", "hook": "弟弟在伦敦最后的消息源:电报中断、报纸号外满天飞——抢一份号外,还是直接动身北逃?" },
+    { "leg": 4, "name": "向北逃亡的人潮闸口", "kind": "hazard", "from": "novel", "hook": "巴尼特路口百万人挤成一团,踩踏、抢劫、马车碾人;护住身边两个落单的女子,还是只顾自己挤过去?" },
+    { "leg": 4, "name": "海岸边的难民轮船", "kind": "shelter", "from": "novel", "hook": "埃塞克斯海边,最后一班轮船在装人;'雷之子'正用船身挡住三脚机为它争取时间——挤上船,还是把位置让给孩子？" },
+    { "leg": 4, "name": "逃亡路上的弃物堆", "kind": "search", "from": "audience", "hook": "[AI槽] 观众指出某辆翻倒的马车下压着物资——冒险去翻,还是别停下脚步。" },
+    { "leg": 5, "name": "哈利福德的废宅厨房", "kind": "search", "from": "novel", "hook": "半塌厨房里还有罐头、蜡烛、一点煤;翻找补给的声响,可能惊动几十米外坑里的火星人。" },
+    { "leg": 5, "name": "墙缝观察孔", "kind": "hazard", "from": "novel", "hook": "从砖缝窥看火星人汲血;看得越久越懂它们的规律,也越接近精神崩溃。" },
+    { "leg": 5, "name": "牧师(同困的累赘)", "kind": "npc", "from": "novel", "hook": "牧师抢食、祈祷、嚎叫,声音正把死亡引来;分他口粮、制止他、还是任他暴露你们?" },
+    { "leg": 5, "name": "废宅地窖的暗角", "kind": "shelter", "from": "audience", "hook": "[AI槽] 观众建议挖通某处地窖暗道——可能是生路,也可能塌方。" },
+    { "leg": 6, "name": "帕特尼山的空屋宴席", "kind": "search", "from": "novel", "hook": "炮兵带你进一户弃宅,桌上竟有酒肉雪茄;饱餐一顿恢复元气,还是警惕这份'太舒服'？" },
+    { "leg": 6, "name": "炮兵与他的'地洞工程'", "kind": "npc", "from": "novel", "hook": "他口若悬河讲'下水道里的新人类';加入他同挖、戳穿他、还是借他壮一阵胆再独自离开？" },
+    { "leg": 6, "name": "牌局与酒(虚度的诱惑)", "kind": "hazard", "from": "novel", "hook": "和炮兵喝酒打牌、躲进幻想——舒服一晚,补给与时间却在白白流走。" },
+    { "leg": 7, "name": "红草蔓生的泰晤士河谷", "kind": "hazard", "from": "novel", "hook": "猩红的火星藤蔓堵塞河道、爬满废墟;穿行其间易迷路、易染上它腐烂的瘴气。" },
+    { "leg": 7, "name": "死寂伦敦的空屋", "kind": "search", "from": "novel", "hook": "挨家摇铃、翻找最后的食水;空城里每一点声响都让你怀疑自己是否还正常。" },
+    { "leg": 7, "name": "瘫倒的火星人(揭晓)", "kind": "shelter", "from": "novel", "hook": "圆丘上,三脚机静止,火星人伏在机器里腐烂——被细菌所杀。这里反成最安全之地:灾难已终结。" },
+    { "leg": 7, "name": "空城里的另一个活人", "kind": "npc", "from": "audience", "hook": "[AI槽] 观众放入一个同样幸存的陌生人——是同盟、是疯子,还是你失而复得的妻子的线索？" }
+  ]
+}

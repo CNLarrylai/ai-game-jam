@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "wotw-static",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["--yes", "http-server", "frontend", "-p", "8901", "-c-1"],
+      "port": 8901
+    }
+  ]
+}

@@ -1,0 +1,261 @@
+[
+  {
+    "chapter": "B1-C4",
+    "type": "poll",
+    "id": "poll_press_rim",
+    "prompt": "圆筒盖正旋开,你该不该挤上去看?",
+    "options": [
+      "凑近看清楚",
+      "退到安全距离"
+    ]
+  },
+  {
+    "chapter": "B1-C4",
+    "type": "lore",
+    "id": "lore_envious_eyes",
+    "quote": "横越空间的深渊,那些冷峻、广大而毫无同情的智慧,正觊觎着这颗地球。",
+    "note": "首次现身时口播,定调敌人不可沟通。"
+  },
+  {
+    "chapter": "B1-C5",
+    "type": "predict",
+    "id": "pred_deputation",
+    "setup_node": "the_deputation",
+    "prompt": "跟上举白旗的代表团,会怎样?",
+    "options": [
+      "能沟通,化险为夷",
+      "被热射线烧成焦炭"
+    ]
+  },
+  {
+    "chapter": "B1-C5",
+    "type": "react",
+    "id": "react_heatray",
+    "prompt": "看不见的火扫过人群——",
+    "mood": "horror"
+  },
+  {
+    "chapter": "B1-C5",
+    "type": "poll",
+    "id": "poll_heatray",
+    "prompt": "面对热射线,该信沟通还是该逃?",
+    "options": [
+      "趴下藏好",
+      "立刻就跑"
+    ]
+  },
+  {
+    "chapter": "B1-C7",
+    "type": "poll",
+    "id": "poll_trust_army",
+    "prompt": "军队炮声不断,该信它能剿灭火星人吗?",
+    "options": [
+      "相信,睡一觉",
+      "别信,连夜备灾"
+    ]
+  },
+  {
+    "chapter": "B1-C7",
+    "type": "lore",
+    "id": "lore_vermin",
+    "quote": "在我们审判他们太苛之前,应记得自己曾对渡渡鸟和野牛做过什么。",
+    "note": "把玩家代入'被当作害虫'的视角。"
+  },
+  {
+    "chapter": "B1-C10",
+    "type": "predict",
+    "id": "pred_drive_back",
+    "setup_node": "leaving_leatherhead",
+    "prompt": "趁夜赶车返回梅伯里,会怎样?",
+    "options": [
+      "平安到家",
+      "三脚机现身,马车倾覆"
+    ]
+  },
+  {
+    "chapter": "B1-C10",
+    "type": "react",
+    "id": "react_lost_wife",
+    "prompt": "暴风雨夜,与妻子就此失散——",
+    "mood": "grief"
+  },
+  {
+    "chapter": "B1-C11",
+    "type": "poll",
+    "id": "poll_window",
+    "prompt": "火海中的窗前,看还是躲?",
+    "options": [
+      "贴窗看懂它们",
+      "熄灯躲进里屋"
+    ]
+  },
+  {
+    "chapter": "B1-C11",
+    "type": "lore",
+    "id": "lore_fiery_chaos",
+    "quote": "这就是我安稳生活多年的小世界——如今是一片火海的混沌。",
+    "note": "旁白:文明的薄壳一夜碎裂。"
+  },
+  {
+    "chapter": "B1-C16",
+    "type": "poll",
+    "id": "poll_shield",
+    "prompt": "踩踏的人潮里,救那两个落单的女子吗?",
+    "options": [
+      "挤过去救人",
+      "只顾自己逃"
+    ]
+  },
+  {
+    "chapter": "B1-C16",
+    "type": "react",
+    "id": "react_stampede",
+    "prompt": "六百万人无序奔逃,踩踏向前——",
+    "mood": "horror"
+  },
+  {
+    "chapter": "B1-C17",
+    "type": "predict",
+    "id": "pred_wait_battle",
+    "setup_node": "thunder_child_boarding",
+    "prompt": "赌'雷之子'挡住三脚机,会怎样?",
+    "options": [
+      "它撑住,你脱身",
+      "它沉没,险中求生"
+    ]
+  },
+  {
+    "chapter": "B1-C17",
+    "type": "lore",
+    "id": "lore_thunder_child",
+    "quote": "铁甲舰'雷之子'用自己的船身,为难民船换来了逃生的片刻。",
+    "note": "人类抵抗的高光与悲壮。"
+  },
+  {
+    "chapter": "B2-C2",
+    "type": "predict",
+    "id": "pred_peer_crack",
+    "setup_node": "ruined_house_rations",
+    "prompt": "长时间从裂缝窥看火星人,会看见什么?",
+    "options": [
+      "逃生的空档",
+      "汲血的恐怖,理智崩裂"
+    ]
+  },
+  {
+    "chapter": "B2-C2",
+    "type": "poll",
+    "id": "poll_ration",
+    "prompt": "废宅里的存粮,该立刻定量吗?",
+    "options": [
+      "严格配给",
+      "先安抚牧师"
+    ]
+  },
+  {
+    "chapter": "B2-C4",
+    "type": "poll",
+    "id": "poll_curate",
+    "prompt": "牧师疯了、嚎叫招死,你会怎么做?",
+    "options": [
+      "动手让他闭嘴",
+      "捆住堵嘴",
+      "丢下他自保"
+    ]
+  },
+  {
+    "chapter": "B2-C4",
+    "type": "react",
+    "id": "react_curate_death",
+    "prompt": "黑暗里那致命的一击——",
+    "mood": "grief"
+  },
+  {
+    "chapter": "B2-C4",
+    "type": "predict",
+    "id": "pred_silence",
+    "setup_node": "the_curate_breaks",
+    "prompt": "扑上去让牧师闭嘴,结局如何?",
+    "options": [
+      "他活着被制服",
+      "一击之下他不动了"
+    ]
+  },
+  {
+    "chapter": "B2-C5",
+    "type": "predict",
+    "id": "pred_pump",
+    "setup_node": "the_stillness",
+    "prompt": "去摇尖叫般的雨水泵,会招来触手吗?",
+    "options": [
+      "坑已空,平安取水",
+      "触手循声而来"
+    ]
+  },
+  {
+    "chapter": "B2-C5",
+    "type": "lore",
+    "id": "lore_stillness",
+    "quote": "我越深入伦敦,死寂便越发深沉。",
+    "note": "'死寂'母题——灾后无声胜恐怖。"
+  },
+  {
+    "chapter": "B2-C6",
+    "type": "poll",
+    "id": "poll_red_weed",
+    "prompt": "深及脖颈的红草,钻进去还是绕开?",
+    "options": [
+      "钻进去找菜园",
+      "绕开赶路"
+    ]
+  },
+  {
+    "chapter": "B2-C6",
+    "type": "react",
+    "id": "react_another_planet",
+    "prompt": "迎面是不属于地球的血色风景——",
+    "mood": "awe"
+  },
+  {
+    "chapter": "B2-C7",
+    "type": "poll",
+    "id": "poll_artilleryman",
+    "prompt": "炮兵的'下水道新人类'计划,信吗?",
+    "options": [
+      "留下同挖",
+      "吃饱就走"
+    ]
+  },
+  {
+    "chapter": "B2-C7",
+    "type": "lore",
+    "id": "lore_dethronement",
+    "quote": "我不再是主宰,而是动物中的一只,踩在火星人的脚下。",
+    "note": "'人类被废黜'的核心反思。"
+  },
+  {
+    "chapter": "B2-C8",
+    "type": "predict",
+    "id": "pred_mound",
+    "setup_node": "dead_london",
+    "prompt": "走近那渐弱的嗥叫,会发现什么?",
+    "options": [
+      "火星人还活着",
+      "它们全死了——被细菌所杀"
+    ]
+  },
+  {
+    "chapter": "B2-C8",
+    "type": "lore",
+    "id": "lore_microbe",
+    "quote": "火星人死了——被那些它们的身体毫无防备的细菌所杀。在人类一切器械都失败之后。",
+    "note": "终局揭晓:不是赢了,是被微生物拯救。"
+  },
+  {
+    "chapter": "B2-C8",
+    "type": "react",
+    "id": "react_deliverance",
+    "prompt": "人类没有赢,只是活了下来——",
+    "mood": "awe"
+  }
+]

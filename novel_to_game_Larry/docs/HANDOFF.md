@@ -26,7 +26,7 @@ AI Game Jam 团队项目(TikTok LIVE 末日生存直播游戏)。**我(Larry 侧
 - 浏览器开 game-v2.html / cold-open.html / character-generator.html 需联网(React CDN)。`.js` 在 type:module 下当 ESM,Node 侧用 vm 提供 window 加载(见 sim.cjs)。
 
 ## 5. 进行中 / 下一步(优先级)
-- 🔄 **《世界大战》→游戏**:后台 subagent 正在 `C:\Users\Victoria\war_of_the_worlds\` 构建(本机外,**尚未进仓库**)。底座已好(27章+题记、4资源、6阶段);正补 spine_type/route/dwelling/poi_bank + 挖卡 + 做 wotw 前端。**若公司侧看不到这个目录**:用技能重跑即可——源 = Gutenberg ebook 36(`gutenberg.org/ebooks/36`),按 `~/.claude/skills/novel-to-game/SKILL.md` 流程跑(切章正则按"BOOK ONE/TWO + 罗马数字独行";注意 CRLF/TOC/密度≠张力三坑)。
+- ✅ **《世界大战》→游戏(已完成,在仓库)**:`novel_to_game_Larry/applications/war_of_the_worlds/`。journey 骨架(7 程路线 + 可移动住所 + 25 POI)、13 决策卡、4 资源(life/supply/sanity/concealment)、sim 调平(随机 65% 生还)。**怎么开**:`cd applications/war_of_the_worlds/frontend` → 起静态服务器(`npx http-server . -p 8901 -c-1`)→ 访问 `http://127.0.0.1:8901/game/game-v2.html`(用了 React CDN,需 HTTP 非 file://)。重建:`node scripts/merge.mjs && node scripts/build-gamedata.mjs`;平衡:`node scripts/sim.cjs 4000`。**待办**:真浏览器手验全流程;POI 目前=策展卡+观众生成,未做"行动点选点"交互层;supply 几乎不构成死因(可加重)。技能可对 Gutenberg #36 重跑复现。
 - ⬜ **game-v2**:把"采纳"升级为"沿途 POI 际遇"(GAME_FRAMEWORK §E 的可玩证明)。
 - ⬜ **接 cheney 真引擎**:给他 4 类生成 prompt 的《最后的人》重调稿 + 确认 INTEGRATION 契约。
 - ⬜ 给《最后的人》补产 route/dwelling/poi_bank。

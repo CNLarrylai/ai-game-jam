@@ -1,0 +1,27 @@
+{
+  "_about": "离线《世界大战》内容池——模拟 comment_engine:观众评论→采纳→生成游戏内容(物资/同行者/事件)。真引擎就绪后由 generate() 的 HTTP 分支替换。effect 用 life/supply/sanity/concealment。",
+  "items": [
+    { "name": "废墟里的猎枪", "icon": "🔫", "category": "weapon", "description": "弃宅墙上摘下的猎枪,对火星人没用,对人和狗壮胆。", "effect": { "sanity": 2 }, "side_effect": "枪声会暴露行踪 concealment-1" },
+    { "name": "半箱罐头", "icon": "🥫", "category": "food", "description": "翻倒的马车下压着的罐头,够撑几日。", "effect": { "supply": 3 }, "side_effect": "搬运沉重,体力耗损 life-1" },
+    { "name": "一壶净水", "icon": "💧", "category": "drink", "description": "雨水泵里接的、尚算干净的水。", "effect": { "life": 2 }, "side_effect": null },
+    { "name": "一辆弃置的单马车", "icon": "🛒", "category": "transport", "description": "路边没人要的单马车,能多带些东西、跑得快些。", "effect": { "supply": 2 }, "side_effect": "明处赶车更显眼 concealment-1" },
+    { "name": "厚毛毯与火柴", "icon": "🧣", "category": "shelter", "description": "空屋里搜来的毯子和一盒火柴,夜里能暖身。", "effect": { "life": 1, "sanity": 1 }, "side_effect": "生火取暖会冒烟 concealment-1" },
+    { "name": "一瓶勃艮第红酒", "icon": "🍷", "category": "drink", "description": "弃宅酒窖里的酒,能麻痹一时的恐惧。", "effect": { "sanity": 2 }, "side_effect": "醉后警觉下降 concealment-1" },
+    { "name": "几束红草根茎", "icon": "🟥", "category": "food", "description": "火星红草的嫩根,勉强可食,也能当掩护。", "effect": { "supply": 1, "concealment": 1 }, "side_effect": "腐烂的瘴气令人作呕 sanity-1" },
+    { "name": "望远镜", "icon": "🔭", "category": "tool", "description": "从弃宅书房取来的望远镜,能远远看清三脚机的动向。", "effect": { "concealment": 2 }, "side_effect": "看得太清,更添恐惧 sanity-1" }
+  ],
+  "npcs": [
+    { "name": "溃退的炮兵", "appearance_prompt": "军服褴褛、眼神发亮的士兵", "skill": "懂得藏身与就地取食(supply)", "flaw": "满口宏图却从不动手", "source_display": "灵感来源" },
+    { "name": "失魂的牧师", "appearance_prompt": "黑袍沾灰、喃喃祈祷的神职者", "skill": "在绝望中给人一句安慰(sanity)", "flaw": "随时会崩溃嚎叫、招来火星人", "source_display": "灵感来源" },
+    { "name": "逃难的医科学生", "appearance_prompt": "提着药箱、神色镇定的年轻人", "skill": "处理伤口与脱水(life)", "flaw": "执意北上找船,不肯久留", "source_display": "灵感来源" },
+    { "name": "带孩子的母亲", "appearance_prompt": "怀里抱着幼儿的疲惫妇人", "skill": "分享省下的口粮、提醒你别忘了人性(sanity)", "flaw": "行动迟缓,拖慢逃亡", "source_display": "灵感来源" },
+    { "name": "牵狗的拾荒老人", "appearance_prompt": "佝偻着背、身边跟着瘦狗的老者", "skill": "熟门熟路,知道哪间空屋还有存货(supply)", "flaw": "贪婪多疑,不肯轻易信人", "source_display": "灵感来源" }
+  ],
+  "events": [
+    { "narration": "循着观众指的方向,你钻进一间没被搜过的弃宅——储藏间角落,真压着一批物资。", "item_gained": "半箱罐头", "companion_gained": null, "source_display": "灵感来源" },
+    { "narration": "红草丛深处藏着一台还能用的雨水泵,你接了满满一壶水。", "item_gained": "一壶净水", "companion_gained": null, "source_display": "灵感来源" },
+    { "narration": "废墟拐角,一个溃退的炮兵向你招手——他懂得怎么在火星人脚下藏身。", "item_gained": null, "companion_gained": "溃退的炮兵", "source_display": "灵感来源" },
+    { "narration": "空屋书房里,望远镜还架在窗前,正好用来盯远处的三脚机。", "item_gained": "望远镜", "companion_gained": null, "source_display": "灵感来源" },
+    { "narration": "翻倒的逃难马车下,压着一条毛毯和半盒火柴,够你熬过今夜的寒冷。", "item_gained": "厚毛毯与火柴", "companion_gained": null, "source_display": "灵感来源" }
+  ]
+}
