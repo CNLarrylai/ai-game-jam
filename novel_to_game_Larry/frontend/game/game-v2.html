@@ -265,7 +265,7 @@
   /* ============ 图鉴 / 手记 (沿用 game.html) ============ */
   .char-link{color:var(--ember);border-bottom:1px dashed oklch(0.6 0.1 55 / 0.5);cursor:pointer;}
   .char-link:hover{color:var(--fog);border-bottom-color:var(--ember);}
-  .v2-tools{position:absolute;top:12px;right:18px;z-index:8;display:flex;gap:8px;}
+  .v2-tools{margin-left:auto;display:flex;gap:8px;align-items:center;}
   .v2-tool{font-family:var(--f-stamp);font-size:11px;letter-spacing:2px;text-transform:uppercase;color:var(--fog-dim);
     background:oklch(0.2 0.018 250 / 0.6);border:1px solid var(--line-soft);border-radius:8px;padding:7px 12px;cursor:pointer;}
   .v2-tool:hover{color:var(--fog);border-color:var(--line);}
@@ -681,14 +681,12 @@ function App(){
             <span className="hj-place">{gs?placeFor(node.id):'英格兰 · 温莎'}</span>
           </div>
           {gs && <StatBars res={gs.res} survivors={survivors} deltas={reveal&&reveal.nums?deltas:null}/>}
+          {phase==='play' && <div className="v2-tools">
+            <button className="v2-tool" onClick={()=>setCodexK('__list__')}>☰ 人物</button>
+            <button className="v2-tool" onClick={()=>setJrnOpen(true)}>✎ 手记</button>
+            <button className="v2-tool" onClick={toggleMute}>{muted?'🔇':'🔊'}</button>
+          </div>}
         </div>
-
-        {/* 工具:人物 / 手记 */}
-        {phase==='play' && <div className="v2-tools">
-          <button className="v2-tool" onClick={()=>setCodexK('__list__')}>☰ 人物</button>
-          <button className="v2-tool" onClick={()=>setJrnOpen(true)}>✎ 手记</button>
-          <button className="v2-tool" onClick={toggleMute}>{muted?'🔇':'🔊'}</button>
-        </div>}
 
         {/* 公屏横幅 */}
         {banner && <div className="pub-banner" dangerouslySetInnerHTML={{__html:banner.replace(/@(\S+)/,'<b>@$1</b>')+' 这片大陆听见了你。'}}></div>}

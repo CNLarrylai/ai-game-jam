@@ -14,12 +14,13 @@
 6. **美术一致**:木刻暗调,无像素;无对齐问题。
 7. **故事连贯**:旅程读起来是一条线(幕间有承接,不"跳");人物首次出现能看懂是谁。
 8. **节奏**:不过长/过短;重大节点有剧情卡。
+9. **无 UI 重合**:固定/绝对定位元素(状态栏 / 工具按钮 / 公屏横幅 / 弹窗 / 倒计时条 / toast…)互不遮挡;开场、游戏、揭晓、结算各阶段对齐正常,无文字被压、无按钮叠在数值条上。
 
 ## 每轮迭代流程(一轮只做 1–3 个最高优先项,省 token)
 1. 读 `docs/STATE.md`、本协议、`frontend/game/game-v2.html`(按需读 engine/gamedata/doom.css/game.html)。
 2. 对照评分线,挑出**当前最该修的 1–3 项**(坏 > 不平衡 > 粗糙 > 细节打磨)。
 3. 修(改 game-v2.html / engine / 数据;涉及平衡就跑 `scripts/sim.cjs` 调 TUNING/起始资源)。
-4. 自检:无 JS 语法错;逻辑用 sim 验;不要破坏 game.html。
+4. 自检:无 JS 语法错;逻辑用 sim 验;**逐项扫 UI 有无不必要的重合/遮挡**(重点:顶部状态栏 vs 浮动按钮/横幅;弹窗 vs 倒计时条);不要破坏 game.html。
 5. 提交:`git add novel_to_game_Larry && git commit`(中文 message,标注 polish 轮次),分支 `feature/novel-content-expansion`。
 6. 更新 `docs/STATE.md` 末尾:"polish 第 N 轮:做了 X;下一步 Y"。
 7. **达到评分线**就创建 `frontend/game/POLISH_DONE.md`(写一句完成总结)并停止;否则进入下一轮。
