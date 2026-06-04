@@ -47,7 +47,14 @@ CONSTRAINTS:
 4. Must reference at least one element from event history (callback)
 5. Incompatible ideas → REINTERPRET creatively
 6. Narration tone: dark humor + tension
-7. Output valid JSON only, no other text."""
+7. Output valid JSON only, no other text
+
+CAPABILITY-DRIVEN RULES:
+8. At least 1 option MUST utilize a capability from AVAILABLE CAPABILITIES listed in context
+9. When a companion skill is used, add their in-character dialogue in the outcome
+10. If NARRATIVE HOOK QUEUE has a MUST_TRIGGER hook, this event MUST create a scenario that pays it off
+11. Do NOT create options requiring capabilities the player does NOT have
+12. Mark which capability is used in each option via "capability_used" field"""
 
 EVENT_USER = """
 {context}
@@ -68,7 +75,9 @@ Generate a game event. Output valid JSON:
     }}
   ],
   "source_display": "Inspired by @{username}",
-  "thread_hook": "optional: a sentence that sets up a future event (unresolved thread)"
+  "thread_hook": "optional: a sentence that sets up a future event (unresolved thread)",
+  "hooks_resolved": ["hook_id if this event pays off a hook, or empty list"],
+  "capability_used_summary": "which capabilities were used in options"
 }}"""
 
 CHARACTER_SYSTEM = f"""You are the character designer for an AI apocalypse survival game.
@@ -91,16 +100,29 @@ Generate an NPC. Output valid JSON:
   "name": "Full name with nickname/title",
   "appearance_prompt": "Pixel art desc: 1 sentence",
   "personality": "2 traits + 1 flaw (max 30 words)",
+  "skills": [
+    {{
+      "type": "craft|combat|knowledge|social|survival",
+      "description": "what this companion can do",
+      "enables": ["capability_tag_1", "capability_tag_2"],
+      "narrative_hooks": ["scenario where this skill becomes useful"]
+    }}
+  ],
   "dialogue_intro": "First line when encountered (in-character, max 50 words)",
   "interaction_options": [
-    {{"text": "Recruit", "cost": {{"food": int}}, "benefit": "special skill"}},
+    {{"text": "Recruit", "cost": {{"food": int}}, "benefit": "summary of skills"}},
     {{"text": "Trade", "offers": "what", "wants": "what"}},
     {{"text": "Ask for intel", "reveals": "useful info"}},
     {{"text": "Leave", "consequence": "what happens"}}
   ],
   "hidden_trait": "Secret revealed after 2+ days as companion",
   "source_display": "Inspired by @{username}"
-}}"""
+}}
+
+IMPORTANT for skills:
+- Each skill must have SPECIFIC enables tags (e.g. "repair", "craft_tool", "heal_injury")
+- narrative_hooks must describe CONCRETE scenarios where the skill matters
+- Check AVAILABLE CAPABILITIES in context — new companion should COMPLEMENT existing party capabilities"""
 
 ITEM_SYSTEM = f"""You are the item designer for an AI apocalypse survival game.
 {WORLD_SETTING}
@@ -129,8 +151,15 @@ Generate an item. Output valid JSON:
     "active_ability": "description or null"
   }},
   "durability": -1,
+  "enables": ["capability_tag_1", "capability_tag_2"],
+  "narrative_hooks": ["concrete future scenario this item can trigger"],
   "source_display": "Inspired by @{username}"
-}}"""
+}}
+
+IMPORTANT for enables/narrative_hooks:
+- enables: SPECIFIC capability tags like "ranged_combat", "pry_open", "light_source", "signal_for_help". NOT vague like "useful".
+- narrative_hooks: describe CONCRETE scenarios, e.g. "远距离对峙时威胁敌人", "撬开锁住的门". NOT abstract benefits.
+- Check AVAILABLE CAPABILITIES in context — new item should COMPLEMENT, not duplicate."""
 
 LOCATION_SYSTEM = f"""You are the level designer for an AI apocalypse survival game.
 {WORLD_SETTING}

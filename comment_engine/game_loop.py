@@ -12,6 +12,7 @@ from game_state import GameState, Item, Companion, EventRecord
 from classifier import classify
 from comment_pool import CommentPool
 from generator import generate
+from narrative_safety import check_narrative_safety, clean_orphan_hooks, compress_history
 
 
 class GameLoop:
@@ -97,12 +98,44 @@ class GameLoop:
             "category": pick.classify_result.category,
         })
 
-        result = generate(
-            category=pick.classify_result.category,
-            comment=pick.raw_text,
-            username=pick.username,
-            context=context,
-        )
+        category = pick.classify_result.category
+        max_retries = 2
+        result = None
+
+        for attempt in range(max_retries + 1):
+            raw_result = generate(
+                category=category,
+                comment=pick.raw_text,
+                username=pick.username,
+                context=context,
+            )
+
+            # 叙事安全检查
+            safety = check_narrative_safety(raw_result, self.state, category)
+
+            if safety.passed:
+                result = raw_result
+                if safety.warnings:
+                    self._render("SAFETY_WARNINGS", {
+                        "warnings": safety.warnings,
+                        "auto_fixes": safety.auto_fixes,
+                        "score": safety.score,
+                    })
+                break
+            else:
+                self._render("SAFETY_REJECTED", {
+                    "attempt": attempt + 1,
+                    "issues": safety.issues,
+                    "warnings": safety.warnings,
+                    "score": safety.score,
+                })
+                if attempt < max_retries:
+                    continue
+
+        if result is None:
+            # 全部重试失败，使用兜底
+            self._render("FALLBACK", {"reason": "安全检查连续失败，使用兜底事件"})
+            return None
 
         # 记录被采纳的评论
         self.state.record_adopted_comment(
@@ -119,6 +152,14 @@ class GameLoop:
         })
 
         return result
+
+    def end_of_day(self):
+        """日终处理：清理孤儿钩子 + 压缩历史"""
+        cleaned = clean_orphan_hooks(self.state)
+        if cleaned:
+            self._render("HOOKS_CLEANED", {"orphan_hooks": cleaned})
+        compress_history(self.state, keep_recent_days=2)
+        self.state.advance_day()
 
     def apply_choice(self, generated_result: dict, choice_index: int):
         """主播做出选择后，应用结果到游戏状态"""
