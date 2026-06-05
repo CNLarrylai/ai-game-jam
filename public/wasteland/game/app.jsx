@@ -526,7 +526,7 @@ function App(props) {
             options: d.options || d.opts, votes: d.votes, result: d.result
           } : null; })(),
           banner: banner ? { icon: banner.icon, html: banner.html, big: banner.big } : null,
-          story: story ? { illus: story.illus, text: story.text, source: story.source } : null,
+          story: (() => { const s = storyRef.current; return s ? { illus: s.illus, text: s.text, source: s.source } : null; })(),
           phase: phase ? { big: phase.big, sub: phase.sub } : null,
           cta: cta ? { prompt: cta.prompt } : null,
           flags, companions: companions.map(c => ({
@@ -659,16 +659,26 @@ function App(props) {
               desc: ev.narrative || '',
               options: opts,
               onChoose: (opt) => {
-                // Send choice to bridge → Phase 2 will return choice_result with real stat changes
                 if (window.WsSync && WsSync.connected) {
                   WsSync.send({ type: 'host_action', action: 'choice', data: { choice: opt.label || opt.id } });
                 }
-                // Don't apply stats here — wait for choice_result from Phase 2
+                // Fallback: if Phase 2 doesn't respond in 12s, auto-close with default result
+                setTimeout(() => {
+                  const d = decisionRef.current;
+                  if (d && d.result && d.result.includes('AI 正在生成')) {
+                    applyStats({ sanity: -5 });
+                    closeDecision();
+                    setStory({
+                      illus: '📖',
+                      text: '你选择了「' + (opt.label || opt.id) + '」。这个决定的后果还不明朗……\n\n━━━━━━━━━━━━━━━━\n📊 🧠理智-5',
+                      source: '@' + source, onContinue: () => setStory(null),
+                    });
+                  }
+                }, 12000);
                 return '你选择了「' + (opt.label || opt.id) + '」\n\nAI 正在生成结果...';
               },
               onContinue: () => {
                 closeDecision();
-                toast({ icon: '✅', name: '@' + source + ' 的剧情已完成' });
                 // Process next queued event if any
                 if (eventQueueRef.current.length > 0) {
                   const next = eventQueueRef.current.shift();
