@@ -53,10 +53,18 @@ LOCATION_KEYWORDS = {
     "超市", "工厂", "医院", "学校", "停车场", "教堂", "地铁站",
     "仓库", "军营", "实验室", "图书馆", "加油站", "屋顶", "地下室",
     "暗门", "密道", "隧道", "桥", "河", "山", "森林", "废墟",
+    "游乐园", "公园", "动物园", "商场", "车站", "机场", "码头", "港口",
+    "核电站", "发电厂", "水坝", "电台", "塔", "灯塔", "钟楼",
+    "警察局", "消防站", "银行", "酒店", "旅馆", "餐厅", "酒吧",
+    "体育馆", "游泳池", "电影院", "博物馆", "美术馆", "寺庙",
+    "白宫", "城堡", "宫殿", "监狱", "法院", "大使馆",
+    "农场", "牧场", "矿场", "油田", "基地", "哨所", "营地",
+    "废弃", "荒废", "遗址", "遗迹", "洞穴", "峡谷", "沙漠", "沼泽",
     "supermarket", "factory", "hospital", "school", "parking", "church",
     "subway", "warehouse", "military", "lab", "library", "gas station",
     "rooftop", "basement", "tunnel", "bridge", "river", "mountain", "forest",
-    "ruins", "shelter", "bunker",
+    "ruins", "shelter", "bunker", "park", "station", "airport", "castle",
+    "prison", "farm", "cave", "tower", "dam", "port",
 }
 
 IRRELEVANT_PATTERNS = [
@@ -146,6 +154,14 @@ def classify(comment: str, phase: str = "explore") -> ClassifyResult:
 
     if re.search(r'(去|前往|探索|进入).{0,5}', text) and scores["LOCATION"] > 0:
         scores["LOCATION"] += 2
+
+    # "去/前往/探索 + 地点名" pattern — even without keyword match
+    if re.search(r'(去|前往|探索|进入|到达|抵达).{0,8}(园|场|站|厂|院|馆|楼|塔|宫|城|营|洞|谷|湖|海|岛|坑|坝|基地|废弃|遗址)', text):
+        scores["LOCATION"] += 3
+
+    # "新增/添加 + 场景/地点" pattern
+    if re.search(r'(新增|添加|开启|解锁|发现).{0,5}(场景|地点|地图|区域)', text):
+        scores["LOCATION"] += 3
 
     if re.search(r'(突然|听到|有人|发生|出现了)', text) and max(scores.values()) <= 1:
         scores["EVENT"] += 1.5
