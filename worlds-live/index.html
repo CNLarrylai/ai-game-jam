@@ -18,6 +18,24 @@
   </div>
 </div>
 
+<!-- 引导加载：在游戏脚本前 fetch 技能产出的契约文件(intro/dialogue)，挂到 window。
+     app.jsx 的渲染会等待 window.WL_BOOT 完成，确保数据就绪。React 走 CDN 本就需 HTTP，fetch 同源可用。 -->
+<script>
+  window.WL_BOOT = (async function () {
+    async function load(path) {
+      try { const r = await fetch(path); if (r.ok) return await r.json(); } catch (e) {}
+      console.warn("[WL] 无法加载 " + path + "（将使用空数据）");
+      return null;
+    }
+    const [intro, dialogue] = await Promise.all([
+      load("data/intro.json"),
+      load("data/dialogue.json"),
+    ]);
+    window.WL_INTRO = intro || [];
+    window.WL_DIALOGUE = dialogue || [];
+  })();
+</script>
+
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>

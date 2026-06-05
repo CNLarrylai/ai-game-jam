@@ -38,6 +38,7 @@ function companionsToday(companions, day) {
    ============================================================ */
 function SceneHome({ D, flags, companions }) {
   const [hint, setHint] = useStateH(true);
+  const [spoke, setSpoke] = useStateH({});   // 每个同伴"听他说话"的次数 → 轮换 idle 台词
   useEffectH(() => { const t = setTimeout(() => setHint(false), 4600); return () => clearTimeout(t); }, []);
 
   const here = companionsToday(companions, D.day);
@@ -72,14 +73,16 @@ function SceneHome({ D, flags, companions }) {
     }), 700);
   };
 
-  /* 和同伴对话 —— 技能因人而异，且忠于原著带代价 */
+  /* 和同伴对话 —— greeting 作开场白描，「听他说话」轮换 ask/idle 台词，技能带代价 */
   const talk = (c) => {
+    // 台词池：先 ask（最能定调），再轮换 idle，循环不重样
+    const lines = [c.ask, ...(c.idle || [])].filter(Boolean);
     D.decision({
       id: "talk_" + c.id, icon: c.av, title: c.name + " · " + c.role,
-      desc: c.detail,
+      desc: c.greeting || c.detail,
       options: [
         { id: "skill", label: c.skill.label, icon: c.skill.icon, sub: c.skill.note },
-        { id: "ask",   label: "听他说话",   icon: "💬", sub: "了解他的状态" },
+        { id: "ask",   label: "听他说话",   icon: "💬", sub: "了解他此刻的状态" },
         { id: "leave", label: "结束交谈",   icon: "👋", sub: "" },
       ],
       onChoose: (opt) => {
@@ -89,7 +92,11 @@ function SceneHome({ D, flags, companions }) {
           D.applyStats(c.skill.effect); D.setFlag(key, true);
           return c.skill.line + "（每天仅一次）";
         }
-        if (opt.id === "ask") return c.ask;
+        if (opt.id === "ask") {
+          const n = spoke[c.id] || 0;
+          setSpoke((s) => ({ ...s, [c.id]: n + 1 }));
+          return lines.length ? lines[n % lines.length] : "他没有作声。";
+        }
         return "你没有再说什么，回到自己的角落，听着外面的世界一寸寸沉默下去。";
       },
       onContinue: () => D.closeDecision(),

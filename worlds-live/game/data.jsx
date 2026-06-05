@@ -40,30 +40,9 @@ const ITEMS = {
 
 const INIT_STATS = { life: 70, supply: 60, sanity: 64, conceal: 75 };
 
-/* —— 同伴：队友互动的核心。忠于原著的"妻子/牧师/炮兵"三段 —— */
-/* present 字段：该同伴在哪些 Day 出现在营地 */
-const COMPANIONS = [
-  { id: "wife", name: "妻子", av: "👰🏻", role: "你要守护的人", status: "惊惶", mood: "强作镇定", hp: 100,
-    present: [1, 2],
-    detail: "她还在沃金的家里。你必须赶在火星人扩散前，用借来的单马车把她送到莱瑟黑德的亲戚处。她是你撑下去的唯一理由。",
-    skill: { id: "comfort", label: "彼此宽慰", icon: "🤍", effect: { sanity: 10 },
-      line: "你握住她的手，低声说一切都会过去。短暂的人间温度让你重新站稳。理智 +10。", note: "恢复 理智 · 每天一次" },
-    ask: "「我不怕，只要我们在一起。……可你听见远处那声音了吗？」——妻子" },
-
-  { id: "curate", name: "牧师", av: "⛪", role: "崩溃中的累赘", status: "濒临失常", mood: "时而祈祷时而尖叫", hp: 60,
-    present: [3, 4, 5],
-    detail: "你和他一同被第五枚圆筒砸塌的废宅困住，紧挨着火星人的进食坑。他的信仰已被恐惧击碎——会突然嚎叫、抢夺最后的口粮，他的声音随时会把火星人引来。",
-    skill: { id: "quiet", label: "强行让他安静", icon: "🤫", effect: { conceal: 12, sanity: -8 },
-      line: "你死死捂住他的嘴，把他按在墙角。火星人的触手没有探进来——但你恨自己这双手。隐蔽 +12，理智 -8。", note: "提升 隐蔽 · 代价沉重" },
-    ask: "「上帝为什么抛弃我们？这是末日审判！我们都是罪人——」（他的声音越来越大）——牧师" },
-
-  { id: "gunner", name: "炮兵", av: "🪖", role: "贩卖虚假希望的人", status: "亢奋", mood: "宏图满胸", hp: 85,
-    present: [6, 7],
-    detail: "帕特尼山下幸存的士兵。他描绘着住进下水道、躲开火星人、重建人类文明的宏伟蓝图——听起来令人振奋。可你注意到，他只挖了几尺土，便整日空想、饮酒、打牌。",
-    skill: { id: "dream", label: "听他描绘蓝图", icon: "🗺️", effect: { sanity: 12, supply: -8 },
-      line: "他说得眉飞色舞，你几乎要相信人类还有明天。可一整夜过去，洞还是那个洞，口粮却少了。理智 +12，补给 -8。", note: "恢复 理智 · 但消耗补给（虚妄）" },
-    ask: "「我们要往地下走，兄弟！让火星人占着地面，我们在它脚底下重建文明！……来喝一杯，明天再挖。」——炮兵" },
-];
+/* —— 同伴对话已移出本文件 —— 现由技能契约 dist/dialogue.json 提供
+   （引导加载后挂在 window.WL_DIALOGUE，见 references/DIALOGUE_SPEC.md）。
+   app.jsx 读取 window.WL_DIALOGUE 作为 COMPANIONS 传给场景。 —— */
 
 /* —— 目的地 = 路线的"程"（journey）。每次出门挑下一段路 —— */
 const DESTINATIONS = [
@@ -157,6 +136,6 @@ const SPAM_USERS = [
 ];
 
 Object.assign(window, {
-  AMBIENT_COMMENTS, ITEMS, INIT_STATS, COMPANIONS, DESTINATIONS, MAP_NPC, HEX_TILES,
+  AMBIENT_COMMENTS, ITEMS, INIT_STATS, DESTINATIONS, MAP_NPC, HEX_TILES,
   TIMELINE, LEADERBOARD, GLOBAL_STATS, WIN_RECAP, SPAM_PHRASES, SPAM_USERS,
 });
