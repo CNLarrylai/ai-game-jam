@@ -204,7 +204,11 @@ def on_comment(msg):
     # Ignore our own system messages
     if username == "🧠 AI Engine" or uid == "engine_001":
         return
-    result = classify(text, phase=state.phase)
+    # Always classify with 'explore' phase — most permissive, accepts all categories.
+    # Phase filtering at selection time is enough; no need to reject at classification.
+    result = classify(text, phase='explore')
+    # Force phase_compatible = True so all comments enter the pool
+    result.phase_compatible = True
     # Don't call open_window here — it clears the pool! Window is managed by generation_loop.
 
     # Check rejection reasons BEFORE adding
