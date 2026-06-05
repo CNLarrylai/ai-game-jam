@@ -491,7 +491,7 @@ function App(props) {
       if (window.WsSync && WsSync.connected && window.__EXPLORE_STATE__) {
         WsSync.send({ type: 'host_action', action: 'explore_state', data: window.__EXPLORE_STATE__ });
       }
-    }, 300);
+    }, 1000);
     return () => clearInterval(t);
   }, [scene]);
 
@@ -540,7 +540,7 @@ function App(props) {
     let last = 0;
     const onMove = (e) => {
       const now = Date.now();
-      if (now - last < 80) return; // throttle to ~12fps
+      if (now - last < 200) return; // throttle to ~5fps
       last = now;
       const rect = stage.getBoundingClientRect();
       const x = ((e.clientX - rect.left) / rect.width * 1920 * 0.7) | 0;
