@@ -54,10 +54,22 @@ function SceneDestination({ D }) {
 }
 
 /* ============================================================
-   探索地图 (hex)
+   探索地图 (hex) — 键盘走格 · 踏入式开格
    ============================================================ */
 const HEX_W = 116, HEX_H = 130, CX = 250, CY = 330;
-const NEIGHBORS = [[0,-1],[0,1],[1,-1],[1,0],[-1,-1],[-1,0]];
+/* 六向邻接随列奇偶变化（奇数列视觉下沉半格） */
+function hexNeighbors(x) {
+  return ((x % 2) + 2) % 2 === 1
+    ? [[0,-1],[0,1],[1,0],[1,1],[-1,0],[-1,1]]
+    : [[0,-1],[0,1],[1,-1],[1,0],[-1,-1],[-1,0]];
+}
+/* 方向键/WASD → 走格方向（左右取同行邻格，hex 自然之字形） */
+const KEY_DIRS = {
+  ArrowUp: [0,-1], KeyW: [0,-1], ArrowDown: [0,1], KeyS: [0,1],
+  ArrowLeft: [-1,0], KeyA: [-1,0], ArrowRight: [1,0], KeyD: [1,0],
+};
+/* 看播端复用本组件但只镜像，不接管键盘 */
+const IS_VIEWER_PAGE = /viewer|看播/i.test(decodeURIComponent(location.pathname) + document.title);
 
 function hexPos(x, y) {
   const odd = ((x % 2) + 2) % 2 === 1;
@@ -68,19 +80,26 @@ function hexPos(x, y) {
 }
 
 function SceneExplore({ D }) {
-  const [ap, setAp] = useStateO(3);
-  const [revealed, setRevealed] = useStateO({});   // id -> true
+  const [ap, setAp] = useStateO(5);                 // 每日 5 行动点（对齐游戏框架文档）
+  const [revealed, setRevealed] = useStateO({ c: true }); // id -> true；出生格已探明
   const [foe, setFoe] = useStateO(null);            // battle tile active
   const [npc, setNpc] = useStateO(null);            // npc tile active
+  const [hero, setHero] = useStateO({ x: 0, y: 0 }); // 主播角色所在格
+  const [facing, setFacing] = useStateO("down");    // 朝向（行走帧用）
+  const [stepF, setStepF] = useStateO(0);           // 行走帧 0/1
+  const [moving, setMoving] = useStateO(false);
+  const [busy, setBusy] = useStateO(false);         // 事件卡打开时锁移动
   const tiles = window.HEX_TILES;
 
   const isAdjacent = (t) =>
-    NEIGHBORS.some(([nx, ny]) => nx === t.x && ny === t.y) && !revealed[t.id] && t.type !== "hero";
+    hexNeighbors(hero.x).some(([nx, ny]) => hero.x + nx === t.x && hero.y + ny === t.y)
+    && !revealed[t.id] && t.type !== "hero";
 
-  const finishEvent = () => { setFoe(null); setNpc(null); D.closeDecision(); };
+  const finishEvent = () => { setFoe(null); setNpc(null); setBusy(false); D.closeDecision(); };
 
   const explore = (t) => {
     if (ap <= 0 || revealed[t.id]) return;
+    if (t.type === "search" || t.type === "npc" || t.type === "battle") setBusy(true);
     setRevealed((r) => ({ ...r, [t.id]: true }));
     setAp((a) => a - 1);
     const p = hexPos(t.x, t.y);
@@ -186,7 +205,50 @@ function SceneExplore({ D }) {
     }
   };
 
-  const heroPos = hexPos(0, 0);
+  /* ---- 走格：移动 + 行走动画；踏入未探索格 = 开格 ---- */
+  const dirOf = (dx, dy) => (dx > 0 ? "right" : dx < 0 ? "left" : dy < 0 ? "up" : "down");
+  const walkTo = (t, dir) => {
+    setFacing(dir); setMoving(true); setStepF(0);
+    setHero({ x: t.x, y: t.y });
+    setTimeout(() => setStepF(1), 90);
+    setTimeout(() => { setMoving(false); setStepF(0); }, 220);
+  };
+  const tryMove = (dx, dy) => {
+    if (busy || moving || foe || npc) return;
+    const t = tiles.find((k) => k.x === hero.x + dx && k.y === hero.y + dy);
+    if (!t) return;
+    const dir = dirOf(dx, dy);
+    if (!revealed[t.id] && t.type !== "hero") {
+      if (ap <= 0) {
+        setFacing(dir);
+        D.toast({ icon: "⚠️", name: "行动点耗尽 — 只能走已探索的格子" });
+        return;
+      }
+      walkTo(t, dir);   // 踏入即开格
+      explore(t);
+    } else {
+      walkTo(t, dir);   // 已探索格自由行走，不耗 AP
+    }
+  };
+  const tryMoveRef = React.useRef(tryMove);
+  tryMoveRef.current = tryMove;
+
+  /* 键盘行走（仅主播端；输入框聚焦时不拦截） */
+  useEffectO(() => {
+    if (IS_VIEWER_PAGE) return;
+    const onKey = (e) => {
+      const d = KEY_DIRS[e.code];
+      if (!d) return;
+      const tag = (e.target.tagName || "").toUpperCase();
+      if (tag === "INPUT" || tag === "TEXTAREA" || e.target.isContentEditable) return;
+      e.preventDefault();
+      tryMoveRef.current(d[0], d[1]);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const heroPx = hexPos(hero.x, hero.y);
   return (
     <div className="scene">
       <div className="scene-title-chip">🗺️ 出门 · 探索废弃医院</div>
@@ -196,6 +258,8 @@ function SceneExplore({ D }) {
           <div className="ap-pips">
             {[0,1,2,3,4].map((i) => <div key={i} className={"ap-pip " + (i >= ap ? "used" : "")} />)}
           </div>
+          {!IS_VIEWER_PAGE && <span className="ap-hint" style={{ marginLeft: 12, opacity: .65,
+            fontSize: "var(--t-xs)" }}>↑↓←→ / WASD 走格 · 踏入未知格揭开它</span>}
         </div>
 
         <div className="hexwrap">
@@ -205,17 +269,17 @@ function SceneExplore({ D }) {
               const adj = isAdjacent(t);
               const rev = revealed[t.id];
               let cls = "hex ";
-              if (t.type === "hero") cls += "hero ";
+              if (t.type === "hero") cls += "revealed empty ";   // 出生格 = 已探明地面，hero 由独立 sprite 渲染
               else if (rev) cls += "revealed " + t.type + " ";
               else if (adj) cls += "adjacent ";
               else cls += "fog ";
               if (t.generated && (rev || adj)) cls += "generated ";
-              const icon = t.type === "hero" ? "🧑‍🚀"
-                : rev ? (t.icon || (t.type === "empty" ? "·" : "")) 
+              const icon = t.type === "hero" ? ""
+                : rev ? (t.icon || (t.type === "empty" ? "·" : ""))
                 : adj ? "❔" : "";
               return (
                 <div key={t.id} className={cls} style={{ left: pos.left, top: pos.top }}
-                  onClick={() => adj && explore(t)}>
+                  onClick={() => adj && tryMove(t.x - hero.x, t.y - hero.y)}>
                   <div className="hx-inner">
                     {icon}
                     {rev && t.label && t.type !== "hero" &&
@@ -224,6 +288,17 @@ function SceneExplore({ D }) {
                 </div>
               );
             })}
+            {/* 主播角色：可行走 sprite（行走帧 4向×2帧，idle 单帧） */}
+            <img alt="" className="player-sprite hero-walker"
+              src={"../assets/characters/" + (moving
+                ? "char_player_walk_" + facing + "_f" + (stepF + 1)
+                : "char_player_idle") + ".png"}
+              width={96} height={96}
+              style={{ position: "absolute", zIndex: 12, pointerEvents: "none",
+                left: heroPx.left + HEX_W / 2 - 48, top: heroPx.top + HEX_H / 2 - 64,
+                transition: "left .2s linear, top .2s linear",
+                imageRendering: "pixelated",
+                filter: "drop-shadow(0 6px 8px rgba(0,0,0,.45))" }} />
           </div>
         </div>
 
