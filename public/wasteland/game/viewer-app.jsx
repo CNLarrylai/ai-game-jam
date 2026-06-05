@@ -77,7 +77,7 @@ function ViewerWrapper() {
   if (!entered) return <ViewerLogin onEnter={onEnter} />;
 
   // Render the REAL App in viewerMode — same components, same rendering, just WS-driven
-  return React.createElement(App, {
+  return React.createElement(window.App, {
     viewerMode: true,
     viewerWs: wsRef.current,
     viewerConnected: connected,
