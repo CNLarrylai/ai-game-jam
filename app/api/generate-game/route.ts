@@ -20,7 +20,7 @@ const SPEC = `你是「小说→像素生存游戏数据」适配引擎。下面
 【四维数值】sanity 精神 / health 健康 / hunger 饱腹 / thirst 口渴。
 【美术约束】物品 icon 只能从这组 emoji 选（否则像素图渲染不出）：💧 🐟 🥫 🍗 🔫 🩹 💊 🔩 🔧 🔦 🔋 📻 🗝️ 🪢 🎒。
 
-只输出一个 JSON 对象（GAME_DATA），不要解释、不要 markdown 围栏。字段与形状严格如下：
+【严格 JSON 要求】只输出一个合法 JSON 对象，不要解释、不要 markdown 围栏。务必：字符串里若要用引号一律用中文「」，**不要用英文双引号**（避免没转义破坏 JSON）；不要尾随逗号；不要注释；每个字符串写成一行（不要在字符串里直接换行）。字段与形状严格如下：
 {
  "OPENING": "开局弹窗文案，≤120字，第一人称，交代这个末世此刻的处境",
  "INIT_STATS": { "sanity":60, "health":50, "hunger":30, "thirst":30 },
@@ -41,13 +41,21 @@ function parseGameData(raw: string) {
   const a = s.indexOf("{");
   const b = s.lastIndexOf("}");
   if (a === -1 || b === -1 || b <= a) throw new Error("未找到 JSON");
-  const o = JSON.parse(s.slice(a, b + 1));
+  let body = s.slice(a, b + 1);
+  // 轻修复：去尾随逗号、去 // 行注释、把字符串内的中文全角逗号前的裸换行清掉
+  const repaired = body
+    .replace(/,(\s*[}\]])/g, "$1")        // 尾随逗号
+    .replace(/^\s*\/\/.*$/gm, "");          // 整行注释
+  let o: any;
+  try { o = JSON.parse(body); }
+  catch { o = JSON.parse(repaired); }       // 原文失败再试修复版
   if (!o.ITEMS || !o.DESTINATIONS || !o.SCENE_COMMENTS) throw new Error("GAME_DATA 缺关键字段");
   if (!o.COMPANIONS) o.COMPANIONS = [];
   return o;
 }
 
-function agentGenerate(novelText: string): Promise<any> {
+// 单次 claude -p 调用，返回原始文本
+function agentRaw(novelText: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const model = process.env.AGENT_MODEL || "claude-opus-4-7";
     const child = spawn("claude", ["-p", "--model", model, "--dangerously-skip-permissions"], {
@@ -61,11 +69,27 @@ function agentGenerate(novelText: string): Promise<any> {
     child.on("close", (code) => {
       clearTimeout(timer);
       if (code !== 0) return reject(new Error(`agent 退出码 ${code}: ${err.slice(0, 160)}`));
-      try { resolve(parseGameData(out)); } catch (e) { reject(new Error(`解析失败: ${(e as Error).message}`)); }
+      resolve(out);
     });
     child.stdin.write(buildPrompt(novelText));
     child.stdin.end();
   });
+}
+
+// 生成 + 解析，失败自动重试（模型重跑通常就产出合法 JSON）
+async function agentGenerate(novelText: string, attempts = 3): Promise<any> {
+  let lastErr = "";
+  for (let i = 0; i < attempts; i++) {
+    try {
+      const raw = await agentRaw(novelText);
+      return parseGameData(raw);
+    } catch (e) {
+      lastErr = (e as Error).message;
+      // 超时/CLI 启动失败这类非解析错误不重试
+      if (/超时|启动|退出码/.test(lastErr)) throw e;
+    }
+  }
+  throw new Error(`生成 ${attempts} 次仍未得到合法数据（${lastErr}）`);
 }
 
 const SHELL = "/games/pixel-player/game";
