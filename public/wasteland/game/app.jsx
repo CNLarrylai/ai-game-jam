@@ -97,6 +97,46 @@ function App(props) {
       if (msg.type === 'new_comment') {
         streamComment({ user: msg.name || '?', av: msg.avatar || '👤', text: msg.text });
       }
+      // Banner from AI generation
+      if (msg.type === 'banner' && msg.data) {
+        setBanner({ ...msg.data, id: uid() });
+        setTimeout(() => setBanner(null), 4500);
+      }
+      // Game event from AI generation
+      if (msg.type === 'game_event' && msg.data) {
+        const ev = msg.data;
+        if (ev.narrative) {
+          // Show as a story card
+          setStory({ illus: '✨', text: ev.narrative, source: ev.source_user || '' });
+          setTimeout(() => setStory(null), 8000);
+        }
+        if (ev.options && ev.options.length) {
+          setDecision({
+            icon: '🎮', title: ev.event_title || 'AI 生成事件',
+            desc: ev.narrative || '', options: ev.options,
+          });
+        }
+      }
+      // Comment adopted notification
+      if (msg.type === 'comment_adopted' && msg.data) {
+        if (msg.data.banner) {
+          setBanner({ ...msg.data.banner, id: uid() });
+          setTimeout(() => setBanner(null), 5000);
+        }
+      }
+      // Comment feedback (accepted/rejected)
+      if (msg.type === 'comment_feedback') {
+        if (msg.accepted) {
+          // Show toast: your comment was accepted
+          const tid = uid();
+          setToasts(ts => [...ts, { id: tid, icon: '✅', name: msg.category + ' · 已收录，等待采集' }]);
+          setTimeout(() => setToasts(ts => ts.filter(t => t.id !== tid)), 3000);
+        } else if (msg.reason) {
+          const tid = uid();
+          setToasts(ts => [...ts, { id: tid, icon: '💬', name: msg.reason, lose: true }]);
+          setTimeout(() => setToasts(ts => ts.filter(t => t.id !== tid)), 3000);
+        }
+      }
     };
     ws.addEventListener('message', handler);
     return () => ws.removeEventListener('message', handler);
