@@ -146,7 +146,10 @@ async def generation_loop():
         # 从池中取最佳评论
         if not pool.is_window_open():
             pool.open_window()
-        best = pool.select_adoptions(phase=state.phase)
+        # Map host scene names to engine phases; fallback to 'explore' which accepts all categories
+        phase_map = {'home': 'home_event', 'organize': 'resource', 'destination': 'choose_destination', 'explore': 'explore'}
+        phase = phase_map.get(state.phase, 'explore')
+        best = pool.select_adoptions(phase=phase)
 
         if not best:
             print(f"🧠 [GEN] 本轮无有效评论，跳过")

@@ -103,7 +103,7 @@ class CommentPool:
             return  # IRRELEVANT 等无效类别
         if not result.phase_compatible:
             return
-        if result.confidence < 0.5:
+        if result.confidence < 0.3:
             return
 
         queue = self._queues[cat]
