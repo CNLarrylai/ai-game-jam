@@ -4,6 +4,7 @@ Phase 2 Engine — 现有资源/伙伴调整
 四层管线：Input Router → Filter → Generator → Harness Guardian
 """
 
+import os
 import random
 from enum import Enum
 from pydantic import BaseModel, Field, field_validator, model_validator
@@ -413,35 +414,9 @@ class EventChoiceRequest(BaseModel):
     companions_list: List[Companion] = []
     inventory: List[str] = []
     history: List[HistoryEntry] = Field(default_factory=list)
-    precomputed_options: Optional[List[dict]] = Field(None, description="Phase 1 预生成的选项(含outcome+stat_changes)，有则跳过LLM")
-
 @app.post("/phase2_event_choice", response_model=Phase2Response)
 def phase2_event_choice(request: EventChoiceRequest):
-    # 优先查预生成结果（跳过 LLM，省 ~9s）
-    if request.precomputed_options:
-        for opt in request.precomputed_options:
-            if opt.get("text", "") == request.player_choice:
-                sc_raw = opt.get("stat_changes", {})
-                # 映射 spirit→sanity（Phase 1 用 spirit，Phase 2 用 sanity）
-                sc = StatChanges(
-                    hp=sc_raw.get("health", sc_raw.get("hp", 0)),
-                    hunger=sc_raw.get("hunger", 0),
-                    thirst=sc_raw.get("thirst", 0),
-                    sanity=sc_raw.get("spirit", sc_raw.get("sanity", 0)),
-                )
-                inv = InventoryChange(
-                    add_items=[opt["item_gained"]] if opt.get("item_gained") else [],
-                    remove_items=[opt["item_lost"]] if opt.get("item_lost") else [],
-                )
-                return Phase2Response(
-                    type=OutputType.EVENT, final_category="EVENT",
-                    action_type=ActionType.EVENT_CHOICE,
-                    narrative=opt.get("outcome", ""),
-                    companion_agrees=False,
-                    stat_changes=sc, inventory_change=inv,
-                )
-
-    # 没有预生成 or 选项不匹配 → 走 LLM 兜底
+    """LLM 基于玩家当前状态动态生成选项结果（Harness 守护）"""
     proxy_req = Phase2Request(
         player_input=request.player_choice,
         current_status=request.current_status,

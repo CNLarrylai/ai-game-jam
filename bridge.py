@@ -133,8 +133,8 @@ async def call_phase2_inject(generated: dict) -> dict:
             return await resp.json()
 
 
-async def call_phase2_event_choice(event_narrative: str, choice: str, precomputed_options=None) -> dict:
-    payload = {"event_narrative": event_narrative, "player_choice": choice, "precomputed_options": precomputed_options, **state_to_phase2()}
+async def call_phase2_event_choice(event_narrative: str, choice: str) -> dict:
+    payload = {"event_narrative": event_narrative, "player_choice": choice, **state_to_phase2()}
     async with aiohttp.ClientSession() as session:
         async with session.post(f"{PHASE2_URL}/phase2_event_choice", json=payload) as resp:
             return await resp.json()
@@ -222,11 +222,10 @@ async def on_host_action(msg):
             try:
                 event_info = pending_event.get("narration", "")
                 generated = pending_event.get("generated", {})
-                precomputed = generated.get("options", None)
                 if generated.get("type") == "CHARACTER":
                     event_info = json.dumps(generated, ensure_ascii=False)
 
-                resp = await call_phase2_event_choice(event_info, choice_text, precomputed)
+                resp = await call_phase2_event_choice(event_info, choice_text)
                 apply_phase2_response(resp)
                 await send_ws({"type": "choice_result", "data": resp})
                 print(f"  ✅ {resp.get('narrative', '')[:60]}")
