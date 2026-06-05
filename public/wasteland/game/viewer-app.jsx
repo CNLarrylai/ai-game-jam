@@ -40,16 +40,21 @@ function ViewerLogin({ onEnter }) {
 }
 
 function ViewerWrapper() {
-  const [entered, setEntered] = useStateV(false);
-  const [nick, setNick] = useStateV("");
-  const [avatar, setAvatar] = useStateV("");
+  // Restore saved session
+  const saved = (() => { try { return JSON.parse(localStorage.getItem('wl_viewer') || '{}'); } catch { return {}; } })();
+  const [entered, setEntered] = useStateV(!!saved.nick);
+  const [nick, setNick] = useStateV(saved.nick || "");
+  const [avatar, setAvatar] = useStateV(saved.avatar || "");
   const [connected, setConnected] = useStateV(false);
   const [chatVal, setChatVal] = useStateV("");
   const chatValRef = useRefV("");
   chatValRef.current = chatVal;
   const wsRef = useRefV(null);
 
-  const onEnter = (n, a) => { setNick(n); setAvatar(a); setEntered(true); };
+  const onEnter = (n, a) => {
+    setNick(n); setAvatar(a); setEntered(true);
+    try { localStorage.setItem('wl_viewer', JSON.stringify({ nick: n, avatar: a })); } catch {}
+  };
 
   useEffectV(() => {
     if (!entered) return;
