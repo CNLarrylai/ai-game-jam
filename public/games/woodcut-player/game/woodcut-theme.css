@@ -1,88 +1,94 @@
 /* ============================================================
-   woodcut-theme.css — 木刻/维多利亚暗调主题
-   叠在 game.css 之上：覆盖调色板变量 + 去掉像素 PNG 背景，
-   让数据驱动的直播间壳从"像素"换成"木刻插画感"（图标走 emoji）。
+   woodcut-theme.css — 木刻 / 维多利亚暗调主题（彻底版）
+   叠在 game.css 之上：① 覆盖调色板变量 ② 干掉每一处像素 PNG 背景/9-slice 边框
+   ③ 正文衬线 ④ 图标走 emoji。让数据驱动壳从"像素"真正变成"木刻插画"。
    ============================================================ */
 
 :root {
-  /* —— 木刻调色板：旧纸 / 灰烬 / 黄铜 / 烛火 —— */
-  --ui-bg:      #0a0805;
-  --ui-panel:   #17130d;
-  --ui-panel-2: #1d1810;
-  --ui-line:    #3a2f1d;
-  --ui-text:    #ece3d2;
-  --ui-text-hi: #e6c07a;
-  --ui-accent:  #c89b54;
-  --ui-danger:  #d23b2e;
-  --ui-ai:      #9bd6a0;
-
-  --bg-void:    #0a0805;
-  --bg-deep:    #0f0b06;
-  --bg-panel:   #17130d;
-  --bg-panel-2: #1d1810;
-  --bg-raised:  #261f14;
-  --line:       #3a2f1d;
-  --txt:        #ece3d2;
-  --txt-dim:    #b6a888;
-  --txt-faint:  #837459;
-  --gold:       #c89b54;
-  --accent:     #c89b54;
-
-  /* 压暗原像素调色板的高饱和档，统一到木刻暖调 */
+  --ui-bg:#0a0805; --ui-panel:#17130d; --ui-panel-2:#1d1810; --ui-line:#4a3c26;
+  --ui-text:#ece3d2; --ui-text-hi:#e6c07a; --ui-accent:#c89b54; --ui-danger:#d23b2e; --ui-ai:#9bd6a0;
+  --bg-void:#0a0805; --bg-deep:#0f0b06; --bg-panel:#17130d; --bg-panel-2:#1d1810; --bg-raised:#2a2118;
+  --line:#4a3c26; --txt:#ece3d2; --txt-dim:#b6a888; --txt-faint:#837459;
+  --gold:#c89b54; --cyan:#9bd6a0; --accent:#c89b54;
   --a1:#211a12; --a2:#2a2118; --a3:#4a3c26; --a4:#6e5a38; --a5:#b6a888;
   --b1:#5a2420; --b2:#a83a2c; --b3:#c8693d; --b4:#d98a3d; --b5:#e6c07a;
+  --c1:#2a3a30; --c2:#3a5446; --c3:#5a7a64; --c4:#9bd6a0; --c5:#cdeccf;
   --d1:#3a2f1d; --d2:#c8693d; --d3:#d98a3d; --d4:#e6c07a; --d5:#ece3d2;
-  --f1:#0f0b06; --f2:#17130d; --f3:#3a2f1d; --f4:#b6a888; --f5:#ece3d2;
+  --f1:#0f0b06; --f2:#17130d; --f3:#4a3c26; --f4:#b6a888; --f5:#ece3d2;
 }
 
-/* 全局底纹：暗红天光 + 焦土（替代像素城市） */
-#stage { background: radial-gradient(1200px 700px at 50% -8%, #2a0f0a, #0a0805 62%) !important; }
+/* 全局：暗红天光 + 焦土，弱化扫描线 */
+#stage { background: radial-gradient(1200px 720px at 50% -8%, #2a0f0a, #0a0805 62%) !important; }
 #frame { background: #0f0b06 !important; }
-/* 像素扫描线减弱 */
-#frame::after { opacity: .4 !important; }
+#frame::after { opacity:.35 !important; }
 
-/* —— 去掉所有像素 PNG 背景，换木刻 CSS —— */
-.shelter,
-[class*="floor"], [class*="wall"],
-.region-map, .explore, .hexwrap, .scene {
-  background-image: none !important;
+/* 正文中文用衬线（不再像素字体）；HUD 数字仍可像素，但整体偏木刻 */
+body, .scene, .chat-col, .cmt, .c-text, .d-desc, .s-text, .cf-desc, .room-hint,
+.dc-name, .opt-main, .opt-sub, .b-text, .t-text, .name-tag, .stat-name {
+  font-family: "Noto Serif SC","Songti SC","Noto Sans SC",serif !important;
+  letter-spacing:.2px;
 }
 
-/* 家/避难所：木刻砖墙 + 烛火光晕 */
-.shelter {
-  background:
-    radial-gradient(360px 320px at 50% 12%, rgba(200,155,84,.16), transparent 60%),
-    repeating-linear-gradient(0deg, rgba(58,47,29,.35) 0 2px, transparent 2px 60px),
-    repeating-linear-gradient(90deg, rgba(58,47,29,.4) 0 2px, transparent 2px 96px),
-    linear-gradient(180deg, #1a140d, #0f0b06) !important;
+/* ========== 干掉每一处像素 PNG，换木刻 CSS ========== */
+
+/* 家：木刻砖墙房间（替代 home_scene.png）*/
+.shelter .home-bg {
+  background-image:
+    radial-gradient(300px 260px at 50% 16%, rgba(200,155,84,.22), transparent 62%),
+    linear-gradient(180deg, rgba(0,0,0,.0) 60%, rgba(0,0,0,.5)),
+    repeating-linear-gradient(0deg, rgba(74,60,38,.4) 0 3px, transparent 3px 54px),
+    repeating-linear-gradient(90deg, rgba(74,60,38,.45) 0 3px, transparent 3px 90px),
+    linear-gradient(180deg, #241a10, #120d07) !important;
+  image-rendering:auto !important;
 }
 
-/* 状态栏数值条：木刻空槽（替代 bar_empty.png） */
-.stat .bar { background: #15100a !important; border: 2px solid var(--ui-line) !important; }
-.stat .bar .fill::after { opacity: .5 !important; }
-
-/* 行动点像素 pip → 木刻方块 */
-.explore .ap-pip { background-image: none !important; background: var(--bg-raised) !important; border: 1px solid var(--ui-line) !important; }
-.explore .ap-pip.used { background-image: none !important; opacity: .3 !important; }
-
-/* 9-slice 面板边框 → 简洁木框 */
-[class*="panel"], .pixel-box, .d-card, .cf-box {
-  border-image: none !important; border: 2px solid var(--ui-line) !important;
-  background: var(--ui-panel) !important;
+/* 探索地图：暗灰烬地面（替代工厂瓦片）*/
+.explore {
+  background-image:
+    radial-gradient(600px 400px at 50% 40%, rgba(200,53,42,.06), transparent 70%),
+    linear-gradient(180deg, #1a140d, #0d0a06) !important;
 }
+.hexwrap { background-image:none !important; }
+/* 六边格 */
+.hex .hx-inner, .hex { image-rendering:auto !important; }
 
-/* 图标现在是 emoji（不是像素 PNG）——放大、加投影，更像插画 */
-.pack-slot, .hot-badge, .dc-thumb, .t-icon, .c-av, .b-icon, .d-icon, .s-illus, .opt-main {
-  image-rendering: auto !important;
+/* 数值条空槽（替代 bar_empty.png）*/
+.stat .bar { background:#15100a !important; border:2px solid var(--ui-line) !important; }
+.stat .bar .fill::after { opacity:.45 !important; }
+
+/* 行动点 pip */
+.explore .ap-bar { background-image:none !important; background:rgba(23,19,13,.85) !important; border:2px solid var(--ui-line) !important; }
+.explore .ap-pip { background:var(--gold) !important; border-color:var(--gold) !important; }
+.explore .ap-pip.used { background:transparent !important; border-color:var(--ui-line) !important; }
+
+/* 主按钮（替代 btn_primary_*.png）*/
+.btn { background-image:none !important; border-image:none !important;
+  background:var(--bg-raised) !important; border:2px solid var(--ui-line) !important;
+  color:var(--ui-text) !important; box-shadow:0 2px 0 rgba(0,0,0,.4) !important; }
+.btn.primary, .btn.gold { background:var(--gold) !important; border-color:#8a6a2f !important; color:#1a140d !important; }
+.btn:hover { filter:brightness(1.08); }
+
+/* 选项按钮（替代 btn_choice_*.png）*/
+.opt .opt-btn { background-image:none !important; border-image:none !important;
+  background:var(--ui-panel-2) !important; border:2px solid var(--ui-line) !important; color:var(--ui-text) !important; }
+.opt.leading .opt-btn { border-color:var(--gold) !important; }
+
+/* 决策卡 / 面板 / 横幅 / toast（替代各 9-slice PNG）*/
+.decision .d-card, .pixel-box, .cf-box, .region-map, .rm-head,
+.banner, .toast, .story, .chat-banner, .npc-bubble, [class*="panel"] {
+  background-image:none !important; border-image:none !important;
+  border:2px solid var(--ui-line) !important; background-color:var(--ui-panel) !important;
 }
-.dc-thumb { font-size: 40px !important; }
-.s-illus { font-size: 76px !important; filter: sepia(.3) drop-shadow(0 0 16px rgba(200,53,42,.3)) !important; }
+.banner { background:linear-gradient(90deg, rgba(200,155,84,.18), rgba(23,19,13,.92)) !important; }
+.banner.big { border-color:var(--gold) !important; }
 
-/* 正文用衬线，更有木刻文学感（HUD 仍保留像素体） */
-.d-desc, .s-text, .cf-desc, .c-text, .room-hint, .dc-name, .hint, .scene-title-chip {
-  font-family: "Noto Serif SC", "Songti SC", serif !important;
-  letter-spacing: .2px;
-}
+/* 背包格 / 头像框（去像素描边）*/
+.pack-slot, .c-av, .streamer-av { image-rendering:auto !important; }
 
-/* 直播间标题 chip 羊皮纸感 */
-.scene-title-chip { background: rgba(38,31,20,.92) !important; border: 2px solid var(--gold) !important; color: var(--ui-text-hi) !important; }
+/* 标题 chip 羊皮纸感 */
+.scene-title-chip { background:rgba(38,31,20,.92) !important; border:2px solid var(--gold) !important; color:var(--ui-text-hi) !important; }
+
+/* emoji 图标（现在不是 PNG）放大、加暖色投影，更像木刻插图 */
+.dc-thumb { font-size:42px !important; }
+.s-illus { font-size:78px !important; filter:sepia(.35) drop-shadow(0 0 16px rgba(200,53,42,.3)) !important; }
+.char-sprite .body { font-size:42px !important; filter:sepia(.3) !important; }
