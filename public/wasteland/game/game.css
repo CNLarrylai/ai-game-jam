@@ -578,6 +578,11 @@ html, body {
   box-shadow: 0 0 8px rgba(48,225,185,.6); }
 .explore .ap-pip.used { background: transparent; border-color: var(--line); box-shadow: none; }
 
+/* ---- walk map: canvas tile 自由行走（取代六角格） ---- */
+.walkwrap { position: absolute; inset: 64px 24px 56px 24px; display: flex;
+  align-items: center; justify-content: center; overflow: hidden; z-index: 10; }
+.walk-canvas { background: #070810; }
+
 /* ---- map area: a bounded floor panel the honeycomb sits "on top of" ---- */
 .hexwrap { position: absolute; inset: 64px 24px 64px 24px; display: flex;
   align-items: center; justify-content: center; overflow: hidden;

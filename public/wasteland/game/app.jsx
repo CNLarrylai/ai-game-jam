@@ -38,6 +38,7 @@ function App() {
   const [inputHot, setInputHot] = useState(false);
   const [chatBanner, setChatBanner] = useState(null);
   const [confirmD, setConfirmD] = useState(null);
+  const [curDest, setCurDest] = useState(null);   // 当前探索目的地（传给 SceneExplore 决定地图/POI）
   const [share, setShare] = useState(false);
   const [flags, setFlags] = useState({ knock: false });
   const [liveMode, setLiveMode] = useState(true); // 直播间模式默认开
@@ -265,6 +266,7 @@ function App() {
 
   const confirmDest = useCallback((d) => setConfirmD(d), []);
   const goExplore = useCallback(() => {
+    if (confirmD) setCurDest(confirmD);
     setConfirmD(null);
     showPhase({ big: "🚪 抵达 " + (confirmD ? confirmD.name : "目标"), sub: "进入探索" },
       () => setScene("explore"));
@@ -485,7 +487,7 @@ function App() {
       case "home": return <SceneHome D={D} flags={flags} companions={companions} />;
       case "organize": return <SceneOrganize D={D} pack={pack} companions={companions} />;
       case "destination": return <SceneDestination D={D} />;
-      case "explore": return <SceneExplore D={D} />;
+      case "explore": return <SceneExplore D={D} dest={curDest} />;
       default: return <ShelterBg />;
     }
   };
