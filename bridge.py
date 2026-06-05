@@ -201,8 +201,7 @@ def on_comment(msg):
     if not text.strip():
         return
     result = classify(text, phase=state.phase)
-    if not pool.is_window_open():
-        pool.open_window()
+    # Don't call open_window here — it clears the pool! Window is managed by generation_loop.
 
     # Check rejection reasons BEFORE adding
     reason = None
@@ -296,18 +295,22 @@ def on_state_sync(msg):
 async def generation_loop():
     global comment_buffer, pending_event
 
+    # Open first window
+    pool.open_window()
+
     while True:
         await asyncio.sleep(WINDOW_SECONDS)
 
-        if not pool.is_window_open():
-            pool.open_window()
-
+        # Select FIRST, then open new window (open_window clears the pool!)
         phase_map = {"home": "home_event", "organize": "resource_manage", "destination": "choose_map", "explore": "explore"}
         phase = phase_map.get(state.phase, "explore")
         print(f"🧠 [PRE-SELECT] pool={pool.total_size()} phase={phase} queues={[(k,len(v)) for k,v in pool._queues.items()]} daily={pool.daily_counts}")
         best = pool.select_adoptions(phase=phase)
         total = len(comment_buffer)
         comment_buffer = []
+
+        # NOW open new window for next cycle (clears old comments)
+        pool.open_window()
 
         if not best:
             print(f"🧠 本轮 {total} 条评论，无有效创意 (pool_after={pool.total_size()})")
