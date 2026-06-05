@@ -100,7 +100,7 @@ wss.on('connection', (ws) => {
           authorWs.send(JSON.stringify({ type: 'self_notify', data: { text: msg.data?.text, detail: msg.data?.detail } }));
         }
         if (msg.data?.banner) {
-          setTimeout(() => broadcast({ type: 'banner', data: msg.data.banner }, 'all'), msg.data?.delay || 3000);
+          broadcast({ type: 'banner', data: msg.data.banner }, 'all');
         }
         break;
       case 'comment':
