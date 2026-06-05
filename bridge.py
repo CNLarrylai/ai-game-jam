@@ -332,7 +332,7 @@ async def generation_loop():
         print(f"\n🧠 ===== Phase 1 → Phase 2 =====")
         print(f"  @{pick.username}: 「{pick.raw_text}」 ({pick.classify_result.category})")
 
-        await send_ws({"type": "comment", "name": "🧠 AI Engine", "avatar": "🧠", "text": f"✨ {total}条评论 · @{pick.username} · 生成中..."})
+        await send_ws({"type": "system_msg", "name": "🧠 AI Engine", "avatar": "🧠", "text": f"✨ {total}条评论 · @{pick.username} · 生成中..."})
 
         # ── Phase 1: 生成 ──
         try:
@@ -343,7 +343,7 @@ async def generation_loop():
                 context=state.context_string(),
             )
             if not generated:
-                await send_ws({"type": "comment", "name": "🧠 AI Engine", "avatar": "🧠", "text": "❌ Phase 1 返回空结果"})
+                await send_ws({"type": "system_msg", "name": "🧠 AI Engine", "avatar": "🧠", "text": "❌ Phase 1 返回空结果"})
                 continue
             safety = check_narrative_safety(generated, state, pick.classify_result.category)
             if not safety.passed:
@@ -353,7 +353,7 @@ async def generation_loop():
         except Exception as e:
             print(f"  ❌ Phase 1 失败: {e}")
             import traceback; traceback.print_exc()
-            await send_ws({"type": "comment", "name": "🧠 AI Engine", "avatar": "🧠", "text": f"❌ 生成失败: {str(e)[:80]}"})
+            await send_ws({"type": "system_msg", "name": "🧠 AI Engine", "avatar": "🧠", "text": f"❌ 生成失败: {str(e)[:80]}"})
             continue
 
         # ── Phase 2: 注入 ──

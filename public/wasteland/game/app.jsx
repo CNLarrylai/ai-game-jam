@@ -119,6 +119,9 @@ function App(props) {
       if (msg.type === 'new_comment') {
         streamComment({ user: msg.name || '?', av: msg.avatar || '👤', text: msg.text });
       }
+      if (msg.type === 'system_msg') {
+        pushComment({ user: msg.name || '系统', av: msg.avatar || '🎮', text: msg.text, system: true });
+      }
       // Banner from AI generation
       if (msg.type === 'banner' && msg.data) {
         setBanner({ ...msg.data, id: uid() });
@@ -785,11 +788,16 @@ function App(props) {
     };
 
     WsSync.on('viewer_comment', onViewerComment);
+    const onSystemMsg = (msg) => {
+      pushComment({ user: msg.name || '系统', av: msg.avatar || '🎮', text: msg.text, system: true });
+    };
+
     WsSync.on('viewer_join', onViewerJoin);
     WsSync.on('viewer_leave', onViewerLeave);
     WsSync.on('game_event', onGameEvent);
     WsSync.on('banner', onBanner);
     WsSync.on('choice_result', onChoiceResult);
+    WsSync.on('system_msg', onSystemMsg);
     return () => {
       WsSync.off('viewer_comment', onViewerComment);
       WsSync.off('viewer_join', onViewerJoin);
@@ -797,6 +805,7 @@ function App(props) {
       WsSync.off('game_event', onGameEvent);
       WsSync.off('banner', onBanner);
       WsSync.off('choice_result', onChoiceResult);
+      WsSync.off('system_msg', onSystemMsg);
     };
   }, []);
 

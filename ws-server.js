@@ -73,6 +73,9 @@ wss.on('connection', (ws) => {
         }
         broadcast({ type: 'new_comment', uid, name: msg.name, avatar: msg.avatar, text: msg.text }, 'all');
         break;
+      case 'system_msg':
+        broadcast({ type: 'system_msg', name: msg.name, avatar: msg.avatar, text: msg.text }, 'all');
+        break;
       case 'comment_feedback':
         broadcast({ type: 'comment_feedback', ...msg }, 'all');
         break;
