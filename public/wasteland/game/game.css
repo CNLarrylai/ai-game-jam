@@ -387,10 +387,11 @@ html, body {
 .decision .d-desc { font-size: var(--t-md); color: var(--txt-dim); line-height: 1.55;
   margin-bottom: 20px; max-width: 1000px; }
 .decision .d-opts { display: flex; gap: 14px; flex-wrap: wrap; }
-.opt { flex: 1; min-width: 220px; }
-.opt .opt-btn { width: 100%; text-align: left; }
+.opt { flex: 1; min-width: 220px; max-width: 100%; overflow: hidden; }
+.opt .opt-btn { width: 100%; text-align: left; overflow: hidden; }
 .opt .opt-btn .opt-main { display: flex; align-items: center; gap: 10px; }
-.opt .opt-btn .opt-sub { font-size: var(--t-xs); color: var(--txt-faint); margin-top: 5px; }
+.opt .opt-btn .opt-sub { font-size: var(--t-xs); color: var(--txt-faint); margin-top: 5px;
+  line-height: 1.5; word-break: break-word; white-space: normal; max-width: 100%; }
 .opt .vote-bar { margin-top: 8px; height: 22px; background: #0c0a1c; border: 2px solid var(--line);
   position: relative; overflow: hidden; display: flex; align-items: center; }
 .opt .vote-bar .vfill { position: absolute; inset: 0 auto 0 0; height: 100%;
