@@ -102,17 +102,29 @@ export default function Home() {
         ))}
       </div>
 
-      {/* —— 创作入口：导入小说 / 剧本索引 —— */}
+      {/* —— 创作入口：小说→直播间游戏 / 文字剧本 / 索引 —— */}
       <SectionLabel>✨ 创作你自己的</SectionLabel>
+      <Link
+        href="/studio"
+        className="group mb-5 flex flex-col rounded-2xl border border-ember/40 bg-gradient-to-br from-ember/[0.12] to-white/[0.02] p-6 transition hover:border-ember/70 hover:from-ember/20"
+      >
+        <span className="absolute" />
+        <span className="text-4xl">🎬</span>
+        <h3 className="mt-4 text-xl font-bold text-parchment">小说 → 直播间游戏 <span className="ml-1 rounded bg-ember/90 px-2 py-0.5 align-middle text-xs font-bold text-ink">可玩 · 非文字</span></h3>
+        <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-parchment/65">
+          粘一段末世/生存类小说，AI 理解它、生成整套游戏数据，填进像素直播间生存游戏壳——产出<span className="text-ember">能玩的像素游戏</span>（物品/地点/同伴/弹幕全换成你的小说），不是纯文字对话。
+        </p>
+        <span className="mt-4 text-sm font-semibold text-ember">进入生成工作室 →</span>
+      </Link>
       <div className="grid gap-5 sm:grid-cols-2">
         <Link
           href="/create"
           className="group flex flex-col rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-6 text-left transition hover:border-ember/50 hover:bg-white/[0.05]"
         >
           <span className="text-4xl">📖</span>
-          <h3 className="mt-4 text-lg font-semibold text-parchment">从你的小说生成</h3>
+          <h3 className="mt-4 text-lg font-semibold text-parchment">从你的小说生成（文字版）</h3>
           <p className="mt-1 flex-1 text-sm text-parchment/55">
-            粘贴或上传一段小说，AI 自动识别类型、匹配机制，现场生成一个可玩剧本。
+            粘贴或上传一段小说，AI 识别类型、匹配机制，现场生成一个纯文字 AI 主持人剧本。
           </p>
           <span className="mt-4 text-sm font-medium text-ember opacity-0 transition group-hover:opacity-100">
             导入小说 →

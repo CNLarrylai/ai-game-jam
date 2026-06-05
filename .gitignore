@@ -37,3 +37,6 @@ next-env.d.ts
 .vscode/*
 !.vscode/extensions.json
 .idea/
+
+# 运行时由小说生成的游戏实例
+/public/games/generated/
