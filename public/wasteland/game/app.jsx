@@ -357,7 +357,7 @@ function App() {
         cta: cta ? { prompt: cta.prompt } : null,
       });
     }
-  }, [day, stats, scene, decision, banner, story, phase, cta]);
+  }, [day, stats, scene, decision, banner, story, phase, cta, floats]);
 
   /* ---- receive viewer comments via WebSocket ---- */
   useEffect(() => {
@@ -394,6 +394,32 @@ function App() {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [triggerFail, triggerWin, resetGame, closeDecision]);
+
+  /* ---- broadcast cursor position for viewers ---- */
+  useEffect(() => {
+    if (!window.WsSync || !WsSync.connected) return;
+    const stage = document.querySelector('.stage-col');
+    if (!stage) return;
+    let last = 0;
+    const onMove = (e) => {
+      const now = Date.now();
+      if (now - last < 80) return; // throttle to ~12fps
+      last = now;
+      const rect = stage.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width * 1920 * 0.7) | 0;
+      const y = ((e.clientY - rect.top) / rect.height * 1080) | 0;
+      WsSync.broadcastAction('cursor', { x, y });
+    };
+    const onClick = (e) => {
+      const rect = stage.getBoundingClientRect();
+      const x = ((e.clientX - rect.left) / rect.width * 1920 * 0.7) | 0;
+      const y = ((e.clientY - rect.top) / rect.height * 1080) | 0;
+      WsSync.broadcastAction('click', { x, y });
+    };
+    stage.addEventListener('mousemove', onMove);
+    stage.addEventListener('click', onClick);
+    return () => { stage.removeEventListener('mousemove', onMove); stage.removeEventListener('click', onClick); };
+  }, [scene]);
 
   /* ---- render scene ---- */
   const renderScene = () => {

@@ -28,6 +28,10 @@ function ViewerApp() {
   const [connected, setConnected] = useState(false);
   const [viewers, setViewers] = useState(0);
 
+  /* ---- host cursor state ---- */
+  const [cursor, setCursor] = useState({ x: -100, y: -100 });
+  const [clicks, setClicks] = useState([]);
+
   /* ---- local comment state ---- */
   const [comments, setComments] = useState([]);
   const [chatVal, setChatVal] = useState("");
@@ -88,6 +92,14 @@ function ViewerApp() {
           pushCmt({ user: '🌟 系统', av: '🌟', text: msg.data.text + ' ' + (msg.data.detail || ''), system: true, adopted: true });
           break;
         case 'host_action':
+          if (msg.action === 'cursor' && msg.data) {
+            setCursor({ x: msg.data.x, y: msg.data.y });
+          }
+          if (msg.action === 'click' && msg.data) {
+            const id = vid();
+            setClicks(cs => [...cs.slice(-5), { id, x: msg.data.x, y: msg.data.y }]);
+            setTimeout(() => setClicks(cs => cs.filter(c => c.id !== id)), 800);
+          }
           if (msg.action === 'ai_generated' && msg.data?.generated) {
             pushCmt({
               user: '✨ AI', av: '✨', system: true, adopted: true,
@@ -259,6 +271,21 @@ function ViewerApp() {
               <div className="pw-big">{phase.big}</div>
               {phase.sub && <div className="pw-sub">{phase.sub}</div>}
             </div>
+          )}
+
+          {/* Host cursor + click ripples */}
+          {hostState && (
+            <React.Fragment>
+              <div className="sync-cursor" style={{ position: 'absolute', left: cursor.x, top: cursor.y, zIndex: 125, width: 30, height: 30, pointerEvents: 'none', transition: 'left .08s, top .08s', filter: 'drop-shadow(0 2px 3px rgba(0,0,0,.6))' }}>
+                <span style={{ position: 'absolute', fontSize: 26, color: '#fff', transform: 'rotate(225deg)' }}>➤</span>
+                <span style={{ position: 'absolute', left: 24, top: 18, whiteSpace: 'nowrap', fontSize: 'var(--t-micro)', color: '#062b27', background: 'var(--cyan)', padding: '2px 7px' }}>主播</span>
+              </div>
+              {clicks.map(c => (
+                <div key={c.id} style={{ position: 'absolute', left: c.x - 55, top: c.y - 55, width: 110, height: 110, pointerEvents: 'none', zIndex: 124 }}>
+                  <div style={{ position: 'absolute', inset: 0, border: '3px solid var(--cyan)', borderRadius: '50%', animation: 'clickR 1s ease-out forwards' }} />
+                </div>
+              ))}
+            </React.Fragment>
           )}
 
           {/* CTA - call to action */}
