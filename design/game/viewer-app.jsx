@@ -53,7 +53,7 @@ const VIEW_PACK = [
 const NE = hxC(1, -1), SE = hxC(1, 0), SS = hxC(0, 1);
 const EXPLORE_BEATS = [
   { tile: "ne", tx: NE.x, ty: NE.y, reveal: "💊",
-    dec: { icon: "🏥", title: "废弃药房", scene: "pharmacy", desc: "货架翻倒，几盒药散落在地。深处有金属反光。",
+    dec: { icon: "🏥", title: "废弃药房", desc: "货架翻倒，几盒药散落在地。深处有金属反光。",
       options: [
         { id: "search", icon: "🔍", label: "搜索药品", sub: "细致翻找" },
         { id: "pass", icon: "🏃", label: "快速通过", sub: "拿了就走" },
@@ -61,7 +61,7 @@ const EXPLORE_BEATS = [
     chosen: "search", optX: 270,
     result: "主播选择「搜索药品」— 翻出一板镇静剂，手被划伤。HP -8，物资 +14。", stats: { hp: -8, supply: 14 } },
   { tile: "se", tx: SE.x, ty: SE.y, reveal: "🧑‍🦲",
-    dec: { icon: "🧑‍🦲", title: "拾荒者 老鸦", scene: "street", desc: "「活人？真稀奇。我这儿有罐头和子弹……你拿什么换？」",
+    dec: { icon: "🧑‍🦲", title: "拾荒者 老鸦", desc: "「活人？真稀奇。我这儿有罐头和子弹……你拿什么换？」",
       options: [
         { id: "trade", icon: "🔁", label: "交易", sub: "废铁换罐头" },
         { id: "recruit", icon: "🤝", label: "招募", sub: "邀请入队" },
@@ -168,24 +168,23 @@ function ViewerApp() {
   /* ---- streamer exploration director (step 2) ---- */
   useEffect(() => {
     if (step !== 2) return;
-    const local = [];
-    const lat = (ms, fn) => local.push(setTimeout(fn, ms));
+    clr();
     let t = 1400;
     EXPLORE_BEATS.forEach((b) => {
-      lat(t, () => setCursor({ x: b.tx, y: b.ty, tap: false }));
-      lat(t + 850, () => {
+      at(t, () => setCursor({ x: b.tx, y: b.ty, tap: false }));
+      at(t + 850, () => {
         setCursor((c) => ({ ...c, tap: true })); ripple(b.tx, b.ty);
         setRevealed((r) => ({ ...r, [b.tile]: b.reveal })); setAp((a) => Math.max(0, a - 1));
       });
-      lat(t + 1500, () => setDecision({ ...b.dec, chosenId: null, result: null }));
-      lat(t + 3500, () => setCursor({ x: b.optX, y: 846, tap: false }));
-      lat(t + 4300, () => { setCursor((c) => ({ ...c, tap: true })); ripple(b.optX, 846);
+      at(t + 1500, () => setDecision({ ...b.dec, chosenId: null, result: null }));
+      at(t + 3500, () => setCursor({ x: b.optX, y: 846, tap: false }));
+      at(t + 4300, () => { setCursor((c) => ({ ...c, tap: true })); ripple(b.optX, 846);
         setDecision((d) => (d ? { ...d, chosenId: b.chosen } : d)); });
-      lat(t + 5100, () => { setDecision((d) => (d ? { ...d, result: b.result } : d)); applyStats(b.stats); });
-      lat(t + 7400, () => { setDecision(null); setCursor({ x: HCX, y: HCY, tap: false }); });
+      at(t + 5100, () => { setDecision((d) => (d ? { ...d, result: b.result } : d)); applyStats(b.stats); });
+      at(t + 7400, () => { setDecision(null); setCursor({ x: HCX, y: HCY, tap: false }); });
       t += 8200;
     });
-    return () => local.forEach(clearTimeout);
+    return clr;
   }, [step]);
 
   /* barrage (step 6) */
@@ -226,8 +225,68 @@ function ViewerApp() {
     const id = pushCmt({ user: nick || "你", av: avatar, text }, { own: true });
     ownId.current = id; ownTextRef.current = text; ownSentRef.current = true; setOwnSent(true);
     setChatVal(""); setInputFocus(false);
+
+    // 发送到 WebSocket（实际同步给主播和其他观众）
+    if (window.WsSync && window.WsSync.connected) {
+      window.WsSync.sendComment(text, nick || "你", avatar);
+    }
+    // 同时发到 HTTP API（兜底）
+    if (window.ApiBridge) {
+      window.ApiBridge.postComment(nick || "你", text);
+    }
+
     if (!ownAdoptedRef.current) { setCd((c) => ({ ...c, time: 5, hot: true })); at(5300, () => adoptOwn()); }
   };
+
+  /* ---- WebSocket 连接 ---- */
+  const wsConnected = useRef(false);
+  useEffect(() => {
+    if (step >= 2 && !wsConnected.current && window.WsSync) {
+      // 以 viewer 身份连接（覆盖 api-bridge 里默认的 host 连接）
+      window.__WS_CONNECTED__ = true;  // 防止 api-bridge 自动连 host
+      if (window.WsSync.ws) { try { window.WsSync.ws.close(); } catch(e){} }
+      window.WsSync.connect('viewer', {
+        name: nick || "未命名观众",
+        avatar: avatar,
+      });
+      wsConnected.current = true;
+
+      // 监听其他观众的评论
+      window.WsSync.on('new_comment', (msg) => {
+        if (msg.uid !== window.WsSync.uid) {
+          pushCmt({ user: msg.name || '匿名', av: msg.avatar || '👤', text: msg.text });
+        }
+      });
+
+      // 监听主播操作
+      window.WsSync.on('host_action', (msg) => {
+        if (msg.action === 'ai_generated') {
+          const gen = msg.data?.generated;
+          if (gen) {
+            const title = gen.event_title || gen.name || '新事件';
+            pushCmt({ user: '🧠 AI', av: '🧠', text: `✨ ${title}` }, { own: false });
+          }
+        }
+      });
+
+      // 监听公屏横幅
+      window.WsSync.on('banner', (msg) => {
+        if (msg.data) {
+          setBigBanner(msg.data);
+          setTimeout(() => setBigBanner(null), 5000);
+        }
+      });
+
+      // 监听评论被采纳（自见通知）
+      window.WsSync.on('self_notify', (msg) => {
+        if (msg.data) {
+          setSelfNotif(true);
+          setSelfText(msg.data.text || '你的创意被采纳了！');
+          setTimeout(() => setSelfNotif(false), 4000);
+        }
+      });
+    }
+  }, [step, nick, avatar, pushCmt]);
 
   /* ---- step navigation ---- */
   const enterRoom = () => { setNick(nick.trim() || "未命名观众"); setStep(2); };
@@ -259,7 +318,7 @@ function ViewerApp() {
     // streamer then explores the newly-created tile
     at(5200, () => setCursor({ x: SS.x, y: SS.y, tap: false }));
     at(6050, () => { setCursor((c) => ({ ...c, tap: true })); ripple(SS.x, SS.y); setAp((a) => Math.max(0, a - 1)); });
-    at(6700, () => setDecision({ icon: "🧰", title: "地下室 · 弹药库", scene: "bunker", desc: "@老王 说对了——锈蚀的弹药箱就压在塌方下。",
+    at(6700, () => setDecision({ icon: "🧰", title: "地下室 · 弹药库", desc: "@老王 说对了——锈蚀的弹药箱就压在塌方下。",
       options: [
         { id: "haul", icon: "📦", label: "搬空弹药", sub: "全部带走" },
         { id: "some", icon: "✋", label: "取一部分", sub: "减重防追兵" },
@@ -267,7 +326,7 @@ function ViewerApp() {
       chosenId: null, result: null }));
     at(8600, () => setCursor({ x: 270, y: 846, tap: false }));
     at(9400, () => { setCursor((c) => ({ ...c, tap: true })); ripple(270, 846); setDecision((d) => d ? { ...d, chosenId: "haul" } : d); });
-    at(10200, () => { setDecision((d) => d ? { ...d, result: "主播选择「搬空弹药」— 整箱军火到手！物资 +20。@老王 的脑洞成了真。" } : d); applyStats({ supply: 20 }); });
+    at(10200, () => { setDecision((d) => d ? { ...d, result: "主播选择「搬空弹药」— 整箱军火到手！物资 +20。@老王 的脑洞成了真。" } : d); applyStats({ fullness: 10 }); });
     at(12600, () => { setDecision(null); setCursor({ x: HCX, y: HCY, tap: false }); });
   };
 
@@ -322,7 +381,6 @@ function ViewerApp() {
       <div className="main-row">
         <div className={"stage-col " + (step >= 2 ? "viewer-stage" : "")}>
           {step >= 2 && step <= 3 && <HexWatch spawnTile={spawnTile} revealed={revealed} ap={ap} />}
-          {(step === 2 || step === 3) && decision && decision.scene && <EncounterScene name={decision.scene} />}
           {(step === 4 || step === 5) && <NightWatch />}
           {step === 6 && <DestWatch nick={nick} picked={destPicked} />}
           {step === 7 && <SettleWatch nick={nick} avatar={avatar} onShare={() => setShareOpen(true)} />}
