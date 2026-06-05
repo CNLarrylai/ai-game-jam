@@ -17,13 +17,14 @@ export const maxDuration = 300;
 
 const SPEC = `你是「小说→像素生存游戏数据」适配引擎。下面给你一段末世/生存小说，把它改造成一个像素直播间生存游戏的数据配置（GAME_DATA）。游戏机制固定（逐日生存、四维数值、出门探索、观众弹幕生成内容），你只负责用小说的世界观/物资/地点/人物/语气**填充改写**数据。
 
-【四维数值】sanity 精神 / health 健康 / hunger 饱腹 / thirst 口渴。
+【四维数值（键名必须严格用这四个）】hp 健康 / hunger 饱腹 / sanity 精神 / supply 水分。
+effect/skill.effect 的键只能是 hp / hunger / sanity / supply（用错键游戏读不到，等于无效果）。正向=补充该项：食物→hunger+，水→supply+，医疗→hp+，安神→sanity+；负向代价用负数。
 【美术约束】物品 icon 只能从这组 emoji 选（否则像素图渲染不出）：💧 🐟 🥫 🍗 🔫 🩹 💊 🔩 🔧 🔦 🔋 📻 🗝️ 🪢 🎒。
 
 【严格 JSON 要求】只输出一个合法 JSON 对象，不要解释、不要 markdown 围栏。务必：字符串里若要用引号一律用中文「」，**不要用英文双引号**（避免没转义破坏 JSON）；不要尾随逗号；不要注释；每个字符串写成一行（不要在字符串里直接换行）。字段与形状严格如下：
 {
  "OPENING": "开局弹窗文案，≤120字，第一人称，交代这个末世此刻的处境",
- "INIT_STATS": { "sanity":60, "health":50, "hunger":30, "thirst":30 },
+ "INIT_STATS": { "hp":50, "hunger":70, "sanity":60, "supply":70 },
  "ITEMS": { "<键>": { "id":"<键>", "icon":"<允许的emoji>", "name":"中文名", "kind":"consume|weapon|material", "effect":{"<资源>":<整数>}, "effText":"如 饱腹 +10", "qty":<初始数量> } （5~7 件，含至少：一种水、一种食物、一种医疗、一种武器、一种材料） },
  "DESTINATIONS": [ { "id":"英文", "icon":"<地点emoji>", "name":"中文地点名", "danger":1-4, "reward":"中文收益", "ap":2-4, "confirm":"确定前往…？一句话" } （3~4 个，贴小说世界观） ],
  "COMPANIONS_POOL": [ { "id":"英文","name":"中文名","av":"<人物emoji>","role":"职业","status":"健康|轻伤","detail":"一句背景","hp":50-90,"mood":"情绪","skill":{"id":"英文","label":"技能名","icon":"🔧","effect":{"<资源>":<整数>},"line":"使用后的叙事","note":"恢复X·每天一次"},"ask":"「一句台词」" } （2 个） ],

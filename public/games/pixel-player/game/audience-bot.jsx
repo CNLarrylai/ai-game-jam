@@ -116,10 +116,22 @@
     return AMBIENT[scene] || AMBIENT.home;
   }
 
+  // 小说注入的弹幕池（来自 GAME_DATA.SCENE_COMMENTS，每条已含 user/av/text）
+  function novelComments(scene) {
+    var g = (typeof window !== "undefined" && window.GAME_DATA && window.GAME_DATA.SCENE_COMMENTS) || null;
+    if (g && Array.isArray(g[scene]) && g[scene].length) return g[scene];
+    return null;
+  }
+
   function nextComment(scene) {
+    // 优先用小说的弹幕（直接同步直播间评论到小说题材）
+    var nc = novelComments(scene);
+    if (nc) {
+      var c = pick(nc);
+      return { user: c.user || rotatePersona().user, av: c.av || "💬", text: c.text };
+    }
     var pool = poolFor(scene);
     var entry = pick(pool);
-    // 优先用与文案 kind 匹配的人格，其次轮转，保证有变化
     var p = (Math.random() < 0.7) ? persona(entry.kind) : rotatePersona();
     return { user: p.user, av: p.av, text: entry.text };
   }
@@ -182,11 +194,28 @@
     return ACTIONABLE[scene] || ACTIONABLE.explore;
   }
 
+  // 从弹幕文本推断会触发哪类事件
+  function inferKind(t) {
+    t = t || "";
+    if (/沙暴|严寒|寒|冰|雪|冻|停电|辐射|酸雨|地震|塌|起火|爆炸|暴雨|风暴|海啸/.test(t)) return "environment";
+    if (/医生|商人|护士|士兵|老人|孩子|流浪|幸存者|陌生人|队友|同伴|一个人|一只|动物|犬|狗|猫|机器人|NPC/.test(t)) return "npc_create";
+    if (/生成|出现|捡到|获得|多了|空投|发现|翻出|掉出|藏着|露出/.test(t)) return "item_summon";
+    return "event_create";
+  }
+
   function actionableComment(scene) {
+    // 优先用小说的创意弹幕（"生成XX"那类），按文本推断事件类型
+    var nc = novelComments(scene) || novelComments("explore");
+    if (nc) {
+      var creatives = nc.filter(function (c) {
+        return /生成|出现|捡到|获得|空投|发现|来了|钻出|多了|一只|一个/.test(c.text || "");
+      });
+      var c = pick(creatives.length ? creatives : nc);
+      return { user: c.user || persona("creative").user, av: c.av || "🧠", text: c.text, kind: inferKind(c.text) };
+    }
     var pool = actionPoolFor(scene);
     var entry = pick(pool);
     var p = rotatePersona();
-    // 创意类评论尽量来自有创意感的人格，但也允许其它人格冒出脑洞
     if (entry.kind === "item_summon" || entry.kind === "npc_create" || entry.kind === "event_create") {
       if (Math.random() < 0.55) p = persona("creative");
       else if (Math.random() < 0.4) p = persona("troll");
@@ -222,45 +251,38 @@
   }
   function lc(s) { return (s || "").toLowerCase(); }
 
-  // 关键词 -> 合法 itemId（window.ITEMS 真实 key）
-  // 合法 key: water, herring, catcan, gun, bandage, pills, scrap, can, flashlight
+  // 关键词 -> 合法 itemId，基于当前 window.ITEMS（小说生成的物品）动态匹配，
+  // 而非写死默认键。先按类别(武器/医疗/水/食物/材料)在小说物品里找，找不到随机给一个。
+  function itemKeys() {
+    return (typeof window !== "undefined" && window.ITEMS) ? Object.keys(window.ITEMS) : [];
+  }
+  function findItemBy(pred) {
+    var keys = itemKeys();
+    for (var i = 0; i < keys.length; i++) {
+      if (pred(window.ITEMS[keys[i]] || {}, keys[i])) return keys[i];
+    }
+    return null;
+  }
   function mapTextToItem(text) {
     var t = text || "";
-    var l = lc(t);
-    // 世界观转译：过强的现实物 -> 废土降级版（返回带 downgrade 信息）
-    if (/激光枪|激光|镭射|核弹|导弹|核武|火箭筒|炸弹/.test(t)) {
-      // 降级到 scrap 或 flashlight
-      if (/激光|镭射/.test(t)) {
-        return { id: "flashlight", downgrade: "一支没电的激光笔" };
-      }
-      return { id: "scrap", downgrade: "一颗哑火的信号弹" };
-    }
-    // 医疗
-    if (/药片|药丸|镇静|安定|精神|药/.test(t)) return { id: "pills" };
-    if (/绷带|急救|医疗|包扎|医药|止血/.test(t)) return { id: "bandage" };
-    // 水
-    if (/矿泉水|水|饮料|喝/.test(t)) return { id: "water" };
-    // 武器
-    if (/枪|武器|冲锋|步枪|手枪|火力/.test(t)) return { id: "gun" };
-    // 工具/照明
-    if (/手电|照明|灯/.test(t)) return { id: "flashlight" };
-    if (/废铁|零件|工具|材料|铁/.test(t)) return { id: "scrap" };
-    // 吃的/罐头
-    if (/猫罐|猫咪罐/.test(t)) return { id: "catcan" };
-    if (/鲱鱼/.test(t)) return { id: "herring" };
-    if (/罐头|食物|吃的|口粮|补给|军用罐/.test(t)) return { id: "can" };
-    // 兜底给罐头
-    return { id: "can" };
+    var keys = itemKeys();
+    if (!keys.length) return { id: "can" };
+    var id = null;
+    if (/枪|武器|刀|弓|矛|火力|弹/.test(t)) id = findItemBy(function (it) { return it.kind === "weapon"; });
+    else if (/药|医疗|绷带|急救|包扎|止血|镇静|针|疫/.test(t)) id = findItemBy(function (it) { return /药|绷带|医|止血|镇静|针|疫|膏/.test(it.name || ""); });
+    else if (/水|喝|饮|渴/.test(t)) id = findItemBy(function (it) { return /水|饮|渴/.test(it.name || ""); });
+    else if (/吃|食|粮|罐|肉|饼|果|菜|鱼|蚝|贝/.test(t)) id = findItemBy(function (it) { return it.kind === "consume" && /食|粮|罐|肉|饼|果|菜|鱼|蚝|贝|干/.test(it.name || ""); });
+    else if (/铁|零件|材料|工具|绳|骨/.test(t)) id = findItemBy(function (it) { return it.kind === "material"; });
+    else if (/手电|照明|灯|电池|电台|收音/.test(t)) id = findItemBy(function (it) { return /电|灯|台/.test(it.name || ""); });
+    if (!id) id = keys[Math.floor(Math.random() * keys.length)];
+    return { id: id };
   }
 
-  // 把不存在的 itemId 兜底到一个真实存在的 key
+  // 兜底到一个真实存在的小说物品 key
   function ensureValidItem(id) {
     if (hasItem(id)) return id;
-    var fallbacks = ["scrap", "can", "water", "flashlight", "bandage"];
-    for (var i = 0; i < fallbacks.length; i++) {
-      if (hasItem(fallbacks[i])) return fallbacks[i];
-    }
-    return id; // ITEMS 不存在时也别崩，原样返回
+    var keys = itemKeys();
+    return keys.length ? keys[0] : id;
   }
 
   /* ---- 各 kind 的合成器 ---- */

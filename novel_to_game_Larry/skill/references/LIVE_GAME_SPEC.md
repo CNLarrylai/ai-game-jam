@@ -68,7 +68,7 @@
 ## 资源轴随题材（INIT_STATS 的 4 个键）
 | 题材 | 4 维资源（键名） |
 |---|---|
-| 末世瘟疫/丧尸 | sanity 精神 / health 健康 / hunger 饱腹 / thirst 口渴 |
+| 末世瘟疫/丧尸(像素壳) | hp 健康 / hunger 饱腹 / sanity 精神 / supply 水分 |
 | 入侵/逃亡(WotW) | life 生命 / supply 补给 / sanity 理智 / conceal 隐蔽 |
 | 太空生存 | oxygen 氧气 / power 电力 / sanity 理智 / hull 船体 |
 > 要能互相构成"真两难"。`effect`/`skill.effect` 的键必须用本游戏这 4 个。
