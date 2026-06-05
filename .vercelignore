@@ -1,0 +1,8 @@
+# 运行时产物 / 本地专用，别上传 Vercel
+jobs/
+public/games/generated/
+worker/worker.log
+comment_engine/
+novel_to_game_Larry/applications/*/build/
+novel_to_game_Larry/applications/*/data/
+*.log
