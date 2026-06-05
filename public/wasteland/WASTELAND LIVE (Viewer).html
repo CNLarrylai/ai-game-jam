@@ -9,13 +9,52 @@
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="game/game.css" />
 <link rel="stylesheet" href="game/viewer.css" />
+<link rel="stylesheet" href="game/align.css" />
+<link rel="stylesheet" href="game/viewer-align.css" />
 </head>
-<body>
+<body class="v-login">
 <div id="stage">
   <div id="frame">
     <div id="root"></div>
+    <!-- 看播端手机 TikTok chrome（纯装饰，叠在游戏画面上；不参与游戏逻辑）-->
+    <div class="v-device-chrome">
+      <div class="v-statusbar"><span>20:08</span><span>▮▮▮ ᯤ 🔋</span></div>
+      <div class="v-chrome">
+        <div class="v-hostbar">
+          <div class="v-host-pill">
+            <div class="v-av">🎮</div>
+            <div><div class="v-nm">荒原阿陈</div><div class="v-sub">♥ 127.4K</div></div>
+            <div class="v-follow">+ Follow</div>
+          </div>
+          <div class="v-count">
+            <div class="v-c">👀 1,024</div>
+            <div class="v-c">✕</div>
+          </div>
+        </div>
+        <div class="v-tagbar">
+          <div class="v-tag">🎮 Gaming</div>
+          <div class="v-tag">AI Apocalypse</div>
+          <div class="v-tag">LIVE Fest</div>
+        </div>
+      </div>
+      <div class="v-graddim"></div>
+      <div class="v-homebar"><i></i></div>
+    </div>
   </div>
 </div>
+
+<script>
+  // 切换登录态：检测 EnterPage 是否在屏，控制 chrome 显隐（仅视觉，不碰游戏状态）
+  (function () {
+    function sync() {
+      var login = !!document.querySelector('.enter-page');
+      document.body.classList.toggle('v-login', login);
+    }
+    var mo = new MutationObserver(sync);
+    mo.observe(document.getElementById('root'), { childList: true, subtree: true });
+    setInterval(sync, 600); sync();
+  })();
+</script>
 
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>

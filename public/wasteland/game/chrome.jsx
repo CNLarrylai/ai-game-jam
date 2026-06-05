@@ -32,7 +32,7 @@ function StatusBar({ day, maxDay, stats, pack, floats, flashSlot }) {
           return (
             <div key={m.key} className={"stat " + m.key + (v <= 20 ? " low" : "")}>
               <div className="stat-top">
-                <span className="stat-name">{m.icon} {m.name}</span>
+                <span className="stat-name"><span className="lab-emoji">{m.icon} </span>{m.name}</span>
                 <span className="stat-val">{Math.round(v)}</span>
               </div>
               <div className="bar"><div className="fill" style={{ width: pct + "%" }} /></div>

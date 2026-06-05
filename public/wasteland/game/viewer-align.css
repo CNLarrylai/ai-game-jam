@@ -1,0 +1,156 @@
+/* ============================================================
+   viewer-align.css — 看播端对齐基准「手机 TikTok chrome」
+   基准：live-demo.html .device / .ui（statusbar/host-pill/tag/comments/actionbar）
+   最后加载，覆盖 game.css / viewer.css / align.css；零逻辑改动
+   ============================================================ */
+
+:root {
+  --live-overlay-light: rgba(84,84,84,0.4);
+  --live-icon-bg: rgba(84,84,84,0.4);
+  --live-accent-red: #FE2C55;
+  --live-text-secondary: rgba(255,255,255,0.75);
+  --live-pill-radius: 20px;
+  --live-tsh: 0px 1px 2px rgba(0,0,0,0.4);
+  --live-tsh-l: 0px 1px 1px rgba(0,0,0,0.2);
+}
+
+/* 外底：深墨，居中放手机 */
+#stage { background: radial-gradient(1200px 800px at 50% 0%, #20203a, #07060f 75%); }
+#frame { background: transparent; box-shadow: none; }
+#frame::after { display: none; }   /* 手机外不要全屏扫描线 */
+
+/* 手机设备框：把 #app 收成 9:19.5 竖屏，圆角 + 投影 */
+#app {
+  position: absolute; inset: auto;
+  top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 460px; height: 996px;
+  border: none; border-radius: 46px; overflow: hidden;
+  background: #000; box-shadow: 0 18px 70px rgba(0,0,0,.7), 0 0 0 10px #050409, 0 0 0 12px #1a1830;
+  display: block;
+}
+/* 机内扫描线（轻）只罩屏幕 */
+#app::after {
+  content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 1;
+  background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 2px, rgba(0,0,0,.10) 3px, rgba(0,0,0,0) 4px);
+  mix-blend-mode: multiply;
+}
+
+/* 去掉桌面 HUD 顶栏（基准手机里 HUD 属于推流画面，不是独立 chrome）*/
+#app > .topbar { display: none; }
+
+/* main-row 改为竖直：游戏画面铺满，评论 chrome 叠在底部 */
+#app > .main-row { display: block; height: 100%; position: relative; }
+.viewer-stage.stage-col {
+  position: absolute; inset: 0; width: 100%; height: 100%; flex: none;
+  border: none; background: #000;
+}
+/* 场景画面占整屏（六角/家/事件卡都铺满手机）*/
+.viewer-stage .scene { inset: 0; }
+
+/* 注入 chrome 的居中容器：与 #app 同尺寸/同居中，叠在手机屏幕上 */
+#frame > .v-device-chrome {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 460px; height: 996px; z-index: 40; pointer-events: none;
+  border-radius: 46px; overflow: hidden;
+}
+/* 登录态下隐藏 chrome（EnterPage 占屏）；由 body 类切换 */
+body.v-login #frame > .v-device-chrome { display: none; }
+
+/* ---- 顶部状态栏（faux，注入 DOM）---- */
+#frame .v-statusbar {
+  position: absolute; top: 0; left: 0; right: 0; height: 46px; z-index: 30;
+  display: flex; align-items: flex-end; justify-content: space-between;
+  padding: 0 26px 5px; font-size: 14px; font-weight: 600; color: #fff;
+  text-shadow: var(--live-tsh-l);
+  background: linear-gradient(180deg, rgba(0,0,0,.35), transparent);
+  pointer-events: none;
+}
+
+/* ---- 主播 chrome：host pill + Follow + 计数 + 标签条（注入 DOM）---- */
+#frame .v-chrome { position: absolute; top: 46px; left: 0; right: 0; z-index: 30;
+  pointer-events: none; }
+#frame .v-hostbar { display: flex; align-items: center; gap: 6px; padding: 4px 12px 0; }
+#frame .v-host-pill { display: flex; align-items: center; gap: 7px;
+  background: var(--live-overlay-light); border-radius: var(--live-pill-radius); padding: 3px 5px; }
+#frame .v-host-pill .v-av { width: 28px; height: 28px; border-radius: 50%;
+  background: linear-gradient(135deg,#b33831,#7f708a); display: flex; align-items: center;
+  justify-content: center; font-size: 15px; }
+#frame .v-host-pill .v-nm { font-size: 14px; color: #fff; font-weight: 600; text-shadow: var(--live-tsh-l); }
+#frame .v-host-pill .v-sub { font-size: 11px; color: var(--live-text-secondary); }
+#frame .v-host-pill .v-follow { background: var(--live-accent-red); color: #fff; font-size: 12px;
+  font-weight: 700; border-radius: 14px; padding: 4px 11px; margin-left: 3px; }
+#frame .v-count { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+#frame .v-count .v-c { background: var(--live-overlay-light); border-radius: var(--live-pill-radius);
+  padding: 4px 9px; font-size: 12px; color: #fff; text-shadow: var(--live-tsh-l); }
+#frame .v-tagbar { display: flex; gap: 6px; padding: 8px 12px 0; }
+#frame .v-tagbar .v-tag { background: var(--live-overlay-light); border-radius: var(--live-pill-radius);
+  padding: 3px 9px; font-size: 11px; color: var(--live-text-secondary); text-shadow: var(--live-tsh-l); }
+
+/* watch-badge / scene-title-chip 在手机里收小，避免和 chrome 撞 */
+.viewer-stage .watch-badge { top: 118px; left: 12px; font-size: 10px; padding: 3px 8px;
+  background: var(--live-overlay-light); border: none; border-radius: 12px; color: #fff; z-index: 12; }
+.viewer-stage .scene-title-chip { top: 118px; right: 12px; left: auto; font-size: 10px;
+  padding: 3px 8px; background: var(--live-overlay-light); border: none; border-radius: 12px; color: #fff; z-index: 12; }
+
+/* 底部渐变压暗，让评论/输入可读 */
+#frame .v-graddim { position: absolute; left: 0; right: 0; bottom: 0; height: 42%; z-index: 20;
+  background: linear-gradient(0deg, rgba(0,0,0,.72) 0%, transparent 98%); pointer-events: none; }
+
+/* 看播端只读：隐藏主播专属操作按钮（go-out / room-hint），避免盖住评论 chrome */
+.viewer-stage .go-out-btn,
+.viewer-stage .room-hint { display: none; }
+
+/* ---- 评论流 chrome：把 chat-col 从右侧列改成底部悬浮 TikTok 评论 ---- */
+#app .chat-col {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 52;
+  width: 100%; height: auto; flex: none; border: none; background: transparent;
+  display: block;
+}
+#app .chat-col .chat-head { display: none; }   /* host 信息已在顶部 chrome */
+#app .chat-col .chat-banner { margin: 0 12px; }
+#app .chat-col .chat-list {
+  height: 200px; max-height: 200px; padding: 0 64px 8px 12px; gap: 6px;
+  background: transparent; -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 22%);
+}
+#app .chat-col .chat-list::before { display: none; }
+#app .chat-col .cmt { padding: 2px 0; border: none; background: transparent !important; box-shadow: none !important; }
+#app .chat-col .cmt .c-av { width: 30px; height: 30px; flex: 0 0 30px; border-radius: 50%; border: none; }
+#app .chat-col .cmt .c-name { font-size: 13px; color: var(--live-text-secondary); text-shadow: var(--live-tsh-l); }
+#app .chat-col .cmt .c-text { font-size: 14px; color: #fff; text-shadow: var(--live-tsh); line-height: 1.35; }
+#app .chat-col .cmt.adopted .c-text { color: #8ff8e2; }
+#app .chat-col .cmt .adopt-tag { font-size: 11px; }
+
+/* 底部输入行：圆角 input + 圆钮（基准 .actionbar）*/
+#app .chat-col .chat-input {
+  border: none; background: transparent; padding: 6px 12px 14px;
+  flex-direction: row; align-items: center; gap: 6px;
+}
+#app .chat-col .chat-input .chat-guide { display: none; }
+#app .chat-col .chat-input .input-row { flex: 1; display: flex; gap: 6px; align-items: center; }
+#app .chat-col .chat-input .input-row input,
+#app .chat-col .chat-input .input-row .input-fake {
+  flex: 1; height: 38px; border-radius: 20px; background: var(--live-icon-bg);
+  border: none; box-shadow: none; color: var(--live-text-secondary); font-size: 14px;
+  padding: 0 16px; display: flex; align-items: center;
+}
+#app .chat-col .chat-input .input-send {
+  width: 38px; height: 38px; border-radius: 50%; background: var(--live-icon-bg);
+  border: none; color: #fff; font-size: 16px; display: flex; align-items: center; justify-content: center;
+}
+/* 输入行尾部三个圆钮（注入 DOM）*/
+#frame .v-actions { display: flex; gap: 6px; align-items: center; }
+#frame .v-actions .v-abtn { width: 38px; height: 38px; border-radius: 50%;
+  background: var(--live-icon-bg); display: flex; align-items: center; justify-content: center;
+  font-size: 17px; }
+
+/* home bar */
+#frame .v-homebar { position: absolute; left: 0; right: 0; bottom: 7px; z-index: 31;
+  display: flex; justify-content: center; pointer-events: none; }
+#frame .v-homebar i { width: 130px; height: 5px; border-radius: 3px; background: #fff; opacity: .85; }
+
+/* 登录页（EnterPage）保持，但外底改墨；设备框对登录页不套用（占满）*/
+.enter-page { border-radius: 46px; }
+
+/* banner 横幅在手机里收窄居中 */
+#app .banner-layer { top: 150px; left: 12px; right: 12px; }
+#app .banner { max-width: 100%; }

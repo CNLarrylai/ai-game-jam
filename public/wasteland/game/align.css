@@ -1,0 +1,238 @@
+/* ============================================================
+   align.css — 把可交互版 UI 对齐「录屏 demo 版」视觉基准
+   （最后加载，覆盖 game.css / viewer.css；零逻辑改动）
+   基准来源：ai100days/_review/live-demo.html
+   ============================================================ */
+
+/* ---- demo 基准 token（与 live-demo.html :root 同档）---- */
+:root {
+  --g-bg:#181425; --g-panel:#262b44; --g-text:#c0cbdc;
+  --g-accent:#feae34; --g-ai:#30e1b9; --g-hi:#fee761;
+  --demo-edge:#0d0a16;          /* 画面四周深底留边 */
+  --demo-stage-border:#3a4466;  /* 推流画面暗边框 */
+}
+
+/* ============================================================
+   1) 整体框架：深底留边 + 推流画面暗边框（基准 .pc / .stage）
+   ============================================================ */
+#stage {
+  background:
+    radial-gradient(1400px 800px at 50% -10%, #20203a 0%, var(--demo-edge) 72%);
+}
+/* #frame 当作整张「主播端面板」：最暗外底 */
+#frame {
+  background: var(--demo-edge);
+  box-shadow: 0 0 0 2px var(--demo-stage-border), 0 28px 80px rgba(0,0,0,.7);
+}
+/* 标题条「🖥 PC 主播端（推流源）」+ 右侧 hint —— 由 HTML 注入 */
+#frame > .pc-titlebar {
+  position: absolute; left: 30px; right: 30px; top: 0; height: 50px;
+  display: flex; align-items: center; justify-content: space-between;
+  z-index: 150; pointer-events: none;
+}
+#frame > .pc-titlebar .pt-t {
+  font-family: var(--pixel); font-size: 17px; color: var(--g-accent);
+  font-weight: 700; letter-spacing: 1px; text-shadow: 0 1px 0 var(--g-bg);
+}
+#frame > .pc-titlebar .pt-hint { font-size: 13px; color: var(--f4); }
+/* 底部工具行（HD-2D 开关等装饰）—— 由 HTML 注入 */
+#frame > .pc-toolrow {
+  position: absolute; left: 30px; bottom: 12px; z-index: 150;
+  display: flex; gap: 10px; align-items: center;
+}
+#frame > .pc-toolrow .tg {
+  font-family: var(--body); font-size: 13px; color: var(--g-text);
+  background: var(--g-panel); border: 2px solid var(--demo-stage-border);
+  border-radius: 0; padding: 7px 14px; letter-spacing: .5px;
+}
+#frame > .pc-toolrow .tg.on { border-color: var(--g-ai); color: var(--g-ai); }
+
+/* app = 推流「画面区」：四周让出深底留边 + 2px 暗边框（基准 .stage） */
+#app {
+  top: 50px; bottom: 52px; left: 30px; right: 30px;
+  border: 2px solid var(--demo-stage-border);
+  background: var(--g-bg);
+  box-shadow: inset 0 0 90px 14px rgba(13,10,22,.6);
+}
+/* 扫描线只罩画面区，不罩外边 */
+#frame::after { left: 30px; right: 30px; top: 50px; bottom: 52px; }
+
+/* ============================================================
+   2) 顶部 HUD：压成基准密度
+   左：Day 徽章(hud_day_badge) + 行动点圆点排
+   右：四条细数值条 + 右侧数值 + 标签小字
+   —— 不再是 110px 大顶栏，改成 64px 紧凑条
+   ============================================================ */
+.topbar {
+  height: 60px; flex: 0 0 60px;
+  gap: 18px; padding: 0 18px;
+  background: linear-gradient(180deg, rgba(38,43,68,.55), rgba(24,20,37,.65));
+  border-bottom: 1px solid rgba(58,68,102,.6);
+}
+
+/* ---- 左：Day 徽章（资产底 + 数字）---- */
+.day-block { flex-direction: row; align-items: center; gap: 12px; min-width: 0; }
+.day-block .day-label {
+  position: relative; font-size: 12px; color: var(--g-hi); font-weight: 700;
+  letter-spacing: .5px; text-shadow: 0 1px 0 var(--g-bg); white-space: nowrap;
+  padding: 6px 16px 7px; text-align: center;
+  border-image: url("../../assets/ui/hud_day_badge.png") 8 12 8 12 fill stretch;
+  border-image-width: 9px 14px 9px 14px;
+  image-rendering: pixelated;
+}
+/* 行动点：基准是「圆点排」(ap pip)，横向小圆 */
+.day-block .day-dots { gap: 4px; }
+.day-block .day-dot {
+  width: 14px; height: 14px; border: none; background: none; box-shadow: none;
+  image-rendering: pixelated;
+  background-image: url("../../assets/ui/hud_ap_pip_off.png");
+  background-size: 100% 100%; background-repeat: no-repeat;
+  animation: none;
+}
+.day-block .day-dot.done,
+.day-block .day-dot.cur {
+  background-image: url("../../assets/ui/hud_ap_pip_on.png");
+  border: none; box-shadow: none; animation: none;
+}
+
+/* ---- 右：四条细数值条（资产 bar）+ 数值 + 标签 ---- */
+.stats-block { gap: 14px; flex: 1; justify-content: flex-end; align-items: center; }
+.stat {
+  flex: 0 0 auto; max-width: none; width: auto;
+  display: flex; align-items: center; gap: 7px; flex-direction: row;
+}
+.stat .stat-top {
+  margin: 0; flex-direction: row; align-items: center; gap: 6px;
+  order: 2;
+}
+.stat .stat-name { font-size: 11px; color: var(--g-text); text-shadow: 0 1px 0 var(--g-bg); }
+.stat .stat-name .lab-emoji { display: none; }   /* 基准只留标签小字，去 emoji（JSX 保留，CSS 隐藏图标）*/
+.stat .stat-val {
+  font-size: 11px; color: var(--g-hi); font-weight: 700;
+  text-shadow: 0 1px 0 var(--g-bg); order: 3; min-width: 22px; text-align: right;
+}
+/* 细条本体：96×12 资产风 */
+.stat .bar {
+  order: 1;
+  width: 92px; height: 12px; border: none; box-shadow: none; overflow: hidden;
+  background: url("../../assets/ui/bar_empty.png") left center / 100% 100% no-repeat, var(--g-bg);
+  image-rendering: pixelated;
+}
+.stat .bar .fill {
+  height: 100%; box-shadow: inset 0 1px 0 rgba(255,255,255,.18);
+  image-rendering: pixelated;
+}
+.stat .bar .fill::after { display: none; }
+/* 基准条用专属裁切资产填充（health 红 / hunger 黄 / spirit 蓝 / thirst 青）*/
+.stat.hp     .bar .fill { background: url("../../assets/ui/bar_health.png") left center / 92px 12px no-repeat; }
+.stat.hunger .bar .fill { background: url("../../assets/ui/bar_hunger.png") left center / 92px 12px no-repeat; }
+.stat.sanity .bar .fill { background: url("../../assets/ui/bar_spirit.png") left center / 92px 12px no-repeat; }
+.stat.supply .bar .fill { background: url("../../assets/ui/bar_thirst.png") left center / 92px 12px no-repeat; }
+.stat .float-num { font-size: 13px; top: -6px; }
+
+/* ---- 背包：基准顶部 HUD 不含大背包；隐藏，避免挤压细条排 ---- */
+.pack-block { display: none; }
+
+/* ============================================================
+   3) 评论列：保留右侧，但配色/密度对齐基准「看播评论风」
+   头像 + 昵称暗 + 正文白 + text-shadow（基准 .crow）
+   ============================================================ */
+.chat-col { flex: 0 0 30%; background: var(--g-bg); border-left: 1px solid rgba(58,68,102,.6); }
+.chat-head { background: var(--g-panel); border-bottom: 1px solid rgba(58,68,102,.6); padding: 14px 16px; }
+.chat-list { gap: 7px; padding: 12px 14px; }
+.cmt { padding: 4px 6px; border: 2px solid transparent; }
+.cmt .c-av { width: 30px; height: 30px; flex: 0 0 30px; border-radius: 50%; border: none;
+  background: #3a4466; }
+.cmt .c-name { font-size: 13px; color: rgba(192,203,220,.78);
+  text-shadow: 0 1px 1px rgba(0,0,0,.25); margin-bottom: 1px; }
+.cmt .c-text { font-size: 14px; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,.4);
+  line-height: 1.4; }
+.cmt.mod .c-name { color: var(--g-ai); }
+.cmt.system .c-text { color: rgba(255,255,255,.72); }
+.cmt.adopted .c-text { color: var(--g-ai); }
+.chat-input { background: var(--g-panel); border-top: 1px solid rgba(58,68,102,.6); }
+
+/* ============================================================
+   6) 色调统一：把残余亮色块压到基准暗墨青氛围
+   ============================================================ */
+/* 主播头像：去高饱和渐变发光，换墨底实色 */
+.streamer-av { background: var(--g-panel); border: 2px solid var(--ui-danger);
+  box-shadow: none; }
+/* 探索屏外圈 / 目的地屏：压暗到墨底（去亮紫亮青大块）*/
+.explore { background: linear-gradient(180deg, #20203a 0%, var(--g-bg) 100%); }
+.region-map { background: linear-gradient(160deg, #22203c 0%, var(--g-bg) 100%); }
+/* 六角格：迷雾盖在暗墨地面上（结构保留，仅压色到基准暗墨青）*/
+.hex.fog .hx-inner { background: rgba(13,10,22,.86); }
+.hex.revealed .hx-inner, .hex.empty .hx-inner { background: rgba(40,46,72,.30); }
+/* 地板瓦压暗 + 蒙墨青叠层，去灰白水泥感（叠层走背景层，不动 hexgrid 子元素亮度）*/
+.hexwrap {
+  box-shadow: inset 0 0 120px rgba(0,0,0,.8);
+  background:
+    linear-gradient(rgba(18,18,40,.5), rgba(18,18,40,.5)),
+    radial-gradient(120% 120% at 50% 42%, rgba(11,94,101,.14) 0%, rgba(13,10,22,.6) 56%, rgba(8,7,18,.92) 95%),
+    url("../../assets/maps/factory/tile_floor_concrete.png");
+  background-repeat: no-repeat, no-repeat, repeat;
+  background-size: cover, cover, 56px 56px;
+}
+.explore { background: linear-gradient(180deg, #1a1830 0%, var(--g-bg) 100%); }
+
+/* ============================================================
+   3-cont) 事件 / 决策卡：对齐基准（顶部标题条 + 暖黄标题 + 青边压暗）
+   target 已用 event_card_frame 资产；这里压暗背景叠层、收紧呼吸
+   ============================================================ */
+.decision { background: linear-gradient(180deg, rgba(13,10,22,0), rgba(13,10,22,.96) 28%); }
+.decision .d-title { color: var(--g-hi); }
+.decision .d-card { box-shadow: none; }
+
+/* ============================================================
+   4) 地点选择卡：对齐基准「选择今天的搜刮地点」
+   深卡 + 顶部名称条 + 场景缩略 + 危险点（card_location 框）
+   ============================================================ */
+.region-map .rm-head { color: var(--g-text); font-size: var(--t-md); }
+.region-map .rm-head b { color: var(--g-ai); }
+.dest-grid { gap: 18px; }
+.dest-card {
+  padding: 0; overflow: hidden;
+  background: var(--g-panel);
+  border: none; box-shadow: none;
+  border-image: url("../../assets/ui/card_location.png") 10 fill stretch;
+  border-image-width: 12px;
+}
+.dest-card:hover { filter: brightness(1.1); transform: none; }
+/* 顶部名称条（基准 .loc .nm：暖黄、居中、压在缩略上方）*/
+.dest-card .dc-name {
+  order: -1; margin: 0; padding: 9px 14px 8px;
+  font-size: var(--t-md); color: var(--g-hi); font-weight: 700;
+  text-align: center; text-shadow: 0 1px 0 var(--g-bg);
+  background: rgba(13,10,22,.45); border-bottom: 1px solid rgba(58,68,102,.5);
+}
+.dest-card { display: flex; flex-direction: column; }
+.dest-card .dc-thumb,
+.dest-card .dc-thumb-art {
+  margin: 12px 14px 10px; height: 118px; border: 2px solid rgba(58,68,102,.7);
+}
+.dest-card .dc-row { padding: 0 16px; margin-bottom: 7px; font-size: var(--t-sm); }
+.dest-card .dc-row:last-of-type { margin-bottom: 14px; }
+.dest-card .dc-row .danger { color: var(--g-accent); }
+.dest-card .dc-row .reward { color: var(--green); }
+.dest-card .gen-tag { background: var(--g-accent); color: var(--g-bg); top: 0; right: 0; }
+.dest-card.generated { box-shadow: inset 0 0 0 2px var(--g-ai); }
+
+/* ============================================================
+   直播间/征集 控件：基准无此按钮（target 直播控件）—— 压成暗工具钮
+   ============================================================ */
+.stage-col > div[style*="z-index: 55"] .btn.sm,
+.stage-col > div[style*="zIndex: 55"] .btn.sm,
+.stage-col > div[style*="z-index:55"] .btn.sm {
+  font-size: 12px; padding: 6px 11px; box-shadow: none;
+}
+.stage-col > div[style*="55"] .btn.sm.gold {
+  background: var(--g-panel); color: var(--g-text);
+  border: 2px solid var(--demo-stage-border); border-image: none; font-weight: 400;
+}
+.stage-col > div[style*="55"] .btn.sm.gold:hover { filter: brightness(1.15); }
+
+/* ============================================================
+   字体：基准/目标都已用像素字（FusionPixel），统一即可
+   ============================================================ */
+.day-block .day-label, .stat .stat-val { font-family: var(--pixel); }
