@@ -1,0 +1,284 @@
+/* ============================================================
+   assets-lib.css — gallery layout + 8 scene illustrations
+   canvas 1344×970, dark pixel / wasteland
+   ============================================================ */
+
+.lib-scene { position: relative; width: 1344px; height: 970px; overflow: hidden;
+  image-rendering: pixelated; background: #0a0814; }
+.lib-scene .pxspr i { image-rendering: pixelated; }
+
+/* ============================================================
+   1. HOME — shelter interior
+   ============================================================ */
+.s-home { background: #0c0a1c; }
+.s-home .hm-wall { position: absolute; left: 0; right: 0; top: 0; height: 62%;
+  background: linear-gradient(180deg, #221b3c, #1a1533); border-bottom: 6px solid #120e26; }
+.s-home .hm-wall::before { content: ""; position: absolute; inset: 0;
+  background-image: linear-gradient(rgba(255,255,255,.025) 3px, transparent 3px),
+    linear-gradient(90deg, rgba(0,0,0,.2) 4px, transparent 4px); background-size: 120px 60px; }
+.s-home .hm-studs { position: absolute; top: 0; left: 0; right: 0; height: 62%; display: flex; justify-content: space-around; }
+.s-home .hm-studs span { width: 18px; background: linear-gradient(90deg, #2c2550, #241f44);
+  box-shadow: inset 2px 0 0 rgba(255,255,255,.05), inset -2px 0 0 rgba(0,0,0,.35); }
+.s-home .hm-beam { position: absolute; left: 0; right: 0; height: 26px;
+  background: linear-gradient(180deg, #3a2f1a, #2a2210); box-shadow: 0 4px 0 rgba(0,0,0,.4); }
+.s-home .hm-beam.t { top: 40px; } .s-home .hm-beam.m { top: 54%; height: 18px; }
+.s-home .hm-map { position: absolute; left: 520px; top: 120px; width: 230px; height: 170px;
+  background: #d8c69a; border: 4px solid #3a2f1a; box-shadow: 0 6px 0 rgba(0,0,0,.4); transform: rotate(-1deg); }
+.s-home .hm-map .pin { position: absolute; left: 50%; top: -8px; width: 14px; height: 14px; background: var(--red); border-radius: 50%; transform: translateX(-50%); }
+.s-home .hm-map .route { position: absolute; left: 24px; top: 60px; width: 150px; height: 4px; background: #7a3b2a; transform: rotate(12deg); }
+.s-home .hm-map .route.r2 { top: 100px; left: 50px; width: 120px; transform: rotate(-18deg); }
+.s-home .hm-map .x-mark { position: absolute; right: 30px; bottom: 24px; color: var(--red); font-family: var(--pixel); font-size: 22px; }
+.s-home .hm-window { position: absolute; right: 150px; top: 92px; width: 150px; height: 150px;
+  background: radial-gradient(circle at 60% 40%, #1a2b52, #0c1430); border: 9px solid #2a2210;
+  box-shadow: inset 0 0 0 3px #15101f, 0 0 44px rgba(77,210,255,.18); }
+.s-home .hm-window .bars { position: absolute; inset: 0; }
+.s-home .hm-window .bars::before, .s-home .hm-window .bars::after { content: ""; position: absolute; background: #2a2210; }
+.s-home .hm-window .bars::before { left: 50%; top: 0; bottom: 0; width: 8px; transform: translateX(-50%); }
+.s-home .hm-window .bars::after { top: 50%; left: 0; right: 0; height: 8px; transform: translateY(-50%); }
+.s-home .hm-lamp { position: absolute; left: 38%; top: 40px; }
+.s-home .hm-lamp .cord { position: absolute; left: 50%; top: 0; width: 4px; height: 90px; background: #2a2210; }
+.s-home .hm-lamp .batt { position: absolute; left: 50%; top: 84px; transform: translateX(-50%); width: 40px; height: 26px; background: #2c3550; border: 3px solid #15101f; }
+.s-home .hm-lamp .bulb { position: absolute; left: 50%; top: 108px; transform: translateX(-50%); width: 26px; height: 26px; background: var(--gold); border: 4px solid #2a2210; box-shadow: 0 0 30px 8px rgba(255,207,63,.5); }
+.s-home .hm-lamp .glow { position: absolute; left: 50%; top: 100px; transform: translateX(-50%); width: 420px; height: 380px; background: radial-gradient(50% 50% at 50% 30%, rgba(255,207,63,.16), transparent 70%); }
+.s-home .hm-floor { position: absolute; left: 0; right: 0; bottom: 0; height: 38%;
+  background: linear-gradient(180deg, #16122a, #0e0b1f);
+  box-shadow: inset 0 0 120px rgba(0,0,0,.5); }
+.s-home .hm-floor::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgba(0,0,0,.35) 0 2px, transparent 2px 150px); }
+.s-home .hm-shelf { position: absolute; right: 120px; bottom: 250px; width: 230px; height: 200px; display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(2, 1fr); gap: 8px; padding: 10px; background: #15101f; border: 4px solid #2a2548; }
+.s-home .hm-shelf .bx { background: linear-gradient(180deg, #3a2f1a, #2a2210); border: 3px solid #5a4a26; box-shadow: inset 0 0 0 2px rgba(0,0,0,.2); }
+.s-home .hm-cot { position: absolute; left: 360px; bottom: 150px; width: 420px; height: 160px; }
+.s-home .hm-cot .legs { position: absolute; bottom: 0; left: 0; right: 0; height: 70px; background: #2c3550; border: 3px solid #1a2030; clip-path: polygon(0 0,12% 0,18% 100%,0 100%,100% 100%,82% 100%,88% 0,100% 0,100% 12%,0 12%); }
+.s-home .hm-cot .mat { position: absolute; bottom: 50px; left: 12px; right: 12px; height: 40px; background: #4a4577; border: 3px solid #2c2550; }
+.s-home .hm-cot .pillow { position: absolute; bottom: 60px; left: 24px; width: 90px; height: 42px; background: #c9c4e6; border: 3px solid #9a95c4; }
+.s-home .hm-cot .blanket { position: absolute; bottom: 50px; right: 14px; width: 250px; height: 46px; background: linear-gradient(180deg, #2bb6a8, #187a70); border: 3px solid #126059; }
+
+/* ============================================================
+   2. HOME DOOR
+   ============================================================ */
+.s-door { background: linear-gradient(180deg, #161226, #0c0a1c); }
+.s-door .sd-wall { position: absolute; inset: 0 0 30% 0; background: linear-gradient(180deg, #1c1836, #14112a); }
+.s-door .sd-wall::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(90deg, rgba(0,0,0,.25) 4px, transparent 4px); background-size: 90px 100%; }
+.s-door .sd-floor { position: absolute; left: 0; right: 0; bottom: 0; height: 30%; background: linear-gradient(180deg, #14102404, #0c0a1c); background-color: #120e22; }
+.s-door .sd-door { position: absolute; left: 50%; top: 130px; transform: translateX(-50%); width: 360px; height: 620px;
+  background: linear-gradient(90deg, #2a2018, #3a2f1a 50%, #281e12); border: 10px solid #1a130a; box-shadow: 0 0 0 4px #0c0a1c, inset 0 0 60px rgba(0,0,0,.6); }
+.s-door .sd-door .bar { position: absolute; left: -4px; right: -4px; height: 24px; background: linear-gradient(180deg, #5d6b88, #2c3550); border: 2px solid #15101f; }
+.s-door .sd-door .b1 { top: 90px; } .s-door .sd-door .b2 { top: 300px; } .s-door .sd-door .b3 { top: 500px; }
+.s-door .sd-door .weld { position: absolute; width: 14px; height: 14px; background: #c2662e; border-radius: 50%; box-shadow: 0 0 8px rgba(194,102,46,.6); }
+.s-door .sd-door .weld.w1 { left: 8px; top: 95px; } .s-door .sd-door .weld.w2 { right: 8px; top: 505px; }
+.s-door .sd-door .lock { position: absolute; right: 24px; width: 40px; height: 30px; background: #43506b; border: 3px solid #15101f; }
+.s-door .sd-door .l1 { top: 200px; } .s-door .sd-door .l2 { top: 280px; } .s-door .sd-door .l3 { top: 360px; }
+.s-door .sd-door .peep { position: absolute; left: 50%; top: 150px; transform: translateX(-50%); width: 26px; height: 26px; background: radial-gradient(circle, #ffcf3f, #6b5310); border-radius: 50%; border: 4px solid #1a130a; box-shadow: 0 0 18px rgba(255,207,63,.5); }
+.s-door .sd-door .gap { position: absolute; right: -10px; top: 0; bottom: 0; width: 14px; background: linear-gradient(90deg, transparent, rgba(77,210,255,.5)); }
+.s-door .sd-figure { position: absolute; right: 380px; top: 230px; width: 130px; height: 420px;
+  background: linear-gradient(180deg, #0e1622, #060a12); border-radius: 60px 60px 0 0; opacity: .9;
+  box-shadow: 0 0 50px rgba(0,0,0,.7); }
+.s-door .sd-figure::before { content: ""; position: absolute; left: 50%; top: 50px; transform: translateX(-50%); width: 70px; height: 70px; background: #0a0e16; border-radius: 50%; }
+.s-door .sd-lightbeam { position: absolute; right: 300px; top: 120px; width: 220px; height: 700px; background: linear-gradient(90deg, rgba(77,210,255,.12), transparent 70%); transform: skewX(-8deg); pointer-events: none; }
+
+/* ============================================================
+   3. HOSPITAL
+   ============================================================ */
+.s-hosp { background: linear-gradient(180deg, #14202a, #0c1218); }
+.s-hosp .hp-wall { position: absolute; inset: 0 0 30% 0; background: linear-gradient(180deg, #1e3340, #16242e); }
+.s-hosp .hp-wall::before { content: ""; position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,.04) 2px, transparent 2px), linear-gradient(90deg, rgba(0,0,0,.22) 2px, transparent 2px); background-size: 70px 70px; }
+.s-hosp .hp-tilefloor { position: absolute; left: 0; right: 0; bottom: 0; height: 30%; background-color: #12181e; background-image: repeating-conic-gradient(#0f161c 0 25%, #182028 0 50%); background-size: 90px 90px; box-shadow: inset 0 0 100px rgba(0,0,0,.5); }
+.s-hosp .hp-cross { position: absolute; left: 130px; top: 110px; width: 110px; height: 110px; background: #c9402f; box-shadow: 0 0 0 8px rgba(201,64,47,.2); opacity: .8; }
+.s-hosp .hp-cross span { position: absolute; background: #d8d3e8; }
+.s-hosp .hp-cross span:first-child { left: 50%; top: 18px; bottom: 18px; width: 26px; transform: translateX(-50%); }
+.s-hosp .hp-cross span:last-child { top: 50%; left: 18px; right: 18px; height: 26px; transform: translateY(-50%); }
+.s-hosp .hp-emergency { position: absolute; top: 0; right: 30%; width: 360px; height: 56%; background: radial-gradient(60% 70% at 50% 0, rgba(87,224,138,.26), transparent 72%); animation: libFlicker 2.4s steps(2) infinite; }
+.s-hosp .hp-spray { position: absolute; right: 120px; top: 180px; font-family: var(--pixel); font-size: 26px; color: rgba(255,59,92,.62); letter-spacing: 2px; transform: rotate(-3deg); text-shadow: 0 0 12px rgba(255,59,92,.4); }
+.s-hosp .hp-bed { position: absolute; left: 150px; bottom: 150px; width: 300px; height: 120px; transform: rotate(-8deg); }
+.s-hosp .hp-bed .frame { position: absolute; inset: 0 0 40px 0; background: #c7c2dc; border: 5px solid #8b86a8; }
+.s-hosp .hp-bed .legs { position: absolute; bottom: 0; left: 20px; right: 20px; height: 44px; background: #5d6b88; clip-path: polygon(0 0,10% 0,14% 100%,0 100%,100% 100%,86% 100%,90% 0,100% 0,100% 14%,0 14%); }
+.s-hosp .hp-cabinet { position: absolute; right: 260px; bottom: 250px; width: 180px; display: flex; flex-wrap: wrap; gap: 8px; padding: 12px; background: #15101f; border: 4px solid #2a3548; transform: rotate(4deg); }
+.s-hosp .hp-cabinet .vial { width: 22px; height: 30px; border: 2px solid rgba(0,0,0,.45); box-shadow: inset 0 -5px 0 rgba(255,255,255,.15); }
+.s-hosp .hp-hallshadow { position: absolute; right: 0; top: 0; bottom: 30%; width: 200px; background: linear-gradient(90deg, transparent, #060a0e); }
+
+/* ============================================================
+   4. FACTORY
+   ============================================================ */
+.s-factory { background: linear-gradient(180deg, #1a1622, #0d0a14); }
+.s-factory .fc-wall { position: absolute; inset: 0 0 26% 0; background: linear-gradient(180deg, #241f30, #181426); }
+.s-factory .fc-roofbeams { position: absolute; top: 0; left: 0; right: 0; height: 120px; display: flex; justify-content: space-between; padding: 0 40px; }
+.s-factory .fc-roofbeams span { width: 12px; height: 100%; background: #15101f; transform: skewX(18deg); }
+.s-factory .fc-roofhole { position: absolute; top: 0; left: 44%; width: 200px; height: 130px; background: linear-gradient(180deg, rgba(255,207,63,.22), transparent); clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%); }
+.s-factory .fc-gear { position: absolute; border-radius: 50%; background: radial-gradient(circle, #3a3550 40%, #2a2540 42%); border: 12px dashed #43506b; }
+.s-factory .fc-gear.g1 { left: 120px; top: 150px; width: 170px; height: 170px; animation: spin 12s linear infinite; }
+.s-factory .fc-gear.g2 { left: 250px; top: 250px; width: 110px; height: 110px; animation: spin 9s linear infinite reverse; }
+.s-factory .fc-pipe { position: absolute; background: linear-gradient(90deg, #2c3550, #5d6b88, #2c3550); border: 3px solid #15101f; }
+.s-factory .fc-pipe.p1 { right: 200px; top: 80px; width: 28px; height: 360px; }
+.s-factory .fc-pipe.p2 { right: 120px; top: 200px; width: 28px; height: 240px; }
+.s-factory .fc-pipe.p3 { right: 120px; top: 200px; width: 110px; height: 28px; }
+.s-factory .fc-conveyor { position: absolute; left: 0; right: 0; bottom: 26%; height: 44px; background: #1a1626; border-top: 4px solid #43506b; border-bottom: 4px solid #2c3550; display: flex; align-items: center; gap: 30px; padding-left: 20px; }
+.s-factory .fc-conveyor span { width: 60px; height: 22px; background: #3a3550; border: 2px solid #15101f; }
+.s-factory .fc-arm { position: absolute; right: 360px; bottom: 26%; }
+.s-factory .fc-arm .base { position: absolute; bottom: 0; left: -20px; width: 60px; height: 30px; background: #2c3550; border: 3px solid #15101f; }
+.s-factory .fc-arm .seg1 { position: absolute; bottom: 24px; left: 0; width: 18px; height: 110px; background: #5d6b88; border: 3px solid #15101f; transform-origin: bottom; transform: rotate(18deg); }
+.s-factory .fc-arm .seg2 { position: absolute; bottom: 120px; left: 30px; width: 100px; height: 16px; background: #5d6b88; border: 3px solid #15101f; transform: rotate(-26deg); }
+.s-factory .fc-arm .claw { position: absolute; bottom: 130px; left: 120px; width: 16px; height: 30px; background: #43506b; border: 3px solid #15101f; clip-path: polygon(0 0,100% 0,100% 40%,40% 50%,100% 60%,100% 100%,0 100%); }
+.s-factory .fc-arm .rlight { position: absolute; bottom: 8px; left: 8px; width: 12px; height: 12px; background: var(--red); border-radius: 50%; box-shadow: 0 0 12px var(--red); animation: libBlink 1.1s steps(2) infinite; }
+.s-factory .fc-floor { position: absolute; left: 0; right: 0; bottom: 0; height: 26%; background: linear-gradient(180deg, #181424, #0c0914); box-shadow: inset 0 0 100px rgba(0,0,0,.5); }
+
+/* ============================================================
+   5. MARKET
+   ============================================================ */
+.s-market { background: linear-gradient(180deg, #1a1626, #0d0a16); }
+.s-market .mk-wall { position: absolute; inset: 0 0 28% 0; background: linear-gradient(180deg, #232036, #181426); }
+.s-market .mk-collapse { position: absolute; top: 0; right: 0; width: 520px; height: 300px; background: linear-gradient(225deg, #0a0814 30%, transparent 60%); clip-path: polygon(40% 0, 100% 0, 100% 100%); }
+.s-market .mk-collapse::after { content: ""; position: absolute; right: 60px; top: 40px; width: 200px; height: 30px; background: #2c3550; transform: rotate(38deg); box-shadow: 60px 80px 0 #2c3550, -40px 120px 0 #43506b; }
+.s-market .mk-neon { position: absolute; left: 90px; top: 90px; font-family: var(--pixel); font-size: 40px; color: #2a3548; letter-spacing: 6px; }
+.s-market .mk-neon span { color: var(--cyan); text-shadow: 0 0 16px rgba(53,224,208,.7); animation: libFlicker 3s steps(2) infinite; }
+.s-market .mk-floor { position: absolute; left: 0; right: 0; bottom: 0; height: 28%; background-color: #14101e; background-image: repeating-conic-gradient(#100d18 0 25%, #1a1626 0 50%); background-size: 110px 110px; box-shadow: inset 0 0 100px rgba(0,0,0,.5); }
+.s-market .mk-shelf { position: absolute; display: flex; gap: 8px; padding: 10px; background: #15101f; border: 4px solid #2a2548; }
+.s-market .mk-shelf span { width: 40px; height: 120px; background: linear-gradient(180deg, #2c3550, #1f2640); border: 2px solid #15101f; }
+.s-market .mk-shelf.s1 { left: 320px; bottom: 28%; }
+.s-market .mk-shelf.s2.fallen { left: 640px; bottom: 26%; transform: rotate(82deg); transform-origin: bottom left; }
+.s-market .mk-checkout { position: absolute; right: 280px; bottom: 28%; width: 240px; }
+.s-market .mk-checkout .belt { width: 100%; height: 26px; background: #2c3550; border: 3px solid #15101f; }
+.s-market .mk-checkout .reg { position: absolute; right: 10px; bottom: 26px; width: 70px; height: 60px; background: #3a3550; border: 3px solid #15101f; }
+.s-market .mk-cart { position: absolute; left: 460px; bottom: 16%; transform: rotate(-18deg); }
+.s-market .mk-cart .basket { width: 110px; height: 70px; background: repeating-linear-gradient(90deg, #5d6b88 0 3px, transparent 3px 12px), repeating-linear-gradient(0deg, #5d6b88 0 3px, transparent 3px 12px); border: 3px solid #43506b; }
+.s-market .mk-cart .wheel { position: absolute; bottom: -16px; width: 16px; height: 16px; background: #15101f; border-radius: 50%; }
+.s-market .mk-cart .w1 { left: 14px; } .s-market .mk-cart .w2 { right: 14px; }
+.s-market .mk-glass { position: absolute; left: 90px; bottom: 28%; display: flex; gap: 6px; }
+.s-market .mk-glass i { width: 18px; height: 40px; background: rgba(77,210,255,.25); border: 1px solid rgba(77,210,255,.4); transform: skewX(-12deg); }
+.s-market .mk-glass i:nth-child(2) { height: 26px; transform: skewX(14deg); }
+
+/* ============================================================
+   6. RADIO STATION
+   ============================================================ */
+.s-radio { background: linear-gradient(180deg, #2a2440, #14112a); }
+.s-radio .rd-sky { position: absolute; inset: 0 0 22% 0; background: linear-gradient(180deg, #3a3060, #1c1838); }
+.s-radio .rd-cityline { position: absolute; left: 0; right: 0; bottom: 22%; height: 130px; display: flex; align-items: flex-end; gap: 10px; padding: 0 30px; opacity: .55; }
+.s-radio .rd-cityline span { flex: 1; background: #14102a; border-top: 2px solid #241f44; }
+.s-radio .rd-tower { position: absolute; left: 46%; top: 60px; width: 200px; height: 640px; }
+.s-radio .rd-tower .mast { position: absolute; left: 50%; top: 0; transform: translateX(-50%); width: 8px; height: 100%; background: linear-gradient(90deg, #2c3550, #5d6b88, #2c3550); }
+.s-radio .rd-tower .x { position: absolute; left: 50%; transform: translateX(-50%); border-style: solid; border-color: #43506b; }
+.s-radio .rd-tower .x1 { top: 120px; width: 70px; height: 90px; border-width: 0 2px; }
+.s-radio .rd-tower .x2 { top: 240px; width: 110px; height: 110px; border-width: 0 2px; }
+.s-radio .rd-tower .x3 { top: 360px; width: 150px; height: 120px; border-width: 0 2px; }
+.s-radio .rd-tower .x4 { top: 480px; width: 190px; height: 140px; border-width: 0 2px; }
+.s-radio .rd-tower .mast::after { content: ""; position: absolute; inset: 0; background:
+   repeating-linear-gradient(20deg, transparent 0 18px, #43506b 18px 20px); width: 8px; }
+.s-radio .rd-tower .beacon { position: absolute; left: 50%; top: -6px; transform: translateX(-50%); width: 16px; height: 16px; background: var(--red); border-radius: 50%; box-shadow: 0 0 20px var(--red); animation: libBlink 1.3s steps(2) infinite; }
+.s-radio .rd-building { position: absolute; left: 40%; bottom: 22%; width: 320px; height: 180px; background: linear-gradient(180deg, #2a2548, #1c1838); border: 4px solid #15101f; }
+.s-radio .rd-building .win { position: absolute; top: 40px; width: 70px; height: 50px; background: var(--gold); box-shadow: 0 0 16px rgba(255,207,63,.4); }
+.s-radio .rd-building .w1 { left: 40px; } .s-radio .rd-building .w2 { left: 150px; background: #2c3550; box-shadow: none; }
+.s-radio .rd-building .dish { position: absolute; right: 20px; top: -50px; width: 70px; height: 70px; border-radius: 50%; background: radial-gradient(circle at 60% 40%, #5d6b88, #2c3550); border: 4px solid #15101f; }
+.s-radio .rd-ground { position: absolute; left: 0; right: 0; bottom: 0; height: 22%; background: linear-gradient(180deg, #1a1530, #0e0a1c); }
+.s-radio .rd-grass { position: absolute; left: 0; right: 0; bottom: 19%; height: 40px; }
+.s-radio .rd-grass span { position: absolute; bottom: 0; width: 6px; height: 26px; background: #2e4d2c; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+
+/* ============================================================
+   7. SUBWAY
+   ============================================================ */
+.s-subway { background: #0a0a12; }
+.s-subway .sw-arch { position: absolute; left: 50%; top: -120px; transform: translateX(-50%); width: 1500px; height: 1000px; border-radius: 50%; background: radial-gradient(circle at 50% 50%, #1e1c2c 0 58%, transparent 60%); }
+.s-subway .sw-archtiles { position: absolute; left: 50%; top: 30px; transform: translateX(-50%); width: 1200px; height: 560px; border-radius: 600px 600px 0 0; background:
+   repeating-linear-gradient(90deg, rgba(0,0,0,.3) 0 2px, transparent 2px 56px),
+   repeating-linear-gradient(0deg, rgba(0,0,0,.3) 0 2px, transparent 2px 56px); border: 6px solid #2a2738; border-bottom: none; opacity: .6; }
+.s-subway .sw-dark { position: absolute; left: 50%; top: 200px; transform: translateX(-50%); width: 280px; height: 360px; background: radial-gradient(ellipse at 50% 60%, #000 30%, transparent 75%); }
+.s-subway .sw-exit { position: absolute; right: 160px; top: 200px; font-family: var(--pixel); font-size: 22px; color: #57e08a; background: #0e2018; border: 3px solid #2e6b48; padding: 8px 14px; box-shadow: 0 0 14px rgba(87,224,138,.3); }
+.s-subway .sw-graffiti { position: absolute; left: 120px; top: 360px; font-family: var(--pixel); font-size: 24px; color: rgba(255,77,141,.6); transform: rotate(-4deg); text-shadow: 0 0 12px rgba(255,77,141,.4); }
+.s-subway .sw-train { position: absolute; left: 50%; top: 200px; transform: translateX(-50%); width: 360px; height: 300px; }
+.s-subway .sw-train .body { position: absolute; inset: 0; background: linear-gradient(180deg, #3a3550, #241f3a); border: 6px solid #15101f; border-radius: 18px 18px 0 0; }
+.s-subway .sw-train .win { position: absolute; top: 40px; width: 100px; height: 90px; background: #1a2030; border: 4px solid #15101f; }
+.s-subway .sw-train .w1 { left: 50px; } .s-subway .sw-train .w2 { right: 50px; }
+.s-subway .sw-train .headlight { position: absolute; left: 50%; bottom: 30px; transform: translateX(-50%); width: 40px; height: 40px; background: radial-gradient(circle, #fff6c4, #6b5310); border-radius: 50%; box-shadow: 0 0 40px 12px rgba(255,230,140,.4); }
+.s-subway .sw-platform { position: absolute; left: 0; bottom: 28%; width: 100%; height: 26px; background: #2a2738; }
+.s-subway .sw-rails { position: absolute; left: 0; right: 0; bottom: 0; height: 28%; background: linear-gradient(180deg, #14121e, #0a0810); }
+.s-subway .sw-rails .rail { position: absolute; top: 0; bottom: 0; width: 8px; background: #5d6b88; }
+.s-subway .sw-rails .rail.r1 { left: 44%; transform: skewX(20deg); }
+.s-subway .sw-rails .rail.r2 { left: 56%; transform: skewX(-20deg); }
+.s-subway .sw-rails .tie { position: absolute; bottom: 30px; width: 80px; height: 10px; background: #3a2f1a; }
+
+/* ============================================================
+   8. CITY RUINS (outdoor day)
+   ============================================================ */
+.s-city { background: linear-gradient(180deg, #6a5a3a 0%, #8a7a52 30%, #5a4e38 60%, #2a2418 100%); }
+.s-city .ct-sky { position: absolute; inset: 0 0 50% 0; background: linear-gradient(180deg, #8a7a52, #b0a070); opacity: .5; }
+.s-city .ct-drone { position: absolute; right: 280px; top: 120px; }
+.s-city .ct-drone .body { position: absolute; width: 60px; height: 22px; background: #2a2738; border: 3px solid #15101f; border-radius: 6px; }
+.s-city .ct-drone .rotor { position: absolute; top: -6px; width: 30px; height: 6px; background: #43506b; }
+.s-city .ct-drone .rotor.l { left: -10px; } .s-city .ct-drone .rotor.r { right: -10px; }
+.s-city .ct-drone .dot { position: absolute; left: 24px; top: 8px; width: 10px; height: 10px; background: var(--red); border-radius: 50%; box-shadow: 0 0 16px var(--red); animation: libBlink 1s steps(2) infinite; }
+.s-city .ct-skyline { position: absolute; left: 0; right: 0; bottom: 26%; height: 320px; display: flex; align-items: flex-end; gap: 14px; padding: 0 30px; }
+.s-city .ct-skyline .b { flex: 1; background: linear-gradient(180deg, #4a4030, #2a2418); border-top: 3px solid #5a4e38; display: flex; flex-wrap: wrap; align-content: flex-start; gap: 8px; padding: 10px; }
+.s-city .ct-skyline .b.broken { clip-path: polygon(0 0, 60% 0, 70% 12%, 85% 4%, 100% 16%, 100% 100%, 0 100%); }
+.s-city .ct-skyline .b i { width: 14px; height: 18px; background: #15101f; }
+.s-city .ct-skyline .b i.on { background: rgba(255,207,63,.5); }
+.s-city .ct-road { position: absolute; left: 0; right: 0; bottom: 0; height: 26%; background: linear-gradient(180deg, #2a2620, #1a1812); }
+.s-city .ct-road::before { content: ""; position: absolute; left: 0; right: 0; top: 50%; height: 8px; background: repeating-linear-gradient(90deg, rgba(255,207,63,.3) 0 40px, transparent 40px 90px); }
+.s-city .ct-weeds { position: absolute; left: 0; right: 0; bottom: 24%; height: 36px; }
+.s-city .ct-weeds span { position: absolute; bottom: 0; width: 7px; height: 30px; background: #3a5a2c; clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+.s-city .ct-car { position: absolute; bottom: 8%; width: 220px; height: 90px; }
+.s-city .ct-car.c1 { left: 180px; }
+.s-city .ct-car.c2 { right: 200px; transform: scaleX(-1) rotate(4deg); bottom: 6%; }
+.s-city .ct-car .body { position: absolute; bottom: 16px; left: 0; right: 0; height: 44px; background: linear-gradient(180deg, #5a3030, #3a1e1e); border: 4px solid #15101f; border-radius: 8px; }
+.s-city .ct-car .cab { position: absolute; bottom: 50px; left: 50px; right: 50px; height: 40px; background: #3a1e1e; border: 4px solid #15101f; border-radius: 14px 14px 0 0; }
+.s-city .ct-car .wheel { position: absolute; bottom: 0; width: 36px; height: 36px; background: #15101f; border-radius: 50%; border: 6px solid #2a2738; }
+.s-city .ct-car .w1 { left: 30px; } .s-city .ct-car .w2 { right: 30px; }
+
+/* shared scene animations */
+@keyframes libFlicker { 0%,92% { opacity: 1; } 94% { opacity: .4; } 96% { opacity: 1; } 98% { opacity: .55; } }
+@keyframes libBlink { 50% { opacity: .25; } }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ============================================================
+   GALLERY LAYOUT
+   ============================================================ */
+.lib-page { min-height: 100%; background:
+   radial-gradient(1200px 800px at 50% -10%, #16122e, #07050f 70%); color: var(--txt);
+   font-family: var(--body); padding: 0 0 120px; }
+.lib-head { padding: 48px 60px 30px; border-bottom: 2px solid var(--line); position: relative; }
+.lib-head h1 { font-family: var(--pixel); font-size: 30px; color: var(--cyan);
+   text-shadow: 0 0 18px rgba(53,224,208,.5); margin-bottom: 14px; }
+.lib-head p { font-size: var(--t-md); color: var(--txt-dim); max-width: 900px; line-height: 1.6; }
+.lib-head .tagrow { display: flex; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
+.lib-head .tag { font-family: var(--pixel); font-size: 10px; padding: 6px 10px; border: 2px solid var(--line); color: var(--txt-dim); }
+.lib-head .swatches { display: flex; gap: 6px; margin-top: 18px; }
+.lib-head .swatches i { width: 30px; height: 30px; border: 2px solid rgba(255,255,255,.15); position: relative; }
+.lib-head .swatches i::after { content: attr(data-hex); position: absolute; top: 34px; left: 50%; transform: translateX(-50%); font-size: 9px; color: var(--txt-faint); white-space: nowrap; }
+
+.lib-section { padding: 50px 60px 10px; }
+.lib-section > h2 { font-family: var(--pixel); font-size: 18px; color: var(--gold); margin-bottom: 6px;
+   display: flex; align-items: center; gap: 12px; }
+.lib-section > h2::before { content: ""; width: 18px; height: 18px; background: var(--gold); box-shadow: 0 0 12px var(--gold); }
+.lib-section > .sub { font-size: var(--t-sm); color: var(--txt-faint); margin-bottom: 26px; }
+
+/* scene grid */
+.scene-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(420px, 1fr)); gap: 26px; }
+.scene-card { background: var(--bg-panel-2); border: 3px solid var(--line); overflow: hidden;
+   box-shadow: 0 10px 0 rgba(0,0,0,.35); }
+.scene-card .frame { position: relative; width: 100%; aspect-ratio: 1344 / 970; overflow: hidden; background: #07050f; }
+.scene-card .frame .scaler { position: absolute; top: 0; left: 0; transform-origin: top left; }
+.scene-card .cap { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-top: 2px solid var(--line); }
+.scene-card .cap .nm { font-size: var(--t-md); color: #fff; }
+.scene-card .cap .id { font-family: var(--pixel); font-size: 10px; color: var(--cyan); }
+
+/* character grid */
+.char-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 22px; }
+.char-card { background: var(--bg-panel-2); border: 3px solid var(--line); padding: 22px; display: flex; gap: 20px;
+   box-shadow: 0 8px 0 rgba(0,0,0,.35); }
+.char-card .portrait { width: 124px; flex: 0 0 124px; background:
+   radial-gradient(circle at 50% 40%, #1e1a38, #0e0b1f); border: 2px solid var(--line);
+   display: flex; align-items: flex-end; justify-content: center; padding-bottom: 14px; position: relative; }
+.char-card .portrait::after { content: ""; position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); width: 90px; height: 14px; background: rgba(0,0,0,.4); border-radius: 50%; filter: blur(3px); }
+.char-card .meta { flex: 1; min-width: 0; }
+.char-card .meta .row { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4px; flex-wrap: wrap; }
+.char-card .meta .nm { font-size: var(--t-lg); color: #fff; white-space: nowrap; }
+.char-card .meta .id { font-family: var(--pixel); font-size: 10px; color: var(--cyan); }
+.char-card .meta .role { font-size: var(--t-sm); color: var(--gold); margin-bottom: 12px; }
+.char-card .meta .desc { font-size: var(--t-sm); color: var(--txt-dim); line-height: 1.6; }
+.char-card .meta .mini { display: flex; align-items: center; gap: 14px; margin-top: 16px; padding-top: 14px; border-top: 2px solid var(--line); }
+.char-card .meta .mini .lbl { font-size: var(--t-xs); color: var(--txt-faint); }
+
+/* item grid */
+.item-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 18px; }
+.item-card { background: var(--bg-panel-2); border: 3px solid var(--line); padding: 20px; text-align: center;
+   box-shadow: 0 6px 0 rgba(0,0,0,.3); }
+.item-card .slot { width: 96px; height: 96px; margin: 0 auto 14px; background: #0c0a1c; border: 2px solid var(--purple);
+   display: flex; align-items: center; justify-content: center; }
+.item-card .nm { font-size: var(--t-md); color: #fff; margin-bottom: 4px; }
+.item-card .desc { font-size: var(--t-xs); color: var(--txt-dim); line-height: 1.5; }
