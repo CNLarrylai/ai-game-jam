@@ -8,7 +8,7 @@ COPY package.json package-lock.json ./
 RUN npm ci --production
 
 COPY . .
-RUN pip3 install --break-system-packages anthropic websockets python-dotenv fastapi uvicorn pydantic aiohttp
+RUN pip3 install --break-system-packages anthropic websockets python-dotenv fastapi uvicorn pydantic aiohttp json_repair
 
 EXPOSE 3002
 CMD ["node", "start-server.js"]
