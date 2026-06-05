@@ -118,9 +118,10 @@ function StoryCard({ story, onContinue }) {
 /* ---- Decision card (unified bottom style, optional votes) ---- */
 function DecisionCard({ decision, onChoose, onContinue }) {
   if (!decision) return null;
-  const { icon, title, desc, options, votes, result } = decision;
+  const { icon, title, desc, votes, result } = decision;
+  const options = decision.options || decision.opts || [];
   let maxVotes = -1;
-  if (votes) options.forEach((o) => { if ((votes[o.id] || 0) > maxVotes) maxVotes = votes[o.id] || 0; });
+  if (votes && options.length) options.forEach((o) => { if ((votes[o.id] || 0) > maxVotes) maxVotes = votes[o.id] || 0; });
   const totalVotes = votes ? Object.values(votes).reduce((a, b) => a + b, 0) : 0;
 
   return (
