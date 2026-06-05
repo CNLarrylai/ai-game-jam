@@ -40,7 +40,14 @@ export default function GameChat({
       const res = await fetch("/api/game", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ scenarioId: scenario.id, messages: history }),
+        body: JSON.stringify({
+          scenarioId: scenario.id,
+          messages: history,
+          // 带上提示词，后端优先用它——这样内置/仓库/GitHub/现场生成的剧本走同一条播放路径
+          ...(scenario.systemPrompt
+            ? { systemPrompt: scenario.systemPrompt }
+            : {}),
+        }),
       });
       if (!res.ok || !res.body) {
         throw new Error(await res.text());
