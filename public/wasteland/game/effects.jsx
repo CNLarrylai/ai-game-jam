@@ -44,7 +44,7 @@ function ItemToast({ toasts }) {
     <div className="toast-layer">
       {toasts.map((t) => (
         <div key={t.id} className={"toast " + (t.lose ? "lose" : "")}>
-          <div className="t-icon">{t.icon}</div>
+          <div className="t-icon">{window.PixIcon ? <window.PixIcon token={t.icon} size={34} /> : t.icon}</div>
           <div className="t-text">{t.lose ? "失去：" : "🎒 获得："}<b>{t.name}</b></div>
         </div>
       ))}

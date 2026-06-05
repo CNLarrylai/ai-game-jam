@@ -7,12 +7,28 @@ const { useState: useStateH, useEffect: useEffectH } = React;
 function ShelterBg({ children }) {
   return (
     <div className="shelter">
+      <div className="home-bg" />
       <div className="wall-grid" />
       <div className="floor-grid" />
       <div className="lamp" />
       {children}
     </div>
   );
+}
+
+/* ---------- companion avatar → 48×72 pixel portrait ---------- */
+const COMPANION_SPRITE = {
+  "👩‍🔧": "../assets/characters/char_companion_girl.png",   // 凛 机械师
+  "🧓": "../assets/characters/char_companion_uncle.png",    // 老K 军医
+  "🧑‍🦲": "../assets/characters/char_npc_cashier.png",       // 老鸦 拾荒者
+};
+function CompanionSprite({ av, glow }) {
+  const src = COMPANION_SPRITE[av];
+  if (!src) {
+    return <div className="body" style={{ fontSize: 44, borderColor: glow, boxShadow: "0 0 18px " + glow }}>{av}</div>;
+  }
+  return <img className="npc-sprite" src={src} width={96} height={144} alt=""
+    style={{ filter: "drop-shadow(0 0 14px " + glow + ")" }} />;
 }
 
 /* ---------- reusable hotspot ---------- */
@@ -96,19 +112,15 @@ function SceneHome({ D, flags, companions }) {
         {/* door — event hotspot */}
         <Hotspot variant="gold" label={flags.knock ? "🚪 门口（已查看）" : "🚪 查看门口"}
           badge={flags.knock ? null : "!"} onClick={openDoor}
-          style={{ left: "7%", top: "26%", width: 150, height: 300 }}>
-          <div style={{ width: "100%", height: "100%", background: "#0e0a1c",
-            border: "4px solid #3a2f1a", boxShadow: "inset 0 0 0 3px #251c10",
-            display: "flex", alignItems: "center", justifyContent: "center", fontSize: 56 }}>
-            🚪
-            <div style={{ position: "absolute", right: 18, top: "50%", width: 14, height: 14,
-              background: "var(--gold)", borderRadius: "50%" }} />
-          </div>
+          style={{ left: "4%", top: "22%", width: 150, height: 300 }}>
+          {/* transparent click region — the painted door in home_scene shows through */}
+          <div style={{ width: "100%", height: "100%" }} />
         </Hotspot>
 
-        {/* hero (not interactive) */}
+        {/* hero (not interactive) — official idle pixel sprite */}
         <div className="char-sprite hero bob" style={{ left: "40%", top: 360 }}>
-          <div className="body">🧑‍🚀</div>
+          <img className="player-sprite" src="../assets/characters/char_player_idle.png"
+            width={96} height={96} alt="" />
           <div className="shadow" />
           <div className="name-tag">阿陈 · 主角</div>
         </div>
@@ -117,7 +129,7 @@ function SceneHome({ D, flags, companions }) {
         {companions && companions[0] && <Hotspot variant="magenta" label={"💬 和 " + companions[0].name + " 对话"} onClick={() => talk(companions[0])}
           style={{ left: "58%", top: 400 }}>
           <div className="char-sprite" style={{ position: "static" }}>
-            <div className="body" style={{ fontSize: 44, borderColor: "var(--magenta)", boxShadow: "0 0 18px rgba(255,77,141,.4)" }}>{companions[0].av}</div>
+            <CompanionSprite av={companions[0].av} glow="rgba(255,77,141,.45)" />
             <div className="shadow" />
             <div className="name-tag">{companions[0].name + " · " + companions[0].role}</div>
           </div>
@@ -125,7 +137,7 @@ function SceneHome({ D, flags, companions }) {
         {companions && companions[1] && <Hotspot label={"💬 和 " + companions[1].name + " 对话"} onClick={() => talk(companions[1])}
           style={{ left: "24%", top: 560 }}>
           <div className="char-sprite" style={{ position: "static" }}>
-            <div className="body" style={{ fontSize: 44, borderColor: "var(--green)", boxShadow: "0 0 18px rgba(87,224,138,.35)" }}>{companions[1].av}</div>
+            <CompanionSprite av={companions[1].av} glow="rgba(87,224,138,.45)" />
             <div className="shadow" />
             <div className="name-tag">{companions[1].name + " · " + companions[1].role}</div>
           </div>
@@ -154,13 +166,9 @@ function SceneHome({ D, flags, companions }) {
 
         {/* supplies — open inventory */}
         <Hotspot label="📦 整理物资" onClick={() => D.goScene("organize")}
-          style={{ left: "69%", top: 560, width: 190, height: 120 }}>
-          <div style={{ display: "flex", gap: 14, alignItems: "flex-end", height: "100%" }}>
-            <div style={{ width: 100, height: 90, background: "#3a2f1a", border: "3px solid #5a4a26",
-              display: "flex", alignItems: "center", justifyContent: "center", fontSize: 42 }}>📦</div>
-            <div style={{ width: 80, height: 68, background: "#2a2350", border: "3px solid var(--purple)",
-              display: "flex", alignItems: "center", justifyContent: "center", fontSize: 34 }}>🥫</div>
-          </div>
+          style={{ left: "72%", top: 540, width: 200, height: 150 }}>
+          {/* transparent click region — aligns over the painted storage crates */}
+          <div style={{ width: "100%", height: "100%" }} />
         </Hotspot>
       </ShelterBg>
 
@@ -218,7 +226,8 @@ function SceneOrganize({ D, pack, companions }) {
                   position: "relative" }}>
                   <div style={{ width: 52, height: 52, background: "var(--bg-raised)",
                     border: "2px solid " + bdr, display: "flex", alignItems: "center",
-                    justifyContent: "center", fontSize: 26 }}>{it.icon}</div>
+                    justifyContent: "center", fontSize: 26 }}>
+                    {window.PixIcon ? <window.PixIcon token={it.icon} size={38} /> : it.icon}</div>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ fontSize: "var(--t-md)", color: "#fff" }}>{it.name} ×{it.qty}</div>
                     <div style={{ fontSize: "var(--t-xs)", color: effColor }}>{it.effText}</div>

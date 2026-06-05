@@ -54,7 +54,7 @@ function StatusBar({ day, maxDay, stats, pack, floats, flashSlot }) {
             return (
               <div key={i}
                 className={"pack-slot " + (it ? "filled " : "") + (flashSlot === i ? "flash" : "")}>
-                {it ? it.icon : ""}
+                {it ? (window.PixIcon ? <window.PixIcon token={it.icon} size={30} /> : it.icon) : ""}
                 {it && it.qty > 1 ? <span className="qty">{it.qty}</span> : null}
               </div>
             );

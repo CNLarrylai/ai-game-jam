@@ -62,6 +62,44 @@ function getSceneComment(scene) {
 // Keep AMBIENT_COMMENTS for backward compat (fallback)
 const AMBIENT_COMMENTS = SCENE_COMMENTS.home.concat(SCENE_COMMENTS.explore);
 
+/* ---- pixel icon assets (16×16; render pixelated + integer scale) ---- */
+const ICON_BASE = "../assets/icons/";
+// emoji → icon png map so any call-site passing an emoji string renders the
+// official pixel art instead (visual-only; no logic touched).
+const EMOJI_ICON = {
+  "💧": ICON_BASE + "icon_water.png",
+  "🐟": ICON_BASE + "icon_canned_food.png",
+  "🐱": ICON_BASE + "icon_canned_food.png",
+  "🥫": ICON_BASE + "icon_canned_food.png",
+  "🍗": ICON_BASE + "icon_drumstick.png",
+  "🔫": ICON_BASE + "icon_weapon_bat.png",
+  "🩹": ICON_BASE + "icon_medkit.png",
+  "💊": ICON_BASE + "icon_medkit.png",
+  "🔩": ICON_BASE + "icon_tool_wrench.png",
+  "🔧": ICON_BASE + "icon_tool_wrench.png",
+  "🔦": ICON_BASE + "icon_flashlight.png",
+  "🔋": ICON_BASE + "icon_battery.png",
+  "📻": ICON_BASE + "icon_radio.png",
+  "🗝️": ICON_BASE + "icon_key.png",
+  "🪢": ICON_BASE + "icon_rope.png",
+  "🎒": ICON_BASE + "icon_backpack.png",
+};
+function iconSrc(token) {
+  if (!token) return null;
+  if (typeof token === "string" && token.indexOf("/assets/") !== -1) return token;
+  return EMOJI_ICON[token] || null;
+}
+// small <img> renderer: integer-scaled + pixelated. Falls back to the emoji
+// span when no asset matches, so nothing ever renders blank.
+function PixIcon({ token, size, style }) {
+  const src = iconSrc(token);
+  if (!src) return React.createElement("span", { style: { fontSize: (size || 24) * 0.86, lineHeight: 1, ...style } }, token || "");
+  return React.createElement("img", {
+    src, width: size, height: size, alt: "",
+    style: { imageRendering: "pixelated", display: "block", ...style },
+  });
+}
+
 // Items in the shelter / pack
 const ITEMS = {
   water: { id: "water", icon: "💧", name: "矿泉水", kind: "consume", effect: { supply: 10 }, effText: "水分 +10", qty: 3 },
@@ -71,6 +109,9 @@ const ITEMS = {
   bandage: { id: "bandage", icon: "🩹", name: "绷带", kind: "consume", effect: { hp: 20 }, effText: "健康 +20", qty: 0 },
   pills: { id: "pills", icon: "💊", name: "镇静剂", kind: "consume", effect: { sanity: 25 }, effText: "精神 +25", qty: 0 },
   scrap: { id: "scrap", icon: "🔩", name: "废铁", kind: "material", effect: {}, effText: "材料：交易时消耗", qty: 0 },
+  // 修复：initPack/addItem 引用了这两个键但原 ITEMS 缺定义（背包出现 ×0 空行、addItem 静默 no-op）
+  can: { id: "can", icon: "🥫", name: "罐头", kind: "consume", effect: { hunger: 10 }, effText: "饱腹 +10", qty: 1 },
+  flashlight: { id: "flashlight", icon: "🔦", name: "军用手电筒", kind: "material", effect: {}, effText: "出门探索：照亮黑暗区域", qty: 0 },
 };
 
 const INIT_STATS = { sanity: 60, health: 50, hunger: 30, thirst: 30 };
@@ -182,4 +223,5 @@ const SPAM_USERS = [
 Object.assign(window, {
   AMBIENT_COMMENTS, ITEMS, INIT_STATS, COMPANIONS, DESTINATIONS, MAP_NPC, HEX_TILES,
   TIMELINE, LEADERBOARD, GLOBAL_STATS, WIN_RECAP, SPAM_PHRASES, SPAM_USERS,
+  EMOJI_ICON, iconSrc, PixIcon,
 });

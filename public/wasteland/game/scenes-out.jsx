@@ -3,6 +3,23 @@
    ============================================================ */
 const { useState: useStateO, useEffect: useEffectO } = React;
 
+/* representative pixel art per destination thumbnail (floor tileset + landmark) */
+const DEST_ART = {
+  factory:    { floor: "../assets/maps/factory/tile_floor_concrete.png", obj: "../assets/maps/factory/tile_machine.png" },
+  market:     { floor: "../assets/maps/supermarket/tile_floor_a.png",    obj: "../assets/maps/supermarket/tile_shelf_full.png" },
+  wjx:        { floor: "../assets/maps/supermarket/tile_floor_b.png",    obj: "../assets/maps/supermarket/tile_box_a.png" },
+  whitehouse: { floor: "../assets/maps/factory/tile_floor_grate.png",    obj: "../assets/maps/factory/tile_ai_core.png" },
+};
+function DestThumb({ d }) {
+  const art = DEST_ART[d.id];
+  if (!art) return <div className="dc-thumb">{d.icon}</div>;
+  return (
+    <div className="dc-thumb dc-thumb-art" style={{ backgroundImage: "url(" + art.floor + ")" }}>
+      <img src={art.obj} alt="" className="dc-thumb-obj" />
+    </div>
+  );
+}
+
 /* ============================================================
    选择目的地
    ============================================================ */
@@ -19,7 +36,7 @@ function SceneDestination({ D }) {
             <div key={d.id} className={"dest-card " + (d.generated ? "generated" : "")}
               onClick={() => D.confirmDest(d)}>
               {d.generated && <div className="gen-tag">✨ 由观众评论生成</div>}
-              <div className="dc-thumb">{d.icon}</div>
+              <DestThumb d={d} />
               <div className="dc-name">{d.name}</div>
               <div className="dc-row"><span>危险等级</span>
                 <span className="danger">{"⭐".repeat(d.danger)}</span></div>
@@ -214,7 +231,8 @@ function SceneExplore({ D }) {
         {foe && (
           <div className="battle-foe">
             <div className="char-sprite hero" style={{ position: "static" }}>
-              <div className="body">🧑‍🚀</div><div className="shadow" />
+              <img className="player-sprite" src="../assets/characters/char_player_idle.png"
+                width={96} height={96} alt="" /><div className="shadow" />
             </div>
             <div style={{ fontFamily: "var(--pixel)", fontSize: 20, color: "var(--red)" }}>VS</div>
             <div className="char-sprite" style={{ position: "static" }}>
@@ -225,11 +243,16 @@ function SceneExplore({ D }) {
           </div>
         )}
 
-        {/* npc bubble */}
+        {/* npc portrait + bubble */}
         {npc && (
-          <div className="npc-bubble" style={{ left: "52%", top: "26%" }}>
-            <b style={{ color: "var(--cyan)" }}>{npc.av} {npc.name}</b><br />{npc.line}
-          </div>
+          <React.Fragment>
+            <img src="../assets/characters/char_npc_cashier.png" width={144} height={216} alt=""
+              style={{ position: "absolute", left: "30%", top: "20%", imageRendering: "pixelated",
+                filter: "drop-shadow(0 0 16px rgba(53,224,208,.4))", zIndex: 18 }} />
+            <div className="npc-bubble" style={{ left: "52%", top: "26%" }}>
+              <b style={{ color: "var(--cyan)" }}>{npc.av} {npc.name}</b><br />{npc.line}
+            </div>
+          </React.Fragment>
         )}
 
         {/* out of AP */}
