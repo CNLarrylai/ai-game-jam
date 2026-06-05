@@ -40,19 +40,33 @@ function App() {
   const [confirmD, setConfirmD] = useState(null);
   const [share, setShare] = useState(false);
   const [flags, setFlags] = useState({ knock: false });
+  const [liveMode, setLiveMode] = useState(true); // 直播间模式默认开
 
   const voteTimer = useRef(null);
   const sceneRef = useRef(scene);
   sceneRef.current = scene;
+  // refs so interval/timeout closures always read the latest values
+  const liveModeRef = useRef(liveMode);
+  liveModeRef.current = liveMode;
+  const statsRef = useRef(stats);
+  statsRef.current = stats;
+  const dayRef = useRef(day);
+  dayRef.current = day;
+  const overlayRef = useRef({});
+  overlayRef.current = { decision, story, cta, banner };
 
   /* ---- ambient comment stream ---- */
   useEffect(() => {
     var elapsed = 0;
     const t = setInterval(() => {
+      // 单机模式：不刷 bot 评论、不涨 viewers/likes（对照演示，安静下来）
+      if (!liveModeRef.current) return;
       elapsed++;
-      const c = (typeof getSceneComment === "function")
-        ? getSceneComment(sceneRef.current)
-        : AMBIENT_COMMENTS[Math.floor(Math.random() * AMBIENT_COMMENTS.length)];
+      const c = (window.AudienceBot
+        ? AudienceBot.nextComment(sceneRef.current)
+        : (typeof getSceneComment === "function")
+          ? getSceneComment(sceneRef.current)
+          : AMBIENT_COMMENTS[Math.floor(Math.random() * AMBIENT_COMMENTS.length)]);
       if (elapsed >= 3) streamComment({ ...c });
       // Viewers ramp up then stabilize
       if (elapsed <= 10) {
@@ -72,6 +86,7 @@ function App() {
   useEffect(() => {
     let timers = [];
     const burst = () => {
+      if (!liveModeRef.current) return; // 单机模式不刷屏
       const phrase = SPAM_PHRASES[Math.floor(Math.random() * SPAM_PHRASES.length)];
       const n = 7 + Math.floor(Math.random() * 12);
       for (let i = 0; i < n; i++) {
@@ -266,6 +281,16 @@ function App() {
     });
   }, [day, showPhase, triggerFail]);
 
+  /* ---- 直播间 ↔ 单机 对照开关 ---- */
+  const toggleMode = useCallback(() => {
+    setLiveMode((m) => {
+      const next = !m;
+      if (next) pushSystem("已切换到「直播间模式」· 观众评论将实时驱动剧情");
+      else pushSystem("已切换到「单机模式」· 观众评论不再影响剧情（对照演示）");
+      return next;
+    });
+  }, [pushSystem]);
+
   /* ---- 征集创意 (call to action) ---- */
   const startCTA = useCallback(() => {
     if (cta) return;
@@ -382,6 +407,60 @@ function App() {
     };
   }, []);
 
+  /* ---- bot 评论驱动事件 —— demo 核心因果闭环 ---- */
+  useEffect(() => {
+    let timers = [];
+    const tick = () => {
+      try {
+        if (!liveModeRef.current) return;            // 单机模式：不触发
+        if (!window.AudienceBot) return;             // bot 未加载：跳过
+        const sc = sceneRef.current;
+        if (sc !== "home" && sc !== "destination" && sc !== "explore") return;
+        // 已有弹层占用 → 本轮跳过，避免盖住
+        const ov = overlayRef.current || {};
+        if (ov.decision || ov.story || ov.cta || ov.banner) return;
+
+        const c = AudienceBot.actionableComment(sc);
+        if (!c) return;
+
+        // 1) 该创意评论先以普通氛围评论形式飘出
+        streamComment({ user: c.user, av: c.av, text: c.text });
+
+        // 2) ~1.3s 后标记采纳（adoptComment 内部分类 + 涨 viewers）
+        timers.push(setTimeout(() => {
+          try { adoptComment({ user: c.user, av: c.av, text: c.text }); }
+          catch (e) { console.warn("[bot-event] adopt failed", e); }
+        }, 1300));
+
+        // 3) ~2.4s 后合成事件并按 type 分发
+        timers.push(setTimeout(() => {
+          try {
+            const ev = AudienceBot.synthEvent(c, {
+              scene: sceneRef.current, stats: statsRef.current, day: dayRef.current,
+            });
+            if (!ev || !ev.type) return;
+            if (ev.type === "banner") {
+              showBanner({ big: true, icon: ev.icon || "✨", html: ev.html });
+            } else if (ev.type === "story") {
+              setStory({ illus: ev.illus, source: ev.source, text: ev.text,
+                onContinue: () => setStory(null) });
+            } else if (ev.type === "item") {
+              addItem(ev.itemId);
+              showBanner({ big: true, icon: "🎁", html: ev.html });
+            } else if (ev.type === "stats") {
+              applyStats(ev.delta);
+              showBanner({ icon: "⚡", html: ev.html });
+            }
+          } catch (e) { console.warn("[bot-event] synth failed", e); }
+        }, 2400));
+      } catch (e) {
+        console.warn("[bot-event] tick failed", e);
+      }
+    };
+    const iv = setInterval(tick, 13000);
+    return () => { clearInterval(iv); timers.forEach(clearTimeout); };
+  }, []);
+
   /* hidden review shortcuts (NOT visible streamer controls): 1=fail 2=win 3=settle 0=restart */
   useEffect(() => {
     const onKey = (e) => {
@@ -452,6 +531,9 @@ function App() {
           {/* streamer call-to-action button (only legitimate top control) */}
           {(scene === "home" || scene === "organize" || scene === "destination" || scene === "explore") && (
             <div style={{ position: "absolute", top: 18, right: 22, zIndex: 55, display: "flex", gap: 8 }}>
+              {liveMode
+                ? <button className="btn sm gold" onClick={toggleMode}>🎙️ 直播间模式</button>
+                : <button className="btn sm" onClick={toggleMode}>🎮 单机模式</button>}
               <button className="btn sm gold" onClick={startCTA} disabled={!!cta}>📢 征集创意</button>
             </div>
           )}
