@@ -40,7 +40,14 @@ export default function GameChat({
       const res = await fetch("/api/game", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ scenarioId: scenario.id, messages: history }),
+        body: JSON.stringify({
+          scenarioId: scenario.id,
+          messages: history,
+          // 现场生成的自定义剧本不在剧本库里，需把提示词一并带给后端
+          ...(scenario.id.startsWith("custom-")
+            ? { systemPrompt: scenario.systemPrompt }
+            : {}),
+        }),
       });
       if (!res.ok || !res.body) {
         throw new Error(await res.text());

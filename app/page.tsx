@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { scenarios } from "@/lib/scenarios";
 import type { Scenario } from "@/lib/types";
 import GameChat from "@/components/GameChat";
@@ -38,6 +39,20 @@ export default function Home() {
             </span>
           </button>
         ))}
+
+        <Link
+          href="/create"
+          className="group flex flex-col rounded-2xl border border-dashed border-white/15 bg-white/[0.02] p-6 text-left transition hover:border-ember/50 hover:bg-white/[0.05]"
+        >
+          <span className="text-4xl">📖</span>
+          <h2 className="mt-4 text-lg font-semibold text-parchment">从你的小说生成</h2>
+          <p className="mt-1 flex-1 text-sm text-parchment/55">
+            粘贴或上传一段小说，AI 自动识别类型、匹配机制，现场生成一个可玩剧本。
+          </p>
+          <span className="mt-4 text-sm font-medium text-ember opacity-0 transition group-hover:opacity-100">
+            导入小说 →
+          </span>
+        </Link>
       </div>
 
       <p className="mt-14 text-center text-xs text-parchment/30">
