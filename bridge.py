@@ -197,14 +197,45 @@ async def listen(ws):
 def on_comment(msg):
     text = msg.get("text", "")
     username = msg.get("name", "匿名")
+    uid = msg.get("uid", "")
     if not text.strip():
         return
     result = classify(text, phase=state.phase)
     if not pool.is_window_open():
         pool.open_window()
+
+    # Check rejection reasons BEFORE adding
+    reason = None
+    if result.category not in pool._queues:
+        reason = "闲聊内容不参与剧情生成"
+    elif not result.phase_compatible:
+        reason = "当前阶段不适合这类创意"
+    elif result.confidence < 0.3:
+        reason = "描述不够具体，试试更详细的场景描述"
+
     pool.add(username, text, result)
     comment_buffer.append({"username": username, "text": text, "category": result.category, "confidence": result.confidence})
-    print(f"💬 [{result.category}] {username}: {text} (conf={result.confidence:.2f} pool={pool.total_size()} queues={[(k,len(v)) for k,v in pool._queues.items()]})")
+    print(f"💬 [{result.category}] {username}: {text} (conf={result.confidence:.2f} pool={pool.total_size()} {'REJECT:'+reason if reason else 'OK'})")
+
+    # Send feedback to the commenter
+    if reason:
+        asyncio.ensure_future(send_ws({
+            "type": "comment_feedback",
+            "uid": uid,
+            "username": username,
+            "text": text,
+            "category": result.category,
+            "reason": reason,
+        }))
+    else:
+        asyncio.ensure_future(send_ws({
+            "type": "comment_feedback",
+            "uid": uid,
+            "username": username,
+            "text": text,
+            "category": result.category,
+            "accepted": True,
+        }))
 
 
 async def on_host_action(msg):
