@@ -58,7 +58,11 @@ function App(props) {
         const d = msg.data;
         if (d.day != null) setDay(d.day);
         if (d.stats) setStats(s => ({ ...s, ...d.stats }));
-        if (d.scene) setScene(d.scene);
+        if (d.scene) {
+          setScene(d.scene);
+          // Clear stale explore state when leaving explore scene
+          if (d.scene !== 'explore') window.__EXPLORE_STATE__ = null;
+        }
         if (d.pack) setPack(d.pack);
         if (d.flags) setFlags(d.flags);
         if (d.companions) setCompanions(d.companions);
