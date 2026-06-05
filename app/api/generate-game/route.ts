@@ -21,18 +21,18 @@ const SPEC = `你是「小说→叙事抉择游戏」适配引擎。把一段末
  "meta": { "title": "小说改编名≤12字", "subtitle": "一句副标题", "source": "原著名" },
  "res_def": [ {"id":"food","ic":"🥫","label":"Food","cn":"中文名"}, {"id":"health","ic":"💊","label":"Health","cn":"中文名"}, {"id":"morale","ic":"🔥","label":"Morale","cn":"中文名"} ]  （⚠️ id 必须严格是 food/health/morale 三个不可改——引擎结局判定依赖它们；只把 cn 改成贴小说的中文名，如 食物/口粮、健康/体力、士气/人心/意志）,
  "start_res": { "food":8, "health":9, "morale":8 },
- "worldLines": [ {"t":"中文开场白描一句","cls":""} ]  （恰 4 句，交代小说的末世处境；最后两句的 cls 可用 "accent2" 和 "accent"）,
- "crew": [ {"key":"英文","name":"中文名","tag":"一句身份","line":["短句一","短句二"],"rim":"#b33831","silTop":"#3a4466","detail":""} ]  （2~3 个，取自小说人物；detail 可空或 "pony"/"hood"/"cross"）,
- "campaign": [ "卡id1","卡id2","卡id3","卡id4","卡id5","卡id6" ]  （按剧情顺序的 6 个卡 id）,
+ "worldLines": [ {"t":"开场白描≤20字","cls":""} ]  （恰 4 句；最后两句 cls 可用 "accent2"、"accent"）,
+ "crew": [ {"key":"英文","name":"中文名","tag":"身份≤8字","line":["≤10字","≤10字"],"rim":"#b33831","silTop":"#3a4466"} ]  （2 个，取自小说人物）,
+ "campaign": [ "卡id1","卡id2","卡id3","卡id4","卡id5" ]  （5 个卡 id）,
  "nodes": {
-   "<卡id>": { "id":"<卡id>", "title":"这一幕的标题", "desc":"2-3句场景，忠于小说剧情、点出此刻的抉择处境", "icon":"emoji", "generated":true,
-     "choices": [ {"id":"英文","label":"玩家的选择","hint":"选前的模糊暗示（risk 项尤其不剧透）","costs":[{"res":"<res_def里的id>","d":整数增减}],"risk":true或false,"outcome":{"emoji":"emoji","title":"选后揭晓标题","body":"后果文字"},"next":"","effects":["因果文字"]} ]
-   }  （2~3 个选择，无明显最优；每卡至少 1 个 "risk":true；next 一律 ""）
+   "<卡id>": { "id":"<卡id>", "title":"幕标题≤8字", "desc":"场景≤40字，点出抉择处境", "icon":"emoji", "generated":true,
+     "choices": [ {"id":"英文","label":"选择≤16字","hint":"暗示≤14字","costs":[{"res":"food/health/morale","d":整数}],"risk":true或false,"outcome":{"emoji":"emoji","title":"≤8字","body":"后果≤40字"},"next":"","effects":["≤14字"]} ]
+   }  （每卡恰 2 个选择，无明显最优；每卡至少 1 个 "risk":true；next 一律 ""）
  },
- "codex": { "<人物中文名>": {"tag":"身份","body":"一句背景"} }  （小说关键人物 2~4 个，供正文人名点击查看）
+ "codex": { "<人物中文名>": {"tag":"身份≤8字","body":"背景≤20字"} }  （2 个关键人物）
 }
 
-要点：① 6 个卡 = 小说从开端到结局的 6 个关键剧情节点，每个都是真实场景 + 真两难。② costs 的 res 必须是 res_def 里定义的 id。③ next 全部 ""（逐幕线性推进）。④ 资源经济要能死人（撑不住某资源=0 即出局）也能通关。`;
+要点：① 5 卡 = 小说开端到结局 5 个关键剧情节点，真实场景 + 真两难。② costs 的 res 只能 food/health/morale。③ next 全 ""。④ 资源经济能死人也能通关。⑤ **严格遵守上面的字数上限，整体务必精炼**（输出过长会被截断）。`;
 
 function parseGame(raw: string) {
   const s = String(raw).trim().replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
@@ -62,12 +62,12 @@ async function apiRaw(novelText: string): Promise<string> {
   const key = process.env.ANTHROPIC_API_KEY!;
   const model = process.env.GENERATE_MODEL || "claude-haiku-4-5-20251001";
   const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), 48000);
+  const t = setTimeout(() => ctrl.abort(), 44000);
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({ model, max_tokens: 4000, system: SPEC, messages: [{ role: "user", content: `小说原文（节选，据此提炼世界观/剧情/人物/抉择）：\n"""\n${String(novelText).slice(0, 6000)}\n"""` }] }),
+      body: JSON.stringify({ model, max_tokens: 3200, system: SPEC, messages: [{ role: "user", content: `小说原文（节选，据此提炼世界观/剧情/人物/抉择）：\n"""\n${String(novelText).slice(0, 4500)}\n"""` }] }),
       signal: ctrl.signal,
     });
     if (!res.ok) throw new Error(`API ${res.status}: ${(await res.text()).slice(0, 160)}`);
