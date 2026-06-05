@@ -19,7 +19,7 @@ export default function Studio() {
   const [result, setResult] = useState<{ playUrl: string; summary: Summary } | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
-  const [shell, setShell] = useState<"pixel" | "woodcut">("pixel");
+  const [shell, setShell] = useState<"pixel" | "woodcut">("woodcut");
   const fileRef = useRef<HTMLInputElement>(null);
 
   // 读 txt 文件：优先 UTF-8，乱码则回退 GBK（中文小说常见）
@@ -53,6 +53,8 @@ export default function Studio() {
       });
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
+      // 游戏数据存 localStorage，游戏壳按 ?id 读取（serverless 友好，无需写文件）
+      try { localStorage.setItem("wl_game_" + data.id, JSON.stringify(data.gameData)); } catch {}
       setResult(data);
     } catch (e) {
       setError((e as Error).message);

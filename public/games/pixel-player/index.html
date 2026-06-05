@@ -20,8 +20,16 @@
 <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
 <script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
 
-<!-- PoC: 小说生成的游戏数据(同步注入 window.GAME_DATA,在 babel 脚本前)；缺失则 data.jsx 用默认 -->
-<script src="custom-data.js"></script>
+<!-- 小说生成的游戏数据：?id 时从 localStorage 同步读取(serverless 友好,无需写文件)；
+     无 id 则回退默认 AI 题材。在 babel 脚本前同步执行,确保 data.jsx 能读到。 -->
+<script>
+(function(){
+  try {
+    var id = new URLSearchParams(location.search).get('id');
+    if (id) { var raw = localStorage.getItem('wl_game_' + id); if (raw) window.GAME_DATA = JSON.parse(raw); }
+  } catch (e) { console.warn('[WL] GAME_DATA 载入失败', e); }
+})();
+</script>
 <script type="text/babel" src="game/data.jsx"></script>
 <script type="text/babel" src="game/art-bridge.jsx"></script>
 <script type="text/babel" src="game/chrome.jsx"></script>
