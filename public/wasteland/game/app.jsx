@@ -41,6 +41,7 @@ function App(props) {
   const [confirmD, setConfirmD] = useState(null);
   const [share, setShare] = useState(false);
   const [flags, setFlags] = useState({ knock: false });
+  const [viewerCountdown, setViewerCountdown] = useState(30);
 
   const voteTimer = useRef(null);
   const sceneRef = useRef(scene);
@@ -93,6 +94,15 @@ function App(props) {
     ws.addEventListener('message', handler);
     return () => ws.removeEventListener('message', handler);
   }, [isViewer, props?.viewerWs]);
+
+  /* ---- viewer: 30s countdown for comment collection ---- */
+  useEffect(() => {
+    if (!isViewer) return;
+    const t = setInterval(() => {
+      setViewerCountdown(c => c <= 0 ? 30 : c - 1);
+    }, 1000);
+    return () => clearInterval(t);
+  }, [isViewer]);
 
   /* ---- ambient comment stream (host only) ---- */
   useEffect(() => {
@@ -539,6 +549,25 @@ function App(props) {
           {scene === "settle" && <Settlement outcome="win"
             days={5} onShare={() => setShare(true)} onReplay={resetGame} />}
           {share && <ShareCard onClose={() => setShare(false)} />}
+
+          {/* viewer: watch badge + countdown bar */}
+          {isViewer && (
+            <React.Fragment>
+              <div className="watch-badge">
+                <span className="dot" style={{ background: props?.viewerConnected ? 'var(--green)' : 'var(--red)' }} />
+                {props?.viewerConnected ? '已同步 · Day ' + day + ' · 观看中' : '连接中...'}
+              </div>
+              <div className="collect-bar" style={{ position: 'absolute', left: '50%', bottom: 104, transform: 'translateX(-50%)', zIndex: 45, width: '56%', background: 'rgba(10,8,20,.9)', border: '2px solid var(--gold)', boxShadow: '0 0 22px rgba(255,207,63,.3)', padding: '12px 18px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 9 }}>
+                  <span style={{ fontSize: 'var(--t-sm)', color: 'var(--gold)' }}>🎮 {viewerCountdown <= 3 ? '正在采集评论...' : '下一轮创意采集'}</span>
+                  <span style={{ fontFamily: 'var(--pixel)', fontSize: 'var(--t-md)', color: '#fff' }}>{viewerCountdown}s</span>
+                </div>
+                <div style={{ height: 12, background: '#0c0a1c', border: '2px solid var(--line)', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', background: 'linear-gradient(90deg, var(--gold-deep), var(--gold))', width: Math.round((viewerCountdown / 30) * 100) + '%', transition: 'width 1s linear' }} />
+                </div>
+              </div>
+            </React.Fragment>
+          )}
 
           {/* streamer call-to-action button (only legitimate top control) */}
           {(scene === "home" || scene === "organize" || scene === "destination" || scene === "explore") && (
