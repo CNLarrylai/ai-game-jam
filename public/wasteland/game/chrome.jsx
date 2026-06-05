@@ -4,10 +4,10 @@
 const { useRef, useEffect } = React;
 
 const STAT_META = [
-  { key: "hp",     name: "HP",   icon: "❤️" },
+  { key: "hp",     name: "健康", icon: "❤️" },
   { key: "hunger", name: "饱腹", icon: "🍞" },
-  { key: "sanity", name: "理智", icon: "🧠" },
-  { key: "supply", name: "物资", icon: "📦" },
+  { key: "sanity", name: "精神", icon: "🧠" },
+  { key: "supply", name: "水分", icon: "💧" },
 ];
 
 function StatusBar({ day, maxDay, stats, pack, floats, flashSlot }) {

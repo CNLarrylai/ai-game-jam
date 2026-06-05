@@ -6,23 +6,23 @@ const { useState, useEffect, useRef, useCallback } = React;
 let _uid = 0;
 const uid = () => "u" + (++_uid) + "_" + Date.now();
 
-const INIT_STATS = { hp: 78, hunger: 52, sanity: 64, supply: 70 };
+const INIT_STATS = { hp: 50, hunger: 70, sanity: 60, supply: 70 };
 const initPack = () => ([
   { ...ITEMS.can }, { ...ITEMS.bandage }, { ...ITEMS.water }, { ...ITEMS.scrap },
 ]);
 
 function App() {
   const [scene, setScene] = useState("home");
-  const [day, setDay] = useState(3);
+  const [day, setDay] = useState(1);
   const maxDay = 7;
   const [stats, setStats] = useState({ ...INIT_STATS });
   const [pack, setPack] = useState(initPack());
   const [comments, setComments] = useState([
     { id: uid(), user: "废土老兵", av: "🪖", text: "新的一天，撑住啊主播", mod: true },
-    { id: uid(), user: "夜行猫", av: "🐱", text: "Day3了！进度好快" },
-    { id: uid(), user: "番茄罐头", av: "🥫", text: "饱腹有点低 记得吃东西" },
+    { id: uid(), user: "夜行猫", av: "🐱", text: "第一天，加油啊主播！" },
+    { id: uid(), user: "番茄罐头", av: "🥫", text: "物资不多了，出门碰碰运气吧" },
   ]);
-  const [viewers, setViewers] = useState(8421);
+  const [viewers, setViewers] = useState(0);
   const [floats, setFloats] = useState([]);
   const [toasts, setToasts] = useState([]);
   const [banner, setBanner] = useState(null);
@@ -125,7 +125,7 @@ function App() {
         setTimeout(() => setFloats((fs) => fs.filter((f) => f.id !== fid)), 1500);
       });
       // death check
-      if (["hp", "hunger", "sanity"].some((k) => ns[k] <= 0)) {
+      if (["hp", "hunger", "sanity", "supply"].some((k) => ns[k] <= 0)) {
         setTimeout(() => triggerFail(), 900);
       }
       return ns;
