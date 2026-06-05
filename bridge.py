@@ -200,6 +200,9 @@ def on_comment(msg):
     uid = msg.get("uid", "")
     if not text.strip():
         return
+    # Ignore our own system messages
+    if username == "🧠 AI Engine" or uid == "engine_001":
+        return
     result = classify(text, phase=state.phase)
     # Don't call open_window here — it clears the pool! Window is managed by generation_loop.
 
