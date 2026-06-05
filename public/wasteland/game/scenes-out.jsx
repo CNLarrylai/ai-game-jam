@@ -52,8 +52,9 @@ function hexPos(x, y) {
 
 function SceneExplore({ D }) {
   const isViewer = window.__VIEWER_MODE__;
+  const destAp = D.currentDest?.ap || 5;
 
-  const [ap, setAp] = useStateO(3);
+  const [ap, setAp] = useStateO(destAp);
   const [revealed, setRevealed] = useStateO({});
   const [foe, setFoe] = useStateO(null);
   const [npc, setNpc] = useStateO(null);
@@ -91,6 +92,50 @@ function SceneExplore({ D }) {
     setAp((a) => a - 1);
     const p = hexPos(t.x, t.y);
     const px = p.left + HEX_W / 2, py = p.top + HEX_H / 2;
+
+    // === AI-injected content: trigger event from viewer comment ===
+    const injected = window.__INJECTED_TILES__?.[t.id];
+    if (injected) {
+      delete window.__INJECTED_TILES__[t.id];
+      D.spawn({ x: px, y: py + 70 });
+      const evSource = injected.source_user || t.by || '观众';
+      const evTitle = injected.event_title || injected.name || 'AI 事件';
+      const rawOpts = injected.options || [];
+      const opts = rawOpts.map((o, i) => {
+        const opt = typeof o === 'string'
+          ? { id: o, label: o, icon: '▸' }
+          : { id: o.id || o.text || ('opt' + i), label: o.text || o.label || String(o), icon: o.icon || '▸' };
+        const parts = [];
+        if (o.cost) parts.push('代价: ' + (typeof o.cost === 'string' ? o.cost.substring(0, 40) : JSON.stringify(o.cost)));
+        if (o.benefit) parts.push('收益: ' + (typeof o.benefit === 'string' ? o.benefit.substring(0, 40) : JSON.stringify(o.benefit)));
+        opt.sub = parts.join(' | ') || o.sub || '';
+        opt._raw = o;
+        return opt;
+      });
+      if (!opts.length) {
+        opts.push({ id: 'accept', label: '接受', icon: '✅', sub: '', _raw: {} });
+        opts.push({ id: 'ignore', label: '无视', icon: '🚶', sub: '', _raw: {} });
+      }
+      setTimeout(() => D.decision({
+        id: 'injected_' + t.id, icon: '✨',
+        title: '✨ ' + evTitle + ' — by @' + evSource,
+        desc: injected.narrative || '',
+        options: opts,
+        onChoose: (opt) => {
+          if (window.WsSync && WsSync.connected) {
+            WsSync.send({ type: 'host_action', action: 'choice', data: { choice: opt.label || opt.id } });
+          }
+          setTimeout(() => {
+            const d = window.__A?.setDecision;
+            // 12s fallback
+          }, 12000);
+          return '你选择了「' + (opt.label || opt.id) + '」\n\nAI 正在生成结果...';
+        },
+        onContinue: finishEvent,
+      }), 650);
+      return;
+    }
+
     if (t.type !== "empty") D.spawn({ x: px, y: py + 70 });
 
     if (t.type === "search") {
@@ -195,12 +240,12 @@ function SceneExplore({ D }) {
   const heroPos = hexPos(0, 0);
   return (
     <div className="scene">
-      <div className="scene-title-chip">🗺️ 出门 · 探索废弃医院</div>
+      <div className="scene-title-chip">🗺️ 出门 · 探索{D.currentDest?.name || '废弃医院'}</div>
       <div className="explore">
         <div className="ap-bar">
-          <span className="ap-label">行动点 {ap}/5</span>
+          <span className="ap-label">行动点 {ap}/{destAp}</span>
           <div className="ap-pips">
-            {[0,1,2,3,4].map((i) => <div key={i} className={"ap-pip " + (i >= ap ? "used" : "")} />)}
+            {Array.from({length: destAp}, (_, i) => <div key={i} className={"ap-pip " + (i >= ap ? "used" : "")} />)}
           </div>
         </div>
 
@@ -216,9 +261,11 @@ function SceneExplore({ D }) {
               else if (adj) cls += "adjacent ";
               else if (isViewer) cls += "fog ";  // viewer: show all unrevealed as fog with ?
               else cls += "fog ";
-              if (t.generated && (rev || adj)) cls += "generated ";
+              if ((t.generated || hasInjected) && (rev || adj)) cls += "generated ";
+              const hasInjected = window.__INJECTED_TILES__?.[t.id];
               const icon = t.type === "hero" ? "🧑‍🚀"
                 : rev ? (t.icon || (t.type === "empty" ? "·" : t.type === "search" ? "🏥" : t.type === "npc" ? "❓" : t.type === "battle" ? "⚠️" : "📍"))
+                : hasInjected && adj ? "✨"
                 : (adj || isViewer) ? "❔" : "";
               return (
                 <div key={t.id} className={cls} style={{ left: pos.left, top: pos.top }}

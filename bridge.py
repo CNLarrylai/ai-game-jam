@@ -384,6 +384,7 @@ async def generation_loop():
             # Always set pending_event so host choices get processed
             pending_event = {"narration": resp.get("narrative", ""), "options": resp.get("options", []), "generated": generated}
             resp["source_user"] = pick.username
+            resp["current_scene"] = state.phase  # so frontend can route by scene
             # Merge Phase 1 fields into response so host has full info (name, danger, etc)
             if generated.get("name"): resp["event_title"] = generated["name"]
             if generated.get("danger_level"): resp["danger_level"] = generated["danger_level"]

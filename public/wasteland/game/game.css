@@ -388,8 +388,9 @@ html, body {
   margin-bottom: 16px; max-width: 1000px; word-break: break-word; }
 .decision .d-opts { display: flex; gap: 10px; flex-wrap: wrap; }
 .opt { flex: 1 1 45%; min-width: 200px; }
+.decision .d-opts:has(.opt:nth-child(3)) .opt { flex: 1 1 100%; }
 .opt .opt-btn { width: 100%; text-align: left; white-space: normal; word-break: break-word;
-  padding: 10px 14px; min-height: auto; }
+  padding: 10px 14px; min-height: auto; display: flex; flex-direction: column; }
 .opt .opt-btn .opt-main { display: flex; align-items: flex-start; gap: 8px; font-size: var(--t-sm);
   line-height: 1.4; white-space: normal; word-break: break-word; }
 .opt .opt-btn .opt-sub { font-size: var(--t-micro); color: var(--txt-faint); margin-top: 6px;

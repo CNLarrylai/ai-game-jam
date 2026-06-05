@@ -13,6 +13,9 @@
 /* Story continue button must be clickable in viewer mode */
 .viewer-stage .story { pointer-events: auto !important; }
 .viewer-stage .story .s-cont { pointer-events: auto !important; cursor: pointer !important; }
+/* Decision card vote buttons must be clickable in viewer mode */
+.viewer-stage .decision { pointer-events: auto !important; }
+.viewer-stage .decision .opt-btn { pointer-events: auto !important; cursor: pointer !important; }
 .watch-badge { position: absolute; top: 18px; left: 22px; z-index: 100;
   font-size: var(--t-xs); color: var(--cyan); background: rgba(10,8,20,.8);
   border: 2px solid var(--line); padding: 7px 12px; display: flex; align-items: center; gap: 7px; }

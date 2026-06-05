@@ -40,8 +40,9 @@ function ViewerLogin({ onEnter }) {
 }
 
 function ViewerWrapper() {
-  // Restore saved session
+  // Restore saved session — stable UID across refreshes
   const saved = (() => { try { return JSON.parse(localStorage.getItem('wl_viewer') || '{}'); } catch { return {}; } })();
+  const stableUid = useRefV(saved.uid || ('v_' + Math.random().toString(36).slice(2, 10)));
   const [entered, setEntered] = useStateV(!!saved.nick);
   const [nick, setNick] = useStateV(saved.nick || "");
   const [avatar, setAvatar] = useStateV(saved.avatar || "");
@@ -50,26 +51,46 @@ function ViewerWrapper() {
   const chatValRef = useRefV("");
   chatValRef.current = chatVal;
   const wsRef = useRefV(null);
+  const nickRef = useRefV(nick);
+  nickRef.current = nick;
+  const avatarRef = useRefV(avatar);
+  avatarRef.current = avatar;
 
   const onEnter = (n, a) => {
     setNick(n); setAvatar(a); setEntered(true);
-    try { localStorage.setItem('wl_viewer', JSON.stringify({ nick: n, avatar: a })); } catch {}
+    try { localStorage.setItem('wl_viewer', JSON.stringify({ nick: n, avatar: a, uid: stableUid.current })); } catch {}
   };
 
   useEffectV(() => {
     if (!entered) return;
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
     const url = isLocal ? 'ws://localhost:3002' : 'wss://wasteland-live-ws.onrender.com';
-    let ws;
-    try { ws = new WebSocket(url); } catch { return; }
-    ws.onopen = () => {
-      setConnected(true);
-      ws.send(JSON.stringify({ type: 'register', role: 'viewer', uid: 'v_' + Date.now(), name: nick, avatar }));
+    let closed = false;
+    let reconnectTimer = null;
+
+    const doConnect = () => {
+      if (closed) return;
+      let ws;
+      try { ws = new WebSocket(url); } catch { reconnectTimer = setTimeout(doConnect, 3000); return; }
+      ws.onopen = () => {
+        setConnected(true);
+        ws.send(JSON.stringify({ type: 'register', role: 'viewer', uid: stableUid.current, name: nickRef.current, avatar: avatarRef.current }));
+      };
+      ws.onclose = () => {
+        setConnected(false);
+        wsRef.current = null;
+        if (!closed) reconnectTimer = setTimeout(doConnect, 3000);
+      };
+      ws.onerror = () => {};
+      wsRef.current = ws;
     };
-    ws.onclose = () => setConnected(false);
-    wsRef.current = ws;
-    return () => ws.close();
+    doConnect();
+
+    return () => { closed = true; clearTimeout(reconnectTimer); if (wsRef.current) wsRef.current.close(); };
   }, [entered]);
+
+  // Expose WS ref globally so App vote handlers can always use the latest connection
+  window.__VIEWER_WS__ = wsRef;
 
   const sendComment = () => {
     const text = chatValRef.current.trim();

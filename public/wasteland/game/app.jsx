@@ -115,23 +115,13 @@ function App(props) {
       // Game event from AI generation
       if (msg.type === 'game_event' && msg.data) {
         if (isViewer) {
-          // Viewer: only show notification, decision comes via state_sync from host
+          // Viewer: show banner + narrative story (decision comes via state_sync heartbeat)
           const ev = msg.data;
-          const tid = uid();
-          setToasts(ts => [...ts, { id: tid, icon: '🎮', name: 'AI 正在为主播生成新事件...' }]);
-          setTimeout(() => setToasts(ts => ts.filter(t => t.id !== tid)), 4000);
-        } else {
-          // Host: show decision card for host to interact with
-          const ev = msg.data;
+          const source = ev.source_user || '观众';
+          setBanner({ icon: '✨', big: true, id: uid(), html: '<b>@' + source + '</b> 的创意生效了！' + (ev.event_title ? '「' + ev.event_title + '」' : '') });
+          setTimeout(() => setBanner(null), 8000);
           if (ev.narrative) {
-            setStory({ illus: '✨', text: ev.narrative, source: ev.source_user || '' });
-            setTimeout(() => setStory(null), 8000);
-          }
-          if (ev.options && ev.options.length) {
-            setDecision({
-              icon: '🎮', title: ev.event_title || 'AI 生成事件',
-              desc: ev.narrative || '', options: ev.options,
-            });
+            setStory({ illus: '✨', text: ev.narrative, source: '@' + source, onContinue: () => setStory(null) });
           }
         }
       }
@@ -140,6 +130,33 @@ function App(props) {
         if (msg.data.banner) {
           setBanner({ ...msg.data.banner, id: uid() });
           setTimeout(() => setBanner(null), 8000);
+        }
+      }
+      // Choice result from AI — show story with stats on viewer too
+      if (msg.type === 'choice_result' && msg.data) {
+        const r = msg.data;
+        const statParts = [];
+        if (r.stat_changes) {
+          Object.entries(r.stat_changes).forEach(([k, v]) => {
+            if (!v) return;
+            const key = k === 'thirst' ? 'supply' : k;
+            const label = { hp: '❤️HP', hunger: '🍞饱腹', supply: '📦物资', sanity: '🧠理智' }[key] || key;
+            statParts.push(label + (v > 0 ? '+' : '') + v);
+          });
+        }
+        const itemParts = [];
+        if (r.inventory_change?.add_items) r.inventory_change.add_items.forEach(i => itemParts.push('✅ 获得: ' + i));
+        if (r.inventory_change?.remove_items) r.inventory_change.remove_items.forEach(i => itemParts.push('❌ 失去: ' + i));
+        const storyText = r.narrative || '选择完成。';
+        const statsLine = statParts.length ? '\n\n━━━━━━━━━━━━━━━━\n📊 ' + statParts.join('   ') : '';
+        const itemsLine = itemParts.length ? '\n🎒 ' + itemParts.join('   ') : '';
+        setStory({ illus: '📖', text: storyText + statsLine + itemsLine, source: '', onContinue: () => setStory(null) });
+      }
+      // Action result from AI — show on viewer too
+      if (msg.type === 'action_result' && msg.data) {
+        const r = msg.data;
+        if (r.narrative) {
+          setStory({ illus: '📖', text: r.narrative, source: '', onContinue: () => setStory(null) });
         }
       }
       // Comment feedback (accepted/rejected)
@@ -375,9 +392,14 @@ function App(props) {
   }, [day, showPhase]);
 
   const confirmDest = useCallback((d) => setConfirmD(d), []);
+  const [currentDest, setCurrentDest] = useState(null);
   const goExplore = useCallback(() => {
+    const dest = confirmD;
+    setCurrentDest(dest);
     setConfirmD(null);
-    showPhase({ big: "🚪 抵达 " + (confirmD ? confirmD.name : "目标"), sub: "进入探索" },
+    // Clear any previously injected tiles
+    window.__INJECTED_TILES__ = {};
+    showPhase({ big: "🚪 抵达 " + (dest ? dest.name : "目标"), sub: "进入探索 · 行动点 " + (dest?.ap || 5) },
       () => setScene("explore"));
   }, [confirmD, showPhase]);
 
@@ -437,7 +459,7 @@ function App(props) {
     adoptComment, applyStats, addItem, removeItem, toast, injectComment: pushComment,
     banner: showBanner, spawn: showSpawn, byTag: showByTag, story: setStory,
     closeStory: () => setStory(null), decision: openDecision, closeDecision,
-    phase: showPhase, goOut, confirmDest, returnShelter, goScene, setFlag, day, stats,
+    phase: showPhase, goOut, confirmDest, returnShelter, goScene, setFlag, day, stats, currentDest,
     addCompanion: (c) => { setCompanions((prev) => [...prev, c]); },
     generateAIEvent,
     destinations,
@@ -599,6 +621,26 @@ function App(props) {
         eventQueueRef.current.push(msg);
         window.__A.toast({ icon: '📋', name: '新事件已排队' });
         return;
+      }
+
+      // ============ SCENE-AWARE: explore → inject into fog tile ============
+      const currentScene = sceneRef.current;
+      if (currentScene === 'explore' &&
+          (cat === 'CHARACTER' || cat === 'EVENT' || cat === 'EVENT_TRIGGER' ||
+           cat === 'ITEM' || cat === 'ITEM_RECEIVED' || cat === 'NPC_ENCOUNTER')) {
+        if (!window.__INJECTED_TILES__) window.__INJECTED_TILES__ = {};
+        const tiles = window.HEX_TILES || [];
+        const fogTiles = tiles.filter(t => t.type === 'fog' && !window.__INJECTED_TILES__[t.id]);
+        if (fogTiles.length > 0) {
+          const target = fogTiles[Math.floor(Math.random() * fogTiles.length)];
+          window.__INJECTED_TILES__[target.id] = ev;
+          target.generated = true;
+          target.by = source;
+          window.__A.showBanner({ icon: '✨', html: '<b>@' + source + '</b> 的创意已注入地图！探索发现它吧' });
+          window.__A.toast({ icon: '🗺️', name: '地图上出现了新内容 (by @' + source + ')' });
+          return;
+        }
+        // No fog tiles left, fall through to normal event handling
       }
 
       // ============ LOCATION: 新增目的地 ============
@@ -896,6 +938,17 @@ function App(props) {
           <CallToAction cta={cta} />
           {scene !== "settle" && <DecisionCard decision={decision}
             onChoose={(opt) => {
+              if (isViewer) {
+                // Viewer: send vote via WS, don't trigger host action
+                const ws = window.__VIEWER_WS__?.current || props?.viewerWs;
+                if (ws && ws.readyState === 1) {
+                  ws.send(JSON.stringify({ type: 'comment', text: '🗳️ 投票: ' + (opt.label || opt.id), name: props?.viewerNick || '观众', avatar: props?.viewerAvatar || '👤' }));
+                }
+                const tid = uid();
+                setToasts(ts => [...ts, { id: tid, icon: '🗳️', name: '已投票: ' + (opt.label || opt.id) }]);
+                setTimeout(() => setToasts(ts => ts.filter(t => t.id !== tid)), 3000);
+                return;
+              }
               const res = decision.onChoose ? decision.onChoose(opt) : "";
               if (voteTimer.current) clearInterval(voteTimer.current);
               window.__A.setDecision((d) => d ? { ...d, result: res } : d);
