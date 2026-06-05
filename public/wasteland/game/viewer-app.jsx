@@ -8,6 +8,16 @@ let _vid = 0;
 const vid = () => "v" + (++_vid);
 
 function ViewerApp() {
+  /* no-op director — viewer can see scenes but not interact */
+  const noopD = {
+    adoptComment: () => {}, applyStats: () => {}, addItem: () => {}, removeItem: () => {},
+    toast: () => {}, injectComment: () => {}, banner: () => {}, spawn: () => {}, byTag: () => {},
+    story: () => {}, closeStory: () => {}, decision: () => {}, closeDecision: () => {},
+    phase: () => {}, goOut: () => {}, confirmDest: () => {}, returnShelter: () => {},
+    goScene: () => {}, setFlag: () => {}, day: 1, injectCompanionLater: () => {},
+    generateAIEvent: async () => null,
+  };
+
   /* ---- login state ---- */
   const [entered, setEntered] = useState(false);
   const [nick, setNick] = useState("");
@@ -47,7 +57,18 @@ function ViewerApp() {
 
       switch (msg.type) {
         case 'state_sync':
-          if (msg.data) setHostState(msg.data);
+          if (msg.data) {
+            setHostState(msg.data);
+            // Sync host's comments to viewer if we have fewer
+            if (msg.data.comments && msg.data.comments.length > 0) {
+              setComments(cs => {
+                const existing = new Set(cs.map(c => c.text));
+                const newOnes = msg.data.comments.filter(c => !existing.has(c.text))
+                  .map(c => ({ ...c, id: vid() }));
+                return newOnes.length > 0 ? [...cs, ...newOnes].slice(-60) : cs;
+              });
+            }
+          }
           break;
         case 'new_comment':
           pushCmt({ user: msg.name || '?', av: msg.avatar || '👤', text: msg.text });
@@ -116,6 +137,7 @@ function ViewerApp() {
   // Extract host state
   const hs = hostState || {};
   const day = hs.day || '?';
+  noopD.day = day;
   const stats = hs.stats || { hp: 0, hunger: 0, sanity: 0, supply: 0 };
   const scene = hs.scene || 'waiting';
   const pack = hs.pack || [];
@@ -154,86 +176,27 @@ function ViewerApp() {
             <div className="scene-title-chip">{SCENE_LABELS[scene] || scene}</div>
           )}
 
-          {/* Main game view - show what scene the host is on */}
-          <div className="scene" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 20 }}>
-            {!hostState && (
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 60, marginBottom: 20 }}>🎮</div>
-                <div style={{ fontFamily: 'var(--pixel)', fontSize: 'var(--t-md)', color: 'var(--cyan)' }}>
-                  {connected ? '等待主播开始游戏...' : '正在连接直播间...'}
-                </div>
-                <div style={{ fontSize: 'var(--t-sm)', color: 'var(--txt-dim)', marginTop: 10 }}>
-                  你的评论将影响游戏世界
-                </div>
+          {/* Main game view - render same scene components as host, read-only */}
+          {!hostState && (
+            <div className="scene" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 20 }}>
+              <div style={{ fontSize: 60, marginBottom: 20 }}>🎮</div>
+              <div style={{ fontFamily: 'var(--pixel)', fontSize: 'var(--t-md)', color: 'var(--cyan)' }}>
+                {connected ? '等待主播开始游戏...' : '正在连接直播间...'}
               </div>
-            )}
+              <div style={{ fontSize: 'var(--t-sm)', color: 'var(--txt-dim)', marginTop: 10 }}>
+                你的评论将影响游戏世界
+              </div>
+            </div>
+          )}
 
-            {hostState && scene === 'home' && (
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 80, marginBottom: 16 }}>🏠</div>
-                <div style={{ fontFamily: 'var(--pixel)', fontSize: 'var(--t-lg)', color: 'var(--cyan)' }}>
-                  Day {day} · 避难所
-                </div>
-                <div style={{ fontSize: 'var(--t-md)', color: 'var(--txt-dim)', marginTop: 10 }}>
-                  主播正在避难所中...
-                </div>
-              </div>
-            )}
-
-            {hostState && scene === 'organize' && (
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 80, marginBottom: 16 }}>📦</div>
-                <div style={{ fontFamily: 'var(--pixel)', fontSize: 'var(--t-lg)', color: 'var(--cyan)' }}>
-                  整理资源
-                </div>
-                <div style={{ fontSize: 'var(--t-md)', color: 'var(--txt-dim)', marginTop: 10 }}>
-                  主播正在整理物资和同伴...
-                </div>
-              </div>
-            )}
-
-            {hostState && scene === 'destination' && (
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 80, marginBottom: 16 }}>🗺️</div>
-                <div style={{ fontFamily: 'var(--pixel)', fontSize: 'var(--t-lg)', color: 'var(--cyan)' }}>
-                  选择目的地
-                </div>
-                <div style={{ fontSize: 'var(--t-md)', color: 'var(--txt-dim)', marginTop: 10 }}>
-                  主播正在选择今天的探索目标...
-                </div>
-              </div>
-            )}
-
-            {hostState && scene === 'explore' && (
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 80, marginBottom: 16 }}>🧭</div>
-                <div style={{ fontFamily: 'var(--pixel)', fontSize: 'var(--t-lg)', color: 'var(--cyan)' }}>
-                  探索中
-                </div>
-                <div style={{ fontSize: 'var(--t-md)', color: 'var(--txt-dim)', marginTop: 10 }}>
-                  主播正在探索地图...
-                </div>
-              </div>
-            )}
-
-            {hostState && scene === 'fail' && (
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 80, marginBottom: 16 }}>💀</div>
-                <div style={{ fontFamily: 'var(--pixel)', fontSize: 'var(--t-lg)', color: 'var(--red)' }}>
-                  GAME OVER
-                </div>
-              </div>
-            )}
-
-            {hostState && scene === 'win' && (
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 80, marginBottom: 16 }}>🏆</div>
-                <div style={{ fontFamily: 'var(--pixel)', fontSize: 'var(--t-lg)', color: 'var(--gold)' }}>
-                  通关！
-                </div>
-              </div>
-            )}
-          </div>
+          {/* Reuse host's scene components — D is a no-op director (viewer can't operate) */}
+          {hostState && scene === 'home' && <SceneHome D={noopD} flags={{}} companions={COMPANIONS} />}
+          {hostState && scene === 'organize' && <SceneOrganize D={noopD} pack={pack.length ? pack : []} companions={COMPANIONS} />}
+          {hostState && scene === 'destination' && <SceneDestination D={noopD} />}
+          {hostState && scene === 'explore' && <SceneExplore D={noopD} />}
+          {hostState && scene === 'fail' && <EndingFail days={day} onSettle={() => {}} onReplay={() => {}} />}
+          {hostState && scene === 'win' && <EndingWin days={day} explored={0} items={0} onSettle={() => {}} onShare={() => {}} />}
+          {hostState && scene === 'settle' && <Settlement outcome="win" days={day} onShare={() => {}} onReplay={() => {}} />}
 
           {/* Decision card overlay - synced from host */}
           {decision && (
