@@ -312,7 +312,7 @@ function SceneExplore({ D }) {
             <div style={{ fontFamily: "var(--pixel)", fontSize: 20, color: "var(--red)" }}>VS</div>
             <div className="char-sprite" style={{ position: "static" }}>
               <div className="body" style={{ borderColor: "var(--red)", fontSize: 48,
-                boxShadow: "0 0 20px rgba(255,59,92,.5)" }}>{foe.icon}</div>
+                boxShadow: "inset 0 0 0 2px var(--ui-danger)" }}>{foe.icon}</div>
               <div className="shadow" /><div className="name-tag">{foe.name}</div>
             </div>
           </div>
@@ -323,7 +323,7 @@ function SceneExplore({ D }) {
           <React.Fragment>
             <img src="../assets/characters/char_npc_cashier.png" width={144} height={216} alt=""
               style={{ position: "absolute", left: "30%", top: "20%", imageRendering: "pixelated",
-                filter: "drop-shadow(0 0 16px rgba(53,224,208,.4))", zIndex: 18 }} />
+                filter: "drop-shadow(2px 2px 0 rgba(24,20,37,.6))", zIndex: 18 }} />
             <div className="npc-bubble" style={{ left: "52%", top: "26%" }}>
               <b style={{ color: "var(--cyan)" }}>{npc.av} {npc.name}</b><br />{npc.line}
             </div>

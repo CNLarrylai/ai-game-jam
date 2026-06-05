@@ -304,7 +304,7 @@ function ShareView({ nick, avatar, onClose }) {
         <div style={{ display: "flex", gap: 10, justifyContent: "center", marginBottom: 18 }}>
           {[{ i: "🏭", n: "废弃工厂" }, { i: "🏚️", n: "塌方仓库" }, { i: "📡", n: "信号塔" }].map((t, k) => (
             <div key={k} style={{ flex: 1 }}>
-              <div style={{ height: 76, border: "2px solid var(--gold)", background: "linear-gradient(135deg,#2a2208,#161208)",
+              <div style={{ height: 76, border: "2px solid var(--gold)", background: "linear-gradient(135deg,#1d2138,#181425)",
                 display: "flex", alignItems: "center", justifyContent: "center", fontSize: 34, marginBottom: 5 }}>{t.i}</div>
               <div style={{ fontSize: "var(--t-xs)", color: "var(--txt-dim)" }}>{t.n}</div>
             </div>

@@ -63,7 +63,7 @@ function SceneHospital() {
       {/* toppled bed */}
       <div className="hp-bed"><div className="frame" /><div className="legs" /></div>
       {/* med cabinet spilled */}
-      <div className="hp-cabinet">{[...Array(6)].map((_, i) => <span key={i} className="vial" style={{ background: ["#57e08a","#4dd2ff","#ff4d6d","#ffcf3f","#8b5cf6","#57e08a"][i] }} />)}</div>
+      <div className="hp-cabinet">{[...Array(6)].map((_, i) => <span key={i} className="vial" style={{ background: ["#1ebc73","#4d9be6","#b33831","#fee761","#7f708a","#1ebc73"][i] }} />)}</div>
       <ScS name="it_pills" size={40} style={{ position: "absolute", left: 360, bottom: 250 }} />
       <ScS name="it_bandage" size={40} style={{ position: "absolute", left: 430, bottom: 235 }} />
       <div className="hp-hallshadow" />

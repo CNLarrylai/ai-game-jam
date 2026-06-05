@@ -25,10 +25,10 @@ const COMPANION_SPRITE = {
 function CompanionSprite({ av, glow }) {
   const src = COMPANION_SPRITE[av];
   if (!src) {
-    return <div className="body" style={{ fontSize: 44, borderColor: glow, boxShadow: "0 0 18px " + glow }}>{av}</div>;
+    return <div className="body" style={{ fontSize: 44, borderColor: glow, boxShadow: "inset 0 0 0 2px " + glow }}>{av}</div>;
   }
   return <img className="npc-sprite" src={src} width={96} height={144} alt=""
-    style={{ filter: "drop-shadow(0 0 14px " + glow + ")" }} />;
+    style={{ filter: "drop-shadow(2px 2px 0 rgba(24,20,37,.55))" }} />;
 }
 
 /* ---------- reusable hotspot ---------- */
@@ -129,7 +129,7 @@ function SceneHome({ D, flags, companions }) {
         {companions && companions[0] && <Hotspot variant="magenta" label={"💬 和 " + companions[0].name + " 对话"} onClick={() => talk(companions[0])}
           style={{ left: "58%", top: 400 }}>
           <div className="char-sprite" style={{ position: "static" }}>
-            <CompanionSprite av={companions[0].av} glow="rgba(255,77,141,.45)" />
+            <CompanionSprite av={companions[0].av} glow="rgba(127,112,138,.7)" />
             <div className="shadow" />
             <div className="name-tag">{companions[0].name + " · " + companions[0].role}</div>
           </div>
@@ -137,7 +137,7 @@ function SceneHome({ D, flags, companions }) {
         {companions && companions[1] && <Hotspot label={"💬 和 " + companions[1].name + " 对话"} onClick={() => talk(companions[1])}
           style={{ left: "24%", top: 560 }}>
           <div className="char-sprite" style={{ position: "static" }}>
-            <CompanionSprite av={companions[1].av} glow="rgba(87,224,138,.45)" />
+            <CompanionSprite av={companions[1].av} glow="rgba(30,188,115,.7)" />
             <div className="shadow" />
             <div className="name-tag">{companions[1].name + " · " + companions[1].role}</div>
           </div>
@@ -236,8 +236,8 @@ function SceneOrganize({ D, pack, companions }) {
                     <React.Fragment>
                       {preview && preview.id === it.id && (
                         <div style={{ position: "absolute", right: 110, top: 12, background: "var(--green)",
-                          color: "#06250f", padding: "5px 11px", fontSize: "var(--t-xs)",
-                          border: "2px solid #2fae5e", animation: "floatUp 1.4s ease-out forwards" }}>
+                          color: "#181425", padding: "5px 11px", fontSize: "var(--t-xs)",
+                          border: "2px solid #165a4c", animation: "floatUp 1.4s ease-out forwards" }}>
                           {it.effText}
                         </div>
                       )}

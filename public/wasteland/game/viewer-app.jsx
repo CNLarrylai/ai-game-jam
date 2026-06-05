@@ -264,7 +264,7 @@ function ViewerApp() {
           {/* CTA - call to action */}
           {cta && (
             <div style={{ position: 'absolute', top: 120, left: '50%', transform: 'translateX(-50%)', zIndex: 92,
-              background: 'rgba(10,8,20,.92)', border: '3px solid var(--gold)', boxShadow: '0 0 40px rgba(255,207,63,.5)',
+              background: 'rgba(24,20,37,.92)', border: '2px solid var(--gold)', boxShadow: 'none',
               padding: '18px 40px', textAlign: 'center', animation: 'cfIn .4s ease-out' }}>
               <div style={{ fontSize: 'var(--t-lg)', color: 'var(--gold)' }}>📢 主播正在征集创意！</div>
               <div style={{ fontSize: 'var(--t-sm)', color: 'var(--txt-dim)', marginTop: 8 }}>{cta.prompt}</div>
