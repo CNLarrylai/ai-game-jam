@@ -4,7 +4,7 @@
 > 这是跨 agent 的"共享上下文"：谁在干什么、动了哪些文件、当前状态、待决问题。
 > 对话上下文搬不动，但这份文档能让多个 agent 高效互不踩脚。
 
-最后更新：2026-06-05 · by Claude(小说导入网页终端) · 已将 `feature/novel-import-web` 合并入共享分支
+最后更新：2026-06-05 · by Claude(WORLDS LIVE 终端) · 已搭统一门户合流两条赛道
 
 ---
 
@@ -42,6 +42,12 @@ AI Game Jam = TikTok LIVE 末日生存**直播互动游戏**。三块拼图：
 - 🟢 **小说导入网页 v1 完成**：`app/create`（页面）+ `components/NovelImport.tsx`（导入→分阶段进度→预览路由结果→开玩）+ `app/api/generate/route.ts` + `lib/generation.ts`（小说→识别genre→匹配mechanic→提炼世界圣经→产出剧本）；首页 `app/page.tsx` 已加「从你的小说生成」入口卡；`app/api/game/route.ts` + `GameChat.tsx` 已支持 `custom-*` 自定义剧本带 `systemPrompt`。`next build` + `tsc --noEmit` 全绿。**注**：`/api/generate` 走真 `streamChat`，无 `ANTHROPIC_API_KEY` 时自动走规则版离线兜底 `lib/offlineGeneration.ts`（关键词密度分类→机制匹配→模板装配），本地也能现场生成；有 key 仍走真模型。离线生成端到端实测通过。生成层 UI 刻意把"识别类型 / 匹配机制"显式展示，呼应 OpenRouter 架构。
 - 🟢 **剧本索引（多来源注册表）**：`lib/registry.ts` 聚合 内置 / 仓库(`scenarios/index.json`) / GitHub(运行时拉取,5min 缓存,2.5s 超时降级) / AI生成 四来源，按 id 去重；`/api/scenarios` 索引 API + `/scenarios` 浏览页(来源标签) + 首页入口卡。**新增剧本只需往 `scenarios/index.json` 加一项提交，无需改代码**，详见 `scenarios/README.md`。
 - 🟢 **后台生成 worker**：`worker/worker.mjs` 监听 `jobs/pending/`，双引擎——agent(`claude -p`+opus，订阅买单、产出更丰富)优先，失败兜底 Anthropic API(默认 `claude-sonnet-4-6`)；产出 `scenarios/generated/<id>.json` 自动进索引。`/api/jobs`(提交)+`/api/jobs/[id]`(轮询)，`/create` 已改为提交任务+轮询。**实测**：agent 22s 产出「星舰残响」(科幻生存)，端到端通过。key 只在 worker 的 `.env.local`(gitignore)。运行时产物 `jobs/`·`scenarios/generated/`·`worker.log` 已 gitignore。**启动**：`cd <仓库> && node worker/worker.mjs`（需 `.env.local` 含 `ANTHROPIC_API_KEY`）。
+- 🟢 **统一门户(2026-06-05,Larry 授权合流)**:把 WORLDS LIVE 直播间游戏接进 Next 门户,实现"一个入口:玩成品游戏 / 导入小说造新游戏"。
+  - `public/games/worlds-live/` = WORLDS LIVE 静态包(Next 直接服务,`/games/worlds-live/index.html`)。
+  - `app/page.tsx` 重构为三段式门户:① 成品游戏(WORLDS LIVE featured 卡) ② 文字冒险剧本(GameChat) ③ 创作入口(/create 导入 + /scenarios 索引)。
+  - **⚠️ 本终端(WORLDS LIVE)动了 `app/page.tsx`(导入网页终端 territory)**——经 Larry 授权做门户合流,只重排首页+加 WORLDS LIVE 卡,未碰 /create、/scenarios、API、worker 内部逻辑。导入网页终端后续若改首页请注意此文件已被门户化。
+  - `next build` 通过;`next start` 验证 首页(含 WORLDS LIVE 卡)+ 静态包(200)+ /create + /scenarios 全可达。
+  - **待办**:整体部署 Vercel(导入/文字冒险需 `ANTHROPIC_API_KEY`,WORLDS LIVE 与离线兜底无需);public/games/worlds-live 是 novel_to_game_Larry/live 的拷贝,WORLDS LIVE 更新后需重新同步(可加脚本)。
 - ⚪ 待办池见下「待决问题」。
 
 ---
