@@ -274,36 +274,20 @@ Remember: hunger/thirst NEGATIVE = good (less hungry/thirsty). spirit/health POS
 
 
 def _parse_json(raw_text: str) -> dict:
+    """容错 JSON 解析：与 phase2_engine._safe_json_parse 统一，使用 json_repair"""
+    from json_repair import repair_json
     raw = raw_text.strip()
+    # 剥掉 markdown 代码块
     if "```" in raw:
         for part in raw.split("```"):
             p = part.strip()
             if p.startswith("json"): p = p[4:].strip()
             if p.startswith("{"): raw = p; break
+    # 找 { } 边界
     start, end = raw.find("{"), raw.rfind("}")
     if start != -1 and end != -1:
         raw = raw[start:end + 1]
-    # 清理常见 JSON 问题
-    raw = re.sub(r',\s*}', '}', raw)
-    raw = re.sub(r',\s*]', ']', raw)
-    # 修复未转义的引号（在JSON字符串值中）
-    raw = raw.replace('\n', '\\n').replace('\t', '\\t')
-    try:
-        return json.loads(raw.strip())
-    except json.JSONDecodeError:
-        # 二次尝试：更激进的清理
-        raw2 = re.sub(r'(?<!\\)"(?=\w)', '\\"', raw)  # 转义值中的裸引号
-        try:
-            return json.loads(raw2.strip())
-        except json.JSONDecodeError:
-            # 最后手段：让 Claude 修复
-            client = _get_client()
-            fix_resp = client.messages.create(
-                model=MODEL, max_tokens=MAX_TOKENS,
-                messages=[{"role": "user", "content": f"Fix this broken JSON and output ONLY valid JSON, nothing else:\n\n{raw_text}"}],
-            )
-            fixed = fix_resp.content[0].text.strip()
-            s, e = fixed.find("{"), fixed.rfind("}")
-            if s != -1 and e != -1:
-                fixed = fixed[s:e+1]
-            return json.loads(fixed)
+    elif start != -1:
+        raw = raw[start:]
+    # 用 json_repair 修复所有破损格式
+    return repair_json(raw, return_objects=True)
