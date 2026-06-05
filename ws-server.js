@@ -12,6 +12,8 @@ const wss = new WebSocketServer({ server });
 let host = null;
 const viewers = new Map();
 let latestState = null;
+const pendingEventsForHost = []; // game_events that arrived while host was disconnected
+const MAX_PENDING = 20;
 
 wss.on('connection', (ws) => {
   let role = null, uid = null;
@@ -26,6 +28,12 @@ wss.on('connection', (ws) => {
         if (role === 'host') {
           host = ws;
           console.log('[HOST] connected');
+          // Replay any game_events that arrived while host was disconnected
+          if (pendingEventsForHost.length > 0) {
+            console.log('[HOST] Replaying', pendingEventsForHost.length, 'pending events');
+            pendingEventsForHost.forEach(evt => ws.send(JSON.stringify(evt)));
+            pendingEventsForHost.length = 0;
+          }
         } else {
           viewers.set(uid, ws);
           console.log(`[VIEWER] ${msg.name || uid} joined (${viewers.size})`);
@@ -45,6 +53,10 @@ wss.on('connection', (ws) => {
         break;
       case 'banner':
         broadcast({ type: 'banner', data: msg.data }, 'all');
+        if (!host || host.readyState !== 1) {
+          pendingEventsForHost.push({ type: 'banner', data: msg.data });
+          if (pendingEventsForHost.length > MAX_PENDING) pendingEventsForHost.shift();
+        }
         break;
       case 'comment_adopted':
         const authorWs = viewers.get(msg.authorUid);
@@ -66,6 +78,11 @@ wss.on('connection', (ws) => {
         break;
       case 'game_event':
         broadcast({ type: 'game_event', data: msg.data }, 'all');
+        // Store for host if disconnected
+        if (!host || host.readyState !== 1) {
+          pendingEventsForHost.push({ type: 'game_event', data: msg.data });
+          if (pendingEventsForHost.length > MAX_PENDING) pendingEventsForHost.shift();
+        }
         break;
       case 'choice_result':
         broadcast({ type: 'choice_result', data: msg.data }, 'all');
