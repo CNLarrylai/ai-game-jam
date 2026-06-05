@@ -204,7 +204,7 @@ def on_comment(msg):
         pool.open_window()
     pool.add(username, text, result)
     comment_buffer.append({"username": username, "text": text, "category": result.category, "confidence": result.confidence})
-    print(f"💬 [{result.category}] {username}: {text}")
+    print(f"💬 [{result.category}] {username}: {text} (conf={result.confidence:.2f} pool={pool.total_size()} queues={[(k,len(v)) for k,v in pool._queues.items()]})")
 
 
 async def on_host_action(msg):
@@ -273,12 +273,13 @@ async def generation_loop():
 
         phase_map = {"home": "home_event", "organize": "resource_manage", "destination": "choose_map", "explore": "explore"}
         phase = phase_map.get(state.phase, "explore")
+        print(f"🧠 [PRE-SELECT] pool={pool.total_size()} phase={phase} queues={[(k,len(v)) for k,v in pool._queues.items()]} daily={pool.daily_counts}")
         best = pool.select_adoptions(phase=phase)
         total = len(comment_buffer)
         comment_buffer = []
 
         if not best:
-            print(f"🧠 本轮 {total} 条评论，无有效创意")
+            print(f"🧠 本轮 {total} 条评论，无有效创意 (pool_after={pool.total_size()})")
             await send_ws({"type": "comment", "name": "🧠 AI Engine", "avatar": "🧠", "text": f"📊 {total} 条评论，无有效创意"})
             continue
 
