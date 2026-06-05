@@ -568,11 +568,35 @@ function App(props) {
       const source = ev.source_user || '观众';
       console.log('[HOST] AI game_event:', cat, ev.narrative?.substring(0, 60));
 
-      // If there's already an active decision/story and this isn't an option injection, queue it
-      if ((decision || story) && !(decision && !decision.result && (cat === 'EVENT' || cat === 'CHARACTER' || cat === 'NPC_ENCOUNTER' || cat === 'EVENT_TRIGGER'))) {
+      // If there's an active decision, inject as new option (any type)
+      if (decision && !decision.result) {
+        const optLabel = ev.event_title || ev.name || ev.narrative?.substring(0, 25) || '观众创意';
+        const newOpt = {
+          id: 'viewer_' + Date.now(),
+          label: '✨ ' + optLabel,
+          icon: '✨',
+          sub: '由 @' + source + ' 创造' + (cat === 'LOCATION' ? ' · 新地点' : cat === 'ITEM' ? ' · 新物品' : ''),
+          _raw: ev.options?.[0] || { result: ev.narrative || optLabel },
+        };
+        setDecision(d => d ? { ...d, options: [...(d.options || []), newOpt] } : d);
+        showBanner({ icon: '✨', html: '<b>@' + source + '</b> 为当前事件添加了新选项！「' + optLabel + '」' });
+        // Also add location if LOCATION type
+        if (cat === 'LOCATION' || cat === 'LOCATION_PASSTHROUGH') {
+          const locName = ev.event_title || ev.name || '观众地点';
+          setDestinations(ds => [...ds, {
+            id: 'gen_' + Date.now(), icon: '✨', name: locName,
+            danger: ev.danger_level || 3, reward: ev.reward || '未知',
+            ap: ev.ap || 3, generated: true, by: source,
+            confirm: '确定前往「' + locName + '」？'
+          }]);
+        }
+        return;
+      }
+
+      // If there's an active story, queue the event
+      if (story) {
         eventQueueRef.current.push(msg);
-        toast({ icon: '📋', name: '新事件已排队（当前事件完成后触发）' });
-        console.log('[HOST] Event queued, queue size:', eventQueueRef.current.length);
+        toast({ icon: '📋', name: '新事件已排队' });
         return;
       }
 
@@ -591,27 +615,9 @@ function App(props) {
         return;
       }
 
-      // ============ EVENT/CHARACTER: 新增选项或弹决策 ============
+      // ============ EVENT/CHARACTER: 创建新决策 ============
       if (cat === 'EVENT' || cat === 'CHARACTER' || cat === 'NPC_ENCOUNTER' || cat === 'EVENT_TRIGGER') {
-        // If there's already an active decision, inject a new option from the viewer
-        if (decision && !decision.result) {
-          const optLabel = ev.event_title || ev.narrative?.substring(0, 20) || '观众创意';
-          const newOpt = {
-            id: 'viewer_' + Date.now(),
-            label: optLabel,
-            icon: '✨',
-            sub: '由 @' + source + ' 创造',
-            _raw: ev.options?.[0] || { result: ev.narrative || optLabel },
-          };
-          setDecision(d => d ? {
-            ...d,
-            options: [...(d.options || []), newOpt],
-          } : d);
-          showBanner({ icon: '✨', html: '<b>@' + source + '</b> 为当前事件添加了新选项！「' + optLabel + '」' });
-          return;
-        }
-
-        // No active decision — create a new one
+        // Create new decision (injection into existing was handled above)
         const rawOpts = ev.options || [];
         const opts = rawOpts.map((o, i) => {
           const opt = typeof o === 'string'
