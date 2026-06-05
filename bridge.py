@@ -336,6 +336,7 @@ async def generation_loop():
                 context=state.context_string(),
             )
             if not generated:
+                await send_ws({"type": "comment", "name": "🧠 AI Engine", "avatar": "🧠", "text": "❌ Phase 1 返回空结果"})
                 continue
             safety = check_narrative_safety(generated, state, pick.classify_result.category)
             if not safety.passed:
@@ -344,6 +345,8 @@ async def generation_loop():
             print(f"  ✅ Phase 1: {generated.get('event_title') or generated.get('name', '?')}")
         except Exception as e:
             print(f"  ❌ Phase 1 失败: {e}")
+            import traceback; traceback.print_exc()
+            await send_ws({"type": "comment", "name": "🧠 AI Engine", "avatar": "🧠", "text": f"❌ 生成失败: {str(e)[:80]}"})
             continue
 
         # ── Phase 2: 注入 ──
