@@ -19,6 +19,7 @@ export default function Studio() {
   const [result, setResult] = useState<{ playUrl: string; summary: Summary } | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
+  const [shell, setShell] = useState<"pixel" | "woodcut">("pixel");
   const fileRef = useRef<HTMLInputElement>(null);
 
   // 读 txt 文件：优先 UTF-8，乱码则回退 GBK（中文小说常见）
@@ -48,7 +49,7 @@ export default function Studio() {
       const res = await fetch("/api/generate-game", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ novelText: text }),
+        body: JSON.stringify({ novelText: text, shell }),
       });
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
@@ -106,12 +107,39 @@ export default function Studio() {
         <span>{fileName ? `📎 ${fileName} · ` : ""}{novel.trim().length} 字</span>
       </div>
 
+      {/* 版本选择：两种直播间美术风（同一份生成数据，换壳） */}
+      <div className="mt-6 text-xs font-semibold uppercase tracking-wider text-ember/80">选择游戏版本</div>
+      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+        {([
+          { id: "pixel", emoji: "🤖", title: "像素直播间", desc: "星露谷风像素美术，类似《在AI统治的世界存活100天》。题材契合度高、美术统一。" },
+          { id: "woodcut", emoji: "🕯️", title: "木刻插画", desc: "维多利亚木刻暗调 + 衬线叙事，类似《最后的人》。文学质感，任意末世题材都贴。" },
+        ] as const).map((opt) => (
+          <button
+            key={opt.id}
+            onClick={() => setShell(opt.id)}
+            className={
+              "flex flex-col rounded-xl border p-4 text-left transition " +
+              (shell === opt.id
+                ? "border-ember bg-ember/15"
+                : "border-white/15 bg-white/[0.02] hover:border-ember/40")
+            }
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">{opt.emoji}</span>
+              <span className="font-semibold text-parchment">{opt.title}</span>
+              {shell === opt.id && <span className="ml-auto text-xs text-ember">✓ 已选</span>}
+            </div>
+            <p className="mt-1.5 text-xs leading-relaxed text-parchment/55">{opt.desc}</p>
+          </button>
+        ))}
+      </div>
+
       <button
         onClick={generate}
         disabled={busy}
-        className="mt-4 rounded-xl bg-ember px-6 py-3 font-medium text-ink transition enabled:hover:brightness-110 disabled:opacity-50"
+        className="mt-5 rounded-xl bg-ember px-6 py-3 font-medium text-ink transition enabled:hover:brightness-110 disabled:opacity-50"
       >
-        {busy ? "🤖 AI 正在理解小说、生成游戏…（约 30–60s）" : "✨ 生成游戏"}
+        {busy ? "🤖 AI 正在理解小说、生成游戏…（约 30–60s）" : `✨ 生成${shell === "woodcut" ? "木刻版" : "像素版"}游戏`}
       </button>
 
       {error && (

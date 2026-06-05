@@ -93,16 +93,18 @@ async function agentGenerate(novelText: string, attempts = 3): Promise<any> {
   throw new Error(`生成 ${attempts} 次仍未得到合法数据（${lastErr}）`);
 }
 
-const SHELL = "/games/pixel-player/game";
 const JSX = ["data", "art-bridge", "chrome", "effects", "scenes-home", "scenes-out", "scenes-end", "api-bridge", "audience-bot", "app"];
 
-function indexHtml(title: string) {
-  const scripts = JSX.map((f) => `<script type="text/babel" src="${SHELL}/${f}.jsx"></script>`).join("\n");
+function indexHtml(title: string, shell: string) {
+  const dir = shell === "woodcut" ? "/games/woodcut-player/game" : "/games/pixel-player/game";
+  const scripts = JSX.map((f) => `<script type="text/babel" src="${dir}/${f}.jsx"></script>`).join("\n");
+  const themeLink = shell === "woodcut" ? `<link rel="stylesheet" href="${dir}/woodcut-theme.css" />` : "";
   return `<!DOCTYPE html><html lang="zh-CN"><head>
 <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>${title} · 直播间生存</title>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet" />
-<link rel="stylesheet" href="${SHELL}/game.css" />
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="${dir}/game.css" />
+${themeLink}
 </head><body>
 <div id="stage"><div id="frame"><div id="root"></div></div></div>
 <script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
@@ -119,7 +121,8 @@ addEventListener('resize',fitStage);addEventListener('load',fitStage);var st=doc
 
 export async function POST(req: Request) {
   try {
-    const { novelText } = (await req.json()) as { novelText?: string };
+    const { novelText, shell: shellRaw } = (await req.json()) as { novelText?: string; shell?: string };
+    const shell = shellRaw === "woodcut" ? "woodcut" : "pixel";
     if (!novelText || novelText.trim().length < 150) {
       return new Response("小说内容太短了，至少需要 150 字。", { status: 400 });
     }
@@ -131,8 +134,8 @@ export async function POST(req: Request) {
     await fs.mkdir(dir, { recursive: true });
     const title = (data.OPENING || "末世生存").slice(0, 10);
     await fs.writeFile(path.join(dir, "custom-data.js"),
-      `/* 由小说经 claude -p 生成 · ${new Date().toISOString()} */\nwindow.GAME_DATA = ${JSON.stringify(data, null, 2)};\n`);
-    await fs.writeFile(path.join(dir, "index.html"), indexHtml(title));
+      `/* 由小说经 claude -p 生成 · ${shell} · ${new Date().toISOString()} */\nwindow.GAME_DATA = ${JSON.stringify(data, null, 2)};\n`);
+    await fs.writeFile(path.join(dir, "index.html"), indexHtml(title, shell));
 
     return Response.json({
       id,

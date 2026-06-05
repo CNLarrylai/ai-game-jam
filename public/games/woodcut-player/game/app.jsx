@@ -1,0 +1,554 @@
+/* ============================================================
+   app.jsx — orchestrator: state, director (D), scene routing
+   ============================================================ */
+const { useState, useEffect, useRef, useCallback } = React;
+
+let _uid = 0;
+const uid = () => "u" + (++_uid) + "_" + Date.now();
+
+const INIT_STATS = { hp: 50, hunger: 70, sanity: 60, supply: 70 };
+const initPack = () => ([
+  { ...ITEMS.can }, { ...ITEMS.bandage }, { ...ITEMS.water }, { ...ITEMS.scrap },
+]);
+
+function App() {
+  const [scene, setScene] = useState("home");
+  const [day, setDay] = useState(1);
+  const maxDay = 7;
+  const [stats, setStats] = useState({ ...INIT_STATS });
+  const [pack, setPack] = useState(initPack());
+  const [companions, setCompanions] = useState([]);
+  const [comments, setComments] = useState([
+    { id: uid(), user: "废土老兵", av: "🪖", text: "新的一天，撑住啊主播", mod: true },
+    { id: uid(), user: "夜行猫", av: "🐱", text: "第一天，加油啊主播！" },
+    { id: uid(), user: "番茄罐头", av: "🥫", text: "物资不多了，出门碰碰运气吧" },
+  ]);
+  const [viewers, setViewers] = useState(0);
+  const [likes, setLikes] = useState(0);
+  const [floats, setFloats] = useState([]);
+  const [toasts, setToasts] = useState([]);
+  const [banner, setBanner] = useState(null);
+  const [cta, setCta] = useState(null);
+  const [spawn, setSpawn] = useState(null);
+  const [byTag, setByTag] = useState(null);
+  const [decision, setDecision] = useState(null);
+  const [story, setStory] = useState(null);
+  const [phase, setPhase] = useState(null);
+  const [flashSlot, setFlashSlot] = useState(null);
+  const [inputHot, setInputHot] = useState(false);
+  const [chatBanner, setChatBanner] = useState(null);
+  const [confirmD, setConfirmD] = useState(null);
+  const [share, setShare] = useState(false);
+  const [flags, setFlags] = useState({ knock: false });
+  const [liveMode, setLiveMode] = useState(true); // 直播间模式默认开
+
+  const voteTimer = useRef(null);
+  const sceneRef = useRef(scene);
+  sceneRef.current = scene;
+  // refs so interval/timeout closures always read the latest values
+  const liveModeRef = useRef(liveMode);
+  liveModeRef.current = liveMode;
+  const statsRef = useRef(stats);
+  statsRef.current = stats;
+  const dayRef = useRef(day);
+  dayRef.current = day;
+  const overlayRef = useRef({});
+  overlayRef.current = { decision, story, cta, banner };
+
+  /* ---- ambient comment stream ---- */
+  useEffect(() => {
+    var elapsed = 0;
+    const t = setInterval(() => {
+      // 单机模式：不刷 bot 评论、不涨 viewers/likes（对照演示，安静下来）
+      if (!liveModeRef.current) return;
+      elapsed++;
+      const c = (window.AudienceBot
+        ? AudienceBot.nextComment(sceneRef.current)
+        : (typeof getSceneComment === "function")
+          ? getSceneComment(sceneRef.current)
+          : AMBIENT_COMMENTS[Math.floor(Math.random() * AMBIENT_COMMENTS.length)]);
+      if (elapsed >= 3) streamComment({ ...c });
+      // Viewers ramp up then stabilize
+      if (elapsed <= 10) {
+        setViewers((v) => v + Math.floor(Math.random() * 30) + 10);
+      } else {
+        setViewers((v) => Math.max(0, v + Math.floor(Math.random() * 9) - 3));
+      }
+      // Likes grow steadily
+      setLikes((l) => l + Math.floor(Math.random() * 5));
+    }, 2900);
+    return () => clearInterval(t);
+  }, []);
+
+  /* spam-burst simulator — demonstrates anti-pollution: a flood of identical
+     comments collapses into ONE muted ×N line, then the AI posts a notice that
+     repeating the same content gains no adoption weight. */
+  useEffect(() => {
+    let timers = [];
+    const burst = () => {
+      if (!liveModeRef.current) return; // 单机模式不刷屏
+      const phrase = SPAM_PHRASES[Math.floor(Math.random() * SPAM_PHRASES.length)];
+      const n = 7 + Math.floor(Math.random() * 12);
+      for (let i = 0; i < n; i++) {
+        const u = SPAM_USERS[Math.floor(Math.random() * SPAM_USERS.length)];
+        timers.push(setTimeout(() => streamComment({ ...u, text: phrase }), 150 + i * 160));
+      }
+      timers.push(setTimeout(() =>
+        pushSystem("检测到「" + phrase + "」短时间内重复刷屏，已合并 " + n +
+          " 条 · 刷同样的内容不会被重复采纳，也不会提升权重"), 150 + n * 160 + 500));
+    };
+    const first = setTimeout(burst, 7000);
+    const iv = setInterval(burst, 20000);
+    return () => { clearTimeout(first); clearInterval(iv); timers.forEach(clearTimeout); };
+  }, []); // streamComment/pushSystem are stable useCallbacks defined below
+
+  /* ============ DIRECTOR ============ */
+  const pushComment = useCallback((c, opts = {}) => {
+    const id = uid();
+    setComments((cs) => [...cs.slice(-26), { ...c, id, _t: Date.now(), ...opts }]);
+    return id;
+  }, []);
+
+  /* dedupe: identical text within a short window merges in-place (no new line,
+     just a muted ×N counter) so spamming the same content can't pollute the feed
+     or gain adoption weight. */
+  const streamComment = useCallback((c) => {
+    const now = Date.now();
+    setComments((cs) => {
+      for (let i = cs.length - 1; i >= 0 && i >= cs.length - 12; i--) {
+        const x = cs[i];
+        if (!x.system && !x.adopted && x.text === c.text && now - (x._t || 0) < 9000) {
+          const copy = cs.slice();
+          copy[i] = { ...x, dup: (x.dup || 1) + 1, merged: true, _t: now };
+          return copy;
+        }
+      }
+      return [...cs.slice(-27), { ...c, id: uid(), _t: now, dup: 1 }];
+    });
+  }, []);
+
+  const pushSystem = useCallback((text) => {
+    setComments((cs) => [...cs.slice(-27),
+      { id: uid(), system: true, av: "🛡️", user: "AI 守护", text, _t: Date.now() }]);
+  }, []);
+
+  const adoptComment = useCallback((c) => {
+    // Classify comment — skip noise if API bridge is available
+    const classification = window.ApiBridge ? window.ApiBridge.classifyComment(c.text) : { actionable: true };
+    if (!classification.actionable) return;
+    // Also post adopted comment to server buffer
+    if (window.ApiBridge) { window.ApiBridge.postComment(c.user || 'anonymous', c.text); }
+    const id = pushComment(c, { adopted: true, flash: true });
+    setViewers((v) => v + 12 + Math.floor(Math.random() * 20));
+    setTimeout(() => setComments((cs) => cs.map((x) => x.id === id ? { ...x, flash: false } : x)), 1700);
+  }, [pushComment]);
+
+  const applyStats = useCallback((delta) => {
+    setStats((s) => {
+      const ns = { ...s };
+      Object.entries(delta).forEach(([k, dv]) => {
+        ns[k] = Math.max(0, Math.min(100, Math.round((s[k] || 0) + dv)));
+        const fid = uid();
+        setFloats((fs) => [...fs, { id: fid, stat: k, delta: dv }]);
+        setTimeout(() => setFloats((fs) => fs.filter((f) => f.id !== fid)), 1500);
+      });
+      // death check
+      if (["hp", "hunger", "sanity", "supply"].some((k) => ns[k] <= 0)) {
+        setTimeout(() => triggerFail(), 900);
+      }
+      return ns;
+    });
+  }, []);
+
+  /* ---- AI event generation (API bridge) ---- */
+  const generateAIEvent = useCallback(async (tileType, comments) => {
+    const rawComments = comments
+      .filter(c => !c.system)
+      .slice(-10)
+      .map(c => ({ user: c.user, text: c.text, timestamp: c._t || Date.now() }));
+
+    const result = await window.ApiBridge.generateEvent(
+      { day, stats, pack, companions: companions, history: [], ap: 5, karma: 0 },
+      'explore_tile',
+      rawComments
+    );
+
+    if (result && result.narrative) {
+      return result;
+    }
+    return null; // fall back to hardcoded
+  }, [day, stats, pack]);
+
+  const addItem = useCallback((itemId) => {
+    const def = ITEMS[itemId]; if (!def) return;
+    setPack((p) => {
+      const idx = p.findIndex((x) => x.id === itemId);
+      let np, slot;
+      if (idx >= 0) { np = p.map((x, i) => i === idx ? { ...x, qty: x.qty + 1 } : x); slot = idx; }
+      else if (p.length < 6) { np = [...p, { ...def, qty: 1 }]; slot = np.length - 1; }
+      else { np = p; slot = null; }
+      if (slot != null) {
+        setFlashSlot(slot);
+        setTimeout(() => setFlashSlot(null), 1000);
+      }
+      return np;
+    });
+  }, []);
+
+  const removeItem = useCallback((itemId, qty = 1) => {
+    setPack((p) => p.map((x) => x.id === itemId ? { ...x, qty: x.qty - qty } : x).filter((x) => x.qty > 0));
+  }, []);
+
+  const toast = useCallback((t) => {
+    const id = uid();
+    setToasts((ts) => [...ts, { ...t, id }]);
+    setTimeout(() => setToasts((ts) => ts.filter((x) => x.id !== id)), 3000);
+  }, []);
+
+  const showBanner = useCallback((b) => {
+    setBanner({ ...b, id: uid() });
+    setTimeout(() => setBanner((cur) => (cur && cur.html === b.html ? null : cur)), b.big ? 3600 : 3400);
+  }, []);
+
+  const showSpawn = useCallback((pos) => {
+    setSpawn({ ...pos, id: uid() });
+    setTimeout(() => setSpawn(null), 1500);
+  }, []);
+  const showByTag = useCallback((t) => {
+    setByTag({ ...t, id: uid() });
+    setTimeout(() => setByTag(null), 3000);
+  }, []);
+
+  const showPhase = useCallback((p, after) => {
+    setPhase({ ...p, id: uid() });
+    setTimeout(() => { setPhase(null); after && after(); }, 1700);
+  }, []);
+
+  /* decision + live votes */
+  const openDecision = useCallback((d) => {
+    setDecision(d);
+    // Likes burst when event triggers
+    setLikes((l) => l + Math.floor(Math.random() * 50) + 20);
+    if (voteTimer.current) clearInterval(voteTimer.current);
+    if (d.votes) {
+      voteTimer.current = setInterval(() => {
+        setDecision((cur) => {
+          if (!cur || !cur.votes || cur.result) return cur;
+          const keys = Object.keys(cur.votes);
+          const k = keys[Math.floor(Math.random() * keys.length)];
+          return { ...cur, votes: { ...cur.votes, [k]: cur.votes[k] + Math.floor(Math.random() * 3) + 1 } };
+        });
+      }, 700);
+    }
+  }, []);
+  const closeDecision = useCallback(() => {
+    if (voteTimer.current) clearInterval(voteTimer.current);
+    setDecision(null);
+  }, []);
+
+  /* ---- phase navigation helpers ---- */
+  const triggerFail = useCallback(() => {
+    closeDecision(); setStory(null);
+    setChatBanner({ type: "fail", text: "💀 游戏结束！主播倒下了…" });
+    setScene("fail");
+  }, [closeDecision]);
+
+  const triggerWin = useCallback(() => {
+    closeDecision(); setStory(null);
+    setChatBanner({ type: "win", text: "🏆 通关！恭喜所有参与者！" });
+    setScene("win");
+  }, [closeDecision]);
+
+  const goOut = useCallback(() => {
+    showPhase({ big: "☀️ 准备出发", sub: "Day " + day + " · 离开避难所" }, () => setScene("destination"));
+  }, [day, showPhase]);
+
+  const confirmDest = useCallback((d) => setConfirmD(d), []);
+  const goExplore = useCallback(() => {
+    setConfirmD(null);
+    showPhase({ big: "🚪 抵达 " + (confirmD ? confirmD.name : "目标"), sub: "进入探索" },
+      () => setScene("explore"));
+  }, [confirmD, showPhase]);
+
+  const returnShelter = useCallback(() => {
+    const nd = day + 1;
+    if (nd > maxDay) {
+      showPhase({ big: "🌙 Day " + maxDay + " 结束", sub: "七天了，城市的出口仍未找到…" }, () => triggerFail());
+      return;
+    }
+    showPhase({ big: "🌙 Day " + nd + " 开始…", sub: "拖着战利品回到避难所" }, () => {
+      setDay(nd); setScene("organize");
+    });
+  }, [day, showPhase, triggerFail]);
+
+  /* ---- 直播间 ↔ 单机 对照开关 ---- */
+  const toggleMode = useCallback(() => {
+    setLiveMode((m) => {
+      const next = !m;
+      if (next) pushSystem("已切换到「直播间模式」· 观众评论将实时驱动剧情");
+      else pushSystem("已切换到「单机模式」· 观众评论不再影响剧情（对照演示）");
+      return next;
+    });
+  }, [pushSystem]);
+
+  /* ---- 征集创意 (call to action) ---- */
+  const startCTA = useCallback(() => {
+    if (cta) return;
+    const prompt = sceneRef.current === "explore"
+      ? "下一个探索格子里会出现什么？在评论区告诉我！"
+      : "接下来该发生什么？把你的创意打在公屏上！";
+    setCta({ prompt }); setInputHot(true);
+    pushComment({ user: "小明", av: "🐧", text: "出现一只会说话的机械狗，守着逃生通道！" });
+    // viewers pile on with identical spam — gets merged, not amplified
+    SPAM_USERS.slice(0, 6).forEach((u, i) =>
+      setTimeout(() => streamComment({ ...u, text: "机械狗机械狗机械狗" }), 700 + i * 260));
+    setTimeout(() => pushSystem("本轮征集共收到 47 条 · 去重合并后 12 条有效创意参与评选 · 重复刷屏不计权重"), 3200);
+    setTimeout(() => {
+      setCta(null); setInputHot(false);
+      adoptComment({ user: "小明", av: "🐧", text: "出现一只会说话的机械狗，守着逃生通道！" });
+      showBanner({ big: true, icon: "✨",
+        html: "<b>@小明</b> 的创意生效了！「废弃医院里出现了一只机械狗」" });
+      showSpawn({ x: 360, y: 380 });
+      showByTag({ x: 300, y: 300, user: "@小明" });
+    }, 8000);
+  }, [cta, adoptComment, pushComment, streamComment, pushSystem, showBanner, showSpawn, showByTag]);
+
+  /* ---- demo story trigger ---- */
+  const demoStory = useCallback(() => {
+    showBanner({ big: true, icon: "✨", html: "<b>@纸鹤</b> 的创意生效了！「机械守卫苏醒了」" });
+    setTimeout(() => setStory({
+      illus: "🤖", source: "@纸鹤",
+      text: "红色的光学镜在黑暗中亮起。生锈的机械犬抬起头，关节发出刺耳的摩擦声——它认出了你身上的体温。",
+      onContinue: () => setStory(null),
+    }), 1200);
+  }, [showBanner]);
+
+  const resetGame = useCallback(() => {
+    closeDecision(); setStory(null); setBanner(null); setCta(null); setInputHot(false);
+    setChatBanner(null); setConfirmD(null); setShare(false); setToasts([]); setFloats([]);
+    setStats({ ...INIT_STATS }); setPack(initPack()); setDay(3); setFlags({ knock: false }); setScene("home");
+  }, [closeDecision]);
+
+  const goScene = useCallback((s) => { closeDecision(); setStory(null); setScene(s); }, [closeDecision]);
+  const setFlag = useCallback((k, v) => setFlags((f) => ({ ...f, [k]: v })), []);
+
+  /* 探索场景状态(走格/开格/AP)上报,经 state_sync 镜像到看播端 */
+  const [exploreSync, setExploreSync] = useState(null);
+
+  const D = {
+    adoptComment, applyStats, addItem, removeItem, toast, injectComment: pushComment,
+    banner: showBanner, spawn: showSpawn, byTag: showByTag, story: setStory,
+    closeStory: () => setStory(null), decision: openDecision, closeDecision,
+    phase: showPhase, goOut, confirmDest, returnShelter, goScene, setFlag, day, stats,
+    addCompanion: (c) => { setCompanions((prev) => [...prev, c]); },
+    generateAIEvent,
+    reportExplore: setExploreSync,
+  };
+
+  /* enter-scene chat banners */
+  useEffect(() => {
+    if (scene !== "fail" && scene !== "win") setChatBanner(null);
+  }, [scene]);
+
+  /* ---- periodically check server comment buffer for actionable comments ---- */
+  useEffect(() => {
+    if (!window.ApiBridge) return;
+    const interval = setInterval(async () => {
+      const serverComments = await ApiBridge.getComments();
+      if (serverComments.length > 0) {
+        // Find actionable ones
+        const actionable = serverComments.filter(c => {
+          const cls = ApiBridge.classifyComment(c.text);
+          return cls.actionable;
+        });
+        if (actionable.length > 0 && sceneRef.current === 'explore') {
+          // Could trigger an AI event here
+          console.log('[API] Actionable comments found:', actionable.length);
+        }
+      }
+    }, 10000);
+    return () => clearInterval(interval);
+  }, []);
+
+  /* ---- broadcast FULL game state for spectators (WebSocket) ---- */
+  useEffect(() => {
+    if (window.WsSync && WsSync.connected) {
+      WsSync.broadcastGameState({
+        day, stats, scene,
+        pack: pack.map(i => ({ id: i.id, name: i.name, qty: i.qty, icon: i.icon })),
+        decision: decision ? {
+          icon: decision.icon, title: decision.title, desc: decision.desc,
+          opts: decision.opts, votes: decision.votes, result: decision.result
+        } : null,
+        banner: banner ? { icon: banner.icon, html: banner.html, big: banner.big } : null,
+        story: story ? { illus: story.illus, text: story.text, source: story.source } : null,
+        phase: phase ? { big: phase.big, sub: phase.sub } : null,
+        cta: cta ? { prompt: cta.prompt } : null,
+        explore: scene === "explore" ? exploreSync : null,
+      });
+    }
+  }, [day, stats, scene, decision, banner, story, phase, cta, exploreSync]);
+
+  /* ---- receive viewer comments via WebSocket ---- */
+  useEffect(() => {
+    if (!window.WsSync) return;
+    const onViewerComment = (msg) => {
+      streamComment({ user: msg.name, av: msg.avatar, text: msg.text });
+    };
+    const onViewerJoin = (msg) => {
+      setViewers(msg.viewerCount || viewers);
+      pushComment({ user: "系统", av: "📢", text: (msg.name || "新观众") + " 进入了直播间", system: true });
+    };
+    const onViewerLeave = (msg) => {
+      setViewers(msg.viewerCount || viewers);
+    };
+    WsSync.on('viewer_comment', onViewerComment);
+    WsSync.on('viewer_join', onViewerJoin);
+    WsSync.on('viewer_leave', onViewerLeave);
+    return () => {
+      WsSync.off('viewer_comment', onViewerComment);
+      WsSync.off('viewer_join', onViewerJoin);
+      WsSync.off('viewer_leave', onViewerLeave);
+    };
+  }, []);
+
+  /* ---- bot 评论驱动事件 —— demo 核心因果闭环 ---- */
+  useEffect(() => {
+    let timers = [];
+    const tick = () => {
+      try {
+        if (!liveModeRef.current) return;            // 单机模式：不触发
+        if (!window.AudienceBot) return;             // bot 未加载：跳过
+        const sc = sceneRef.current;
+        if (sc !== "home" && sc !== "destination" && sc !== "explore") return;
+        // 已有弹层占用 → 本轮跳过，避免盖住
+        const ov = overlayRef.current || {};
+        if (ov.decision || ov.story || ov.cta || ov.banner) return;
+
+        const c = AudienceBot.actionableComment(sc);
+        if (!c) return;
+
+        // 1) 该创意评论先以普通氛围评论形式飘出
+        streamComment({ user: c.user, av: c.av, text: c.text });
+
+        // 2) ~1.3s 后标记采纳（adoptComment 内部分类 + 涨 viewers）
+        timers.push(setTimeout(() => {
+          try { adoptComment({ user: c.user, av: c.av, text: c.text }); }
+          catch (e) { console.warn("[bot-event] adopt failed", e); }
+        }, 1300));
+
+        // 3) ~2.4s 后合成事件并按 type 分发
+        timers.push(setTimeout(() => {
+          try {
+            const ev = AudienceBot.synthEvent(c, {
+              scene: sceneRef.current, stats: statsRef.current, day: dayRef.current,
+            });
+            if (!ev || !ev.type) return;
+            if (ev.type === "banner") {
+              showBanner({ big: true, icon: ev.icon || "✨", html: ev.html });
+            } else if (ev.type === "story") {
+              setStory({ illus: ev.illus, source: ev.source, text: ev.text,
+                onContinue: () => setStory(null) });
+            } else if (ev.type === "item") {
+              addItem(ev.itemId);
+              showBanner({ big: true, icon: "🎁", html: ev.html });
+            } else if (ev.type === "stats") {
+              applyStats(ev.delta);
+              showBanner({ icon: "⚡", html: ev.html });
+            }
+          } catch (e) { console.warn("[bot-event] synth failed", e); }
+        }, 2400));
+      } catch (e) {
+        console.warn("[bot-event] tick failed", e);
+      }
+    };
+    const iv = setInterval(tick, 13000);
+    return () => { clearInterval(iv); timers.forEach(clearTimeout); };
+  }, []);
+
+  /* hidden review shortcuts (NOT visible streamer controls): 1=fail 2=win 3=settle 0=restart */
+  useEffect(() => {
+    const onKey = (e) => {
+      if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
+      if (e.key === "1") triggerFail();
+      else if (e.key === "2") triggerWin();
+      else if (e.key === "3") { closeDecision(); setStory(null); setScene("settle"); }
+      else if (e.key === "0") resetGame();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [triggerFail, triggerWin, resetGame, closeDecision]);
+
+  /* ---- render scene ---- */
+  const renderScene = () => {
+    switch (scene) {
+      case "home": return <SceneHome D={D} flags={flags} companions={companions} />;
+      case "organize": return <SceneOrganize D={D} pack={pack} companions={companions} />;
+      case "destination": return <SceneDestination D={D} />;
+      case "explore": return <SceneExplore D={D} />;
+      default: return <ShelterBg />;
+    }
+  };
+
+  const exploredCount = 4, itemCount = pack.reduce((a, b) => a + b.qty, 0);
+
+  const NAV = [
+    ["home", "家中"], ["organize", "整理资源"], ["destination", "选择目的地"],
+    ["explore", "探索地图"], ["fail", "失败"], ["win", "胜利"], ["settle", "结算"],
+  ];
+
+  return (
+    <div id="app">
+      <StatusBar day={day} maxDay={maxDay} stats={stats} pack={pack}
+        floats={floats} flashSlot={flashSlot} />
+
+      <div className="main-row">
+        <div className="stage-col">
+          {scene !== "fail" && scene !== "win" && scene !== "settle" && renderScene()}
+
+          {/* overlays */}
+          <SpawnFx fx={spawn} />
+          <ByTag tag={byTag} />
+          <BroadcastBanner banner={banner} />
+          <CallToAction cta={cta} />
+          {scene !== "settle" && <DecisionCard decision={decision}
+            onChoose={(opt) => {
+              const res = decision.onChoose ? decision.onChoose(opt) : "";
+              if (voteTimer.current) clearInterval(voteTimer.current);
+              setDecision((d) => d ? { ...d, result: res } : d);
+            }}
+            onContinue={() => decision && (decision.onContinue ? decision.onContinue() : closeDecision())} />}
+          <StoryCard story={story}
+            onContinue={() => story && (story.onContinue ? story.onContinue() : setStory(null))} />
+          <ItemToast toasts={toasts} />
+          <ConfirmModal confirm={confirmD} onGo={goExplore} onBack={() => setConfirmD(null)} />
+          <PhaseTransition phase={phase} />
+
+          {/* endings */}
+          {scene === "fail" && <EndingFail days={day}
+            onSettle={() => setScene("settle")} onReplay={resetGame} />}
+          {scene === "win" && <EndingWin days={day} explored={exploredCount} items={itemCount}
+            onSettle={() => setScene("settle")} onShare={() => setShare(true)} />}
+          {scene === "settle" && <Settlement outcome="win"
+            days={5} onShare={() => setShare(true)} onReplay={resetGame} />}
+          {share && <ShareCard onClose={() => setShare(false)} />}
+
+          {/* streamer call-to-action button (only legitimate top control) */}
+          {(scene === "home" || scene === "organize" || scene === "destination" || scene === "explore") && (
+            <div style={{ position: "absolute", top: 18, right: 22, zIndex: 55, display: "flex", gap: 8 }}>
+              {liveMode
+                ? <button className="btn sm gold" onClick={toggleMode}>🎙️ 直播间模式</button>
+                : <button className="btn sm" onClick={toggleMode}>🎮 单机模式</button>}
+              <button className="btn sm gold" onClick={startCTA} disabled={!!cta}>📢 征集创意</button>
+            </div>
+          )}
+        </div>
+
+        <CommentFeed comments={comments} viewers={viewers} likes={likes}
+          inputHot={inputHot} chatBanner={chatBanner} />
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
