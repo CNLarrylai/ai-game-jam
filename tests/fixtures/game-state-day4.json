@@ -1,0 +1,166 @@
+{
+  "description": "标准测试场景：Day 4 废弃医院探索，用于验证能力驱动剧情系统",
+  "gameState": {
+    "day": 4,
+    "maxDays": 7,
+    "phase": "explore",
+    "location": "废弃医院",
+    "hp": 65,
+    "hunger": 40,
+    "sanity": 55,
+    "actionPoints": 5,
+    "karma": 10,
+    "inventory": [
+      {
+        "name": "信号枪",
+        "icon": "🔫",
+        "category": "weapon",
+        "durability": 3,
+        "enables": ["ranged_combat", "signal_for_help", "intimidation"],
+        "narrative_hooks": ["远距离对峙时可以威胁敌人", "发射信号弹吸引注意力", "噪音可能招来更多敌人"]
+      },
+      {
+        "name": "罐头",
+        "icon": "🥫",
+        "category": "food",
+        "quantity": 2,
+        "enables": ["feed_companion", "trade_currency"],
+        "narrative_hooks": ["可以用来招募NPC", "可以和商人交易"]
+      },
+      {
+        "name": "撬棍",
+        "icon": "🔧",
+        "category": "tool",
+        "durability": 5,
+        "enables": ["melee_combat", "pry_open"],
+        "narrative_hooks": ["撬开锁住的柜子或门", "近身战斗武器"]
+      },
+      {
+        "name": "手电筒",
+        "icon": "🔦",
+        "category": "tool",
+        "durability": 2,
+        "enables": ["light_source"],
+        "narrative_hooks": ["照亮黑暗区域发现隐藏物品"]
+      }
+    ],
+    "companions": [
+      {
+        "name": "独眼机械师·老韩",
+        "personality": "沉默寡言但心细，贪吃",
+        "flaw": "贪吃，食物消耗+1/天",
+        "skills": [
+          {
+            "type": "craft",
+            "description": "可以用废旧零件制造简易工具",
+            "enables": ["repair", "craft_tool", "hack_simple_machine"],
+            "narrative_hooks": ["修理损坏设备恢复功能", "用废旧零件制造简易武器", "破解简单电子锁"]
+          }
+        ],
+        "hidden_trait": "曾是AI实验室的维修工，知道机器人的弱点",
+        "recruited_day": 2
+      },
+      {
+        "name": "流浪猫·小黑",
+        "personality": "警觉，独立，偶尔撒娇",
+        "flaw": "受惊时会逃跑，需要安抚",
+        "skills": [
+          {
+            "type": "survival",
+            "description": "能感知危险和隐藏物品",
+            "enables": ["danger_sense", "find_hidden"],
+            "narrative_hooks": ["猫预警即将到来的危险", "猫钻进小洞帮忙取物"]
+          }
+        ],
+        "hidden_trait": "被AI芯片植入过，偶尔行为异常",
+        "recruited_day": 2
+      }
+    ],
+    "history": [
+      "Day 1: 在超市遇到疯狂的收银机(AI觉醒体)，尖叫声导致sanity-10。在货架后面捡到一把信号枪。",
+      "Day 2: 清晨有人敲门，是一个独眼老头带着一只黑猫。用2个罐头招募了机械师老韩，猫自己跟了进来。",
+      "Day 3: 探索废弃工厂。老韩修好了一台发电机给手电筒充电。遭遇AI巡逻无人机，躲在通风管道里逃过一劫。捡到一些零件。"
+    ],
+    "visitedLocations": ["废弃超市", "废弃工厂"]
+  },
+  "availableCapabilities": {
+    "fromInventory": {
+      "信号枪": ["ranged_combat", "signal_for_help", "intimidation"],
+      "撬棍": ["melee_combat", "pry_open"],
+      "手电筒": ["light_source"]
+    },
+    "fromCompanions": {
+      "独眼机械师·老韩": ["repair", "craft_tool", "hack_simple_machine"],
+      "流浪猫·小黑": ["danger_sense", "find_hidden"]
+    }
+  },
+  "hookQueue": [
+    {
+      "hook_id": "hook_001",
+      "setup": "获得信号枪",
+      "setup_day": 1,
+      "days_waiting": 3,
+      "min_delay": 1,
+      "max_delay": 3,
+      "suggested_payoffs": ["遇到远距离敌人时可以使用", "被困时发射信号弹求救", "用枪声吓退野兽"],
+      "status": "MUST_TRIGGER"
+    },
+    {
+      "hook_id": "hook_002",
+      "setup": "收留流浪猫·小黑",
+      "setup_day": 2,
+      "days_waiting": 2,
+      "min_delay": 1,
+      "max_delay": 4,
+      "suggested_payoffs": ["猫预警即将到来的危险", "猫钻进小洞帮忙取物"],
+      "status": "CAN_TRIGGER"
+    },
+    {
+      "hook_id": "hook_003",
+      "setup": "老韩的隐藏身份（前AI实验室维修工）",
+      "setup_day": 2,
+      "days_waiting": 2,
+      "min_delay": 2,
+      "max_delay": 5,
+      "suggested_payoffs": ["遇到特定型号机器人时老韩识别出弱点", "找到AI实验室相关线索时老韩反应异常"],
+      "status": "CAN_TRIGGER"
+    }
+  ],
+  "testComments": [
+    {
+      "id": "tc_01",
+      "user": "player_cat_lover",
+      "text": "医院地下室传来奇怪的嗡嗡声",
+      "expected_category": "EVENT",
+      "test_target": "事件生成 — 验证信号枪 MUST_TRIGGER 钩子兑现"
+    },
+    {
+      "id": "tc_02",
+      "user": "hospital_explorer",
+      "text": "遇到一个穿白大褂的女人在翻药柜",
+      "expected_category": "CHARACTER",
+      "test_target": "角色生成 — 验证技能互补（不重复老韩的 craft/repair）"
+    },
+    {
+      "id": "tc_03",
+      "user": "welder_fan",
+      "text": "柜子里有一把电焊枪",
+      "expected_category": "ITEM",
+      "test_target": "道具生成 — 验证 enables 不重复 + narrative_hooks 具体"
+    },
+    {
+      "id": "tc_04",
+      "user": "explorer_99",
+      "text": "医院后面有个防空洞入口",
+      "expected_category": "LOCATION",
+      "test_target": "场景生成 — 验证与已访问地点不重复"
+    },
+    {
+      "id": "tc_05",
+      "user": "funny_guy",
+      "text": "哈哈哈主播加油666",
+      "expected_category": "IRRELEVANT",
+      "test_target": "噪音过滤"
+    }
+  ]
+}
