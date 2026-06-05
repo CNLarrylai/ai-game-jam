@@ -362,18 +362,14 @@ async def generation_loop():
             })
 
             final_cat = resp.get("final_category", "")
-            if final_cat in ("EVENT", "CHARACTER"):
-                pending_event = {"narration": resp.get("narrative", ""), "options": resp.get("options", []), "generated": generated}
-                await send_ws({"type": "game_event", "data": resp})
+            # Always set pending_event so host choices get processed
+            pending_event = {"narration": resp.get("narrative", ""), "options": resp.get("options", []), "generated": generated}
+            resp["source_user"] = pick.username  # pass viewer name to host
+            await send_ws({"type": "game_event", "data": resp})
+            if resp.get("options"):
                 print(f"  📺 等待主播选择...")
-            elif final_cat == "ITEM":
-                apply_phase2_response(resp)
-                await send_ws({"type": "game_event", "data": resp})
-            elif final_cat == "LOCATION":
-                await send_ws({"type": "game_event", "data": resp})
             else:
-                apply_phase2_response(resp)
-                await send_ws({"type": "game_event", "data": resp})
+                print(f"  📺 事件已推送 ({final_cat})")
 
         except Exception as e:
             print(f"  ❌ Phase 2 失败: {e}，降级推送 Phase 1 结果")
