@@ -40,7 +40,8 @@ from narrative_safety import check_narrative_safety, clean_orphan_hooks, compres
 # ============================================================
 # 配置
 # ============================================================
-WS_URL = "ws://localhost:3002"
+WS_PORT = os.environ.get("PORT", "3002")
+WS_URL = f"ws://localhost:{WS_PORT}"
 PHASE2_URL = "http://localhost:8000"
 WINDOW_SECONDS = 30
 
