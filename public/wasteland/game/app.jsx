@@ -43,6 +43,7 @@ function App(props) {
   const [flags, setFlags] = useState({ knock: false });
   const [destinations, setDestinations] = useState([...(window.DESTINATIONS || [])]);
   const [viewerCountdown, setViewerCountdown] = useState(30);
+  const eventQueueRef = useRef([]);
 
   const voteTimer = useRef(null);
   const sceneRef = useRef(scene);
@@ -519,6 +520,14 @@ function App(props) {
       const source = ev.source_user || '观众';
       console.log('[HOST] AI game_event:', cat, ev.narrative?.substring(0, 60));
 
+      // If there's already an active decision/story and this isn't an option injection, queue it
+      if ((decision || story) && !(decision && !decision.result && (cat === 'EVENT' || cat === 'CHARACTER' || cat === 'NPC_ENCOUNTER' || cat === 'EVENT_TRIGGER'))) {
+        eventQueueRef.current.push(msg);
+        toast({ icon: '📋', name: '新事件已排队（当前事件完成后触发）' });
+        console.log('[HOST] Event queued, queue size:', eventQueueRef.current.length);
+        return;
+      }
+
       // ============ LOCATION: 新增目的地 ============
       if (cat === 'LOCATION' || cat === 'LOCATION_PASSTHROUGH') {
         const locName = ev.event_title || ev.name || ev.narrative?.match(/「(.+?)」/)?.[1] || '观众创造的地点';
@@ -557,14 +566,17 @@ function App(props) {
         // No active decision — create a new one
         const rawOpts = ev.options || [];
         const opts = rawOpts.map((o, i) => {
-          const opt = typeof o === 'string' ? { id: o, label: o } : { id: o.id || o.label || ('opt' + i), label: o.label || o.text || o, sub: o.sub || '' };
-          // Attach stat effects from Phase 2 response
-          opt.icon = o.icon || (o.cost ? '⚠️' : o.reward ? '✅' : '▸');
-          const effects = [];
-          if (o.cost) Object.entries(o.cost).forEach(([k, v]) => { if (v) effects.push(k + ' ' + (v > 0 ? '+' : '') + v); });
-          if (o.reward) Object.entries(o.reward).forEach(([k, v]) => { if (v) effects.push(k + ' ' + (v > 0 ? '+' : '') + v); });
-          if (effects.length) opt.sub = (opt.sub ? opt.sub + ' · ' : '') + effects.join(', ');
-          opt._raw = o; // preserve raw for applying effects
+          const opt = typeof o === 'string'
+            ? { id: o, label: o }
+            : { id: o.id || o.text || ('opt' + i), label: o.text || o.label || String(o) };
+          // Show cost/benefit as subtitle (Phase 2 returns these as strings)
+          const parts = [];
+          if (o.cost) parts.push('代价: ' + (typeof o.cost === 'string' ? o.cost.substring(0, 40) : JSON.stringify(o.cost)));
+          if (o.benefit) parts.push('收益: ' + (typeof o.benefit === 'string' ? o.benefit.substring(0, 40) : JSON.stringify(o.benefit)));
+          if (o.offers) parts.push('提供: ' + (typeof o.offers === 'string' ? o.offers.substring(0, 40) : JSON.stringify(o.offers)));
+          opt.sub = parts.join(' | ') || o.sub || '';
+          opt.icon = o.icon || (o.cost ? '⚠️' : o.benefit ? '✅' : '▸');
+          opt._raw = o;
           return opt;
         });
         showBanner({ big: true, icon: '✨', html: '<b>@' + source + '</b> 的创意生效了！' + (ev.event_title ? '「' + ev.event_title + '」' : '') });
@@ -580,31 +592,34 @@ function App(props) {
                 if (window.WsSync && WsSync.connected) {
                   WsSync.send({ type: 'host_action', action: 'choice', data: { choice: opt.label || opt.id } });
                 }
-                // Immediately apply visible effects from the option
+                // Apply event-level stat_changes from Phase 2
+                if (ev.stat_changes) {
+                  const d2 = {};
+                  Object.entries(ev.stat_changes).forEach(([k, v]) => { if (v) d2[k] = v; });
+                  if (Object.keys(d2).length) applyStats(d2);
+                }
+                // Also try option-level numeric cost/reward (if they're objects not strings)
                 const raw = opt._raw || {};
-                const delta = {};
-                if (raw.cost) Object.entries(raw.cost).forEach(([k, v]) => { if (v) delta[k] = v; });
-                if (raw.reward) Object.entries(raw.reward).forEach(([k, v]) => { if (v) delta[k] = v; });
-                if (Object.keys(delta).length) applyStats(delta);
-                // If option has successRate, show result
-                const resultText = raw.result || ('你选择了「' + (opt.label || opt.id) + '」');
+                if (raw.cost && typeof raw.cost === 'object') {
+                  const d3 = {};
+                  Object.entries(raw.cost).forEach(([k, v]) => { if (typeof v === 'number' && v) d3[k] = v; });
+                  if (Object.keys(d3).length) applyStats(d3);
+                }
+                if (raw.reward && typeof raw.reward === 'object') {
+                  const d4 = {};
+                  Object.entries(raw.reward).forEach(([k, v]) => { if (typeof v === 'number' && v) d4[k] = v; });
+                  if (Object.keys(d4).length) applyStats(d4);
+                }
+                const resultText = raw.result || ('你选择了「' + (opt.label || opt.id) + '」— 等待 AI 反馈...');
                 return resultText;
               },
               onContinue: () => {
                 closeDecision();
-                // Check if the chosen option implies a scene transition
-                // Match destination names in the option text
-                const lastResult = decision?.result || '';
-                const allDests = destinations || [];
-                const matchedDest = allDests.find(d =>
-                  lastResult.includes(d.name) || (decision?.title && decision.title.includes(d.name))
-                );
-                if (matchedDest) {
-                  // Transition to that destination
-                  confirmDest(matchedDest);
-                  toast({ icon: '🗺️', name: '前往: ' + matchedDest.name });
-                } else {
-                  toast({ icon: '✅', name: '@' + source + ' 的剧情已完成' });
+                toast({ icon: '✅', name: '@' + source + ' 的剧情已完成' });
+                // Process next queued event if any
+                if (eventQueueRef.current.length > 0) {
+                  const next = eventQueueRef.current.shift();
+                  setTimeout(() => onGameEvent(next), 800);
                 }
               },
             });
@@ -833,7 +848,7 @@ function App(props) {
                 <span className="dot" style={{ background: props?.viewerConnected ? 'var(--green)' : 'var(--red)' }} />
                 {props?.viewerConnected ? '已同步 · Day ' + day + ' · 观看中' : '连接中...'}
               </div>
-              <div className="collect-bar" style={{ position: 'absolute', left: '50%', bottom: 104, transform: 'translateX(-50%)', zIndex: 100, width: '56%', background: 'rgba(10,8,20,.9)', border: '2px solid var(--gold)', boxShadow: '0 0 22px rgba(255,207,63,.3)', padding: '12px 18px' }}>
+              <div className="collect-bar" style={{ position: 'absolute', left: '50%', bottom: 104, transform: 'translateX(-50%)', zIndex: 45, width: '56%', background: 'rgba(10,8,20,.9)', border: '2px solid var(--gold)', boxShadow: '0 0 22px rgba(255,207,63,.3)', padding: '12px 18px' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 9 }}>
                   <span style={{ fontSize: 'var(--t-sm)', color: 'var(--gold)' }}>🎮 {viewerCountdown <= 3 ? '正在采集评论...' : '下一轮创意采集'}</span>
                   <span style={{ fontFamily: 'var(--pixel)', fontSize: 'var(--t-md)', color: '#fff' }}>{viewerCountdown}s</span>
