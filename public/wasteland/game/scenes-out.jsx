@@ -52,12 +52,11 @@ function hexPos(x, y) {
 
 function SceneExplore({ D }) {
   const isViewer = window.__VIEWER_MODE__;
-  const ext = isViewer ? (window.__EXPLORE_STATE__ || {}) : null;
 
-  const [ap, setAp] = useStateO(ext ? (ext.ap ?? 3) : 3);
-  const [revealed, setRevealed] = useStateO(ext ? (ext.revealed || {}) : {});
-  const [foe, setFoe] = useStateO(ext ? ext.foe : null);
-  const [npc, setNpc] = useStateO(ext ? ext.npc : null);
+  const [ap, setAp] = useStateO(3);
+  const [revealed, setRevealed] = useStateO({});
+  const [foe, setFoe] = useStateO(null);
+  const [npc, setNpc] = useStateO(null);
   const tiles = window.HEX_TILES;
 
   // Host: expose internal state for viewer sync
@@ -67,17 +66,17 @@ function SceneExplore({ D }) {
     }
   }, [ap, revealed, foe, npc]);
 
-  // Viewer: continuously read external state
+  // Viewer: poll __EXPLORE_STATE__ set by app.jsx's WS handler
   useEffectO(() => {
     if (!isViewer) return;
     const t = setInterval(() => {
       const s = window.__EXPLORE_STATE__;
       if (!s) return;
-      setAp(s.ap ?? ap);
-      setRevealed(s.revealed || {});
-      setFoe(s.foe || null);
-      setNpc(s.npc || null);
-    }, 300);
+      if (s.ap !== undefined) setAp(prev => s.ap !== prev ? s.ap : prev);
+      if (s.revealed) setRevealed(prev => JSON.stringify(s.revealed) !== JSON.stringify(prev) ? s.revealed : prev);
+      if (s.foe !== undefined) setFoe(s.foe);
+      if (s.npc !== undefined) setNpc(s.npc);
+    }, 200);
     return () => clearInterval(t);
   }, [isViewer]);
 

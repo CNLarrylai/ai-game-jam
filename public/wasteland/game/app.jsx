@@ -443,7 +443,7 @@ function App(props) {
       if (window.WsSync && WsSync.connected && window.__EXPLORE_STATE__) {
         WsSync.send({ type: 'host_action', action: 'explore_state', data: window.__EXPLORE_STATE__ });
       }
-    }, 800);
+    }, 300);
     return () => clearInterval(t);
   }, [scene]);
 
