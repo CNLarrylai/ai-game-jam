@@ -313,7 +313,7 @@ async def generation_loop():
     pool.open_window()
 
     while True:
-        await asyncio.sleep(3)  # check every 3s instead of waiting 30s
+        await asyncio.sleep(10)  # check every 10s, stable generation
 
         if pool.total_size() == 0:
             continue  # nothing to process

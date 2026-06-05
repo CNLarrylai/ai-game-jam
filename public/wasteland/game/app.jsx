@@ -83,14 +83,7 @@ function App(props) {
           return d.decision;
         });
         // Overlays
-        // Only update overlays if content CHANGED (avoid re-render on heartbeat)
-        // banner handled by dedicated 'banner' message, not state_sync
-        setStory(prev => {
-          if (!d.story && !prev) return prev;
-          if (!d.story) return null;
-          if (prev && prev.text === d.story.text) return prev;
-          return d.story;
-        });
+        // banner/story/phase handled by dedicated message channels, not state_sync
         // phase handled by dedicated 'phase' message, not state_sync
         if (d.cta) setCta(d.cta);
         else if (d.cta === null) setCta(null);
@@ -517,9 +510,7 @@ function App(props) {
             icon: d.icon, title: d.title, desc: d.desc,
             options: d.options || d.opts, votes: d.votes, result: d.result
           } : null; })(),
-          // banner/story/phase NOT in heartbeat — they have dedicated message channels
-          // Sending them here causes heartbeat to overwrite active banners/stories with null
-          story: (() => { const s = storyRef.current; return s ? { illus: s.illus, text: s.text, source: s.source } : null; })(),
+          // banner/story/phase NOT in heartbeat — dedicated message channels only
           cta: cta ? { prompt: cta.prompt } : null,
           flags, companions: companions.map(c => ({
             id: c.id, name: c.name, av: c.av, role: c.role, status: c.status, hp: c.hp, mood: c.mood,
@@ -541,7 +532,7 @@ function App(props) {
           WsSync.listeners['game_event'].forEach(cb => cb(next));
         }
       }
-    }, 3000);
+    }, 5000);
     return () => clearInterval(t);
   }, [day, stats, scene, decision, banner, story, phase, cta, flags, pack, companions, destinations, confirmD, toasts]);
 
