@@ -487,7 +487,38 @@ function App(props) {
         destinations: destinations.map(d => ({ id: d.id, icon: d.icon, name: d.name, danger: d.danger, reward: d.reward, ap: d.ap, generated: d.generated, by: d.by })),
       });
     }
-  }, [day, stats, scene, decision, banner, story, phase, cta, flags, pack, companions, destinations, confirmD, share]);
+  });
+
+  // Heartbeat: broadcast full state every 3s to keep viewers in sync
+  useEffect(() => {
+    if (isViewer) return;
+    const t = setInterval(() => {
+      if (window.WsSync && WsSync.connected) {
+        WsSync.broadcastGameState({
+          day, stats, scene,
+          pack: pack.map(i => ({ id: i.id, name: i.name, qty: i.qty, icon: i.icon })),
+          decision: decision ? {
+            icon: decision.icon, title: decision.title, desc: decision.desc,
+            options: decision.options || decision.opts, votes: decision.votes, result: decision.result
+          } : null,
+          banner: banner ? { icon: banner.icon, html: banner.html, big: banner.big } : null,
+          story: story ? { illus: story.illus, text: story.text, source: story.source } : null,
+          phase: phase ? { big: phase.big, sub: phase.sub } : null,
+          cta: cta ? { prompt: cta.prompt } : null,
+          flags, companions: companions.map(c => ({
+            id: c.id, name: c.name, av: c.av, role: c.role, status: c.status, hp: c.hp, mood: c.mood,
+            detail: c.detail||"", ask: c.ask||"",
+            skill: c.skill ? { id:c.skill.id, label:c.skill.label, icon:c.skill.icon, note:c.skill.note, effect:c.skill.effect, line:c.skill.line } : {id:"",label:"",icon:"",note:"",effect:{},line:""},
+          })),
+          confirmD: confirmD ? { name: confirmD.name, confirm: confirmD.confirm, icon: confirmD.icon, danger: confirmD.danger, ap: confirmD.ap } : null,
+          toasts: toasts.map(t => ({ id: t.id, icon: t.icon, name: t.name, lose: t.lose })),
+          explore: window.__EXPLORE_STATE__ || null,
+          destinations: destinations.map(d => ({ id: d.id, icon: d.icon, name: d.name, danger: d.danger, reward: d.reward, ap: d.ap, generated: d.generated, by: d.by })),
+        });
+      }
+    }, 3000);
+    return () => clearInterval(t);
+  }, [day, stats, scene, decision, banner, story, phase, cta, flags, pack, companions, destinations, confirmD, toasts]);
 
   // Broadcast explore internal state changes separately (since they're in a child component)
   useEffect(() => {
