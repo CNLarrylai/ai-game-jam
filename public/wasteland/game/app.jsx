@@ -760,44 +760,45 @@ function App(props) {
     };
     const onChoiceResult = (msg) => {
       const r = msg.data || {};
-      // Apply stat changes (map thirst→supply for frontend compatibility)
+
+      // Build stat change summary
+      const statParts = [];
       if (r.stat_changes) {
         const delta = {};
         Object.entries(r.stat_changes).forEach(([k, v]) => {
           if (!v) return;
-          if (k === 'thirst') delta.supply = v;
-          else delta[k] = v;
+          const key = k === 'thirst' ? 'supply' : k;
+          delta[key] = v;
+          statParts.push(key + (v > 0 ? '+' : '') + v);
         });
-        if (Object.keys(delta).length) {
-          applyStats(delta);
-          // Show toast with changes
-          const parts = Object.entries(delta).map(([k,v]) => k + (v>0?'+':'') + v);
-          toast({ icon: '📊', name: parts.join(', ') });
-        }
+        if (Object.keys(delta).length) applyStats(delta);
       }
-      // Add items
+
+      // Build item summary
+      const itemParts = [];
       if (r.inventory_change?.add_items) {
         r.inventory_change.add_items.forEach(item => {
           addItem(item);
-          toast({ icon: '🎒', name: '获得: ' + item });
+          itemParts.push('+' + item);
         });
       }
-      if (r.narrative) {
-        closeDecision();
-        // Check if narrative mentions going to a specific destination
-        const allDests = destinations || [];
-        const matchedDest = allDests.find(d => r.narrative.includes(d.name));
-        setStory({
-          illus: '📖', text: r.narrative, source: '',
-          onContinue: () => {
-            setStory(null);
-            if (matchedDest) {
-              confirmDest(matchedDest);
-              toast({ icon: '🗺️', name: '前往: ' + matchedDest.name });
-            }
-          }
+      if (r.inventory_change?.remove_items) {
+        r.inventory_change.remove_items.forEach(item => {
+          removeItem(item);
+          itemParts.push('-' + item);
         });
       }
+
+      // Show result IN the decision card (not as full-screen story)
+      const resultText = (r.narrative || '选择完成。')
+        + (statParts.length ? '\n\n📊 数值变化: ' + statParts.join(', ') : '')
+        + (itemParts.length ? '\n🎒 物品: ' + itemParts.join(', ') : '');
+
+      setDecision(d => d ? { ...d, result: resultText } : d);
+
+      // Toast summary
+      if (statParts.length) toast({ icon: '📊', name: statParts.join(', ') });
+      if (itemParts.length) toast({ icon: '🎒', name: itemParts.join(', ') });
     };
 
     WsSync.on('viewer_comment', onViewerComment);
