@@ -100,6 +100,23 @@ function App(props) {
         if (msg.action === 'click' && msg.data) {
           window.__HOST_CLICK__ = { ...msg.data, t: Date.now() };
         }
+        // Story sync: host pushes story content directly
+        if (msg.action === 'story_sync') {
+          if (msg.data) {
+            setStory({ ...msg.data, onContinue: () => setStory(null) });
+          } else {
+            setStory(null);
+          }
+        }
+        // Banner sync: host pushes banner directly
+        if (msg.action === 'banner_sync') {
+          if (msg.data) {
+            setBanner({ ...msg.data, id: uid() });
+            setTimeout(() => setBanner(null), 8000);
+          } else {
+            setBanner(null);
+          }
+        }
       }
       if (msg.type === 'new_comment') {
         streamComment({ user: msg.name || '?', av: msg.avatar || '👤', text: msg.text });
@@ -493,6 +510,17 @@ function App(props) {
     }, 10000);
     return () => clearInterval(interval);
   }, []);
+
+  /* ---- sync story/banner to viewers via host_action (reliable channel) ---- */
+  useEffect(() => {
+    if (isViewer || !window.WsSync || !WsSync.connected) return;
+    WsSync.send({ type: 'host_action', action: 'story_sync', data: story ? { illus: story.illus, text: story.text, source: story.source || '' } : null });
+  }, [story, isViewer]);
+
+  useEffect(() => {
+    if (isViewer || !window.WsSync || !WsSync.connected) return;
+    WsSync.send({ type: 'host_action', action: 'banner_sync', data: banner ? { icon: banner.icon, html: banner.html, big: banner.big } : null });
+  }, [banner, isViewer]);
 
   /* ---- broadcast FULL game state for spectators (WebSocket) ---- */
   useEffect(() => {
