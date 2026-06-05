@@ -349,7 +349,7 @@ function App() {
         pack: pack.map(i => ({ id: i.id, name: i.name, qty: i.qty, icon: i.icon })),
         decision: decision ? {
           icon: decision.icon, title: decision.title, desc: decision.desc,
-          opts: decision.opts, votes: decision.votes, result: decision.result
+          opts: decision.options || decision.opts, votes: decision.votes, result: decision.result
         } : null,
         banner: banner ? { icon: banner.icon, html: banner.html, big: banner.big } : null,
         story: story ? { illus: story.illus, text: story.text, source: story.source } : null,
