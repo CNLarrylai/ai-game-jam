@@ -1,7 +1,8 @@
 /* api-bridge.jsx — connects WASTELAND LIVE to backend APIs + WebSocket */
 
 const API_BASE = window.location.origin;
-const WS_URL = 'ws://' + window.location.hostname + ':3002';
+const _isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const WS_URL = _isLocal ? 'ws://localhost:3002' : 'wss://wasteland-live-ws.onrender.com';
 
 /* ============================================================
    WebSocket 实时同步层
