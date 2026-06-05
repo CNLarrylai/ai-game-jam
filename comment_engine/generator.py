@@ -54,7 +54,13 @@ CAPABILITY-DRIVEN RULES:
 9. When a companion skill is used, add their in-character dialogue in the outcome
 10. If NARRATIVE HOOK QUEUE has a MUST_TRIGGER hook, this event MUST create a scenario that pays it off
 11. Do NOT create options requiring capabilities the player does NOT have
-12. Mark which capability is used in each option via "capability_used" field"""
+12. Mark which capability is used in each option via "capability_used" field
+
+COMMENT-SOURCED ATTRIBUTION:
+13. If the event/character/item was generated from a viewer comment, and it creates new options, the option text MUST include attribution. Format: "选项文案 (💬@用户名)"
+14. Example: if @小明's comment created a talking cat NPC, the option should show: "和猫对话 (💬@小明)"
+15. This applies to: options triggered by comment-generated NPCs, items, or events
+16. The attribution makes viewers see their creativity directly influencing game choices"""
 
 EVENT_USER = """
 {context}
@@ -67,17 +73,18 @@ Generate a game event. Output valid JSON:
   "narration": "2-3 sentences, narrative tone, reference current location, dark humor",
   "options": [
     {{
-      "text": "action label (max 15 chars)",
+      "text": "action label. If this option exists because of a viewer comment, append (💬@username)",
       "outcome": "1-2 sentences",
-      "stat_changes": {{"hp": int, "hunger": int, "sanity": int}},
+      "stat_changes": {{"spirit": int, "health": int, "hunger": int, "thirst": int}},
       "item_gained": "item_name or null",
-      "item_lost": "item_name or null"
+      "item_lost": "item_name or null",
+      "capability_used": "capability tag or null",
+      "comment_source": "@username if this option was triggered by a viewer comment, or null"
     }}
   ],
   "source_display": "Inspired by @{username}",
-  "thread_hook": "optional: a sentence that sets up a future event (unresolved thread)",
-  "hooks_resolved": ["hook_id if this event pays off a hook, or empty list"],
-  "capability_used_summary": "which capabilities were used in options"
+  "thread_hook": "optional: a sentence that sets up a future event",
+  "hooks_resolved": ["hook_id if this event pays off a hook, or empty list"]
 }}"""
 
 CHARACTER_SYSTEM = f"""You are the character designer for an AI apocalypse survival game.
@@ -110,16 +117,18 @@ Generate an NPC. Output valid JSON:
   ],
   "dialogue_intro": "First line when encountered (in-character, max 50 words)",
   "interaction_options": [
-    {{"text": "Recruit", "cost": {{"food": int}}, "benefit": "summary of skills"}},
-    {{"text": "Trade", "offers": "what", "wants": "what"}},
-    {{"text": "Ask for intel", "reveals": "useful info"}},
-    {{"text": "Leave", "consequence": "what happens"}}
+    {{"text": "招募 (💬@{username})", "cost": {{"food": int}}, "benefit": "summary of skills"}},
+    {{"text": "交易 (💬@{username})", "offers": "what", "wants": "what"}},
+    {{"text": "对话 (💬@{username})", "reveals": "useful info"}},
+    {{"text": "离开", "consequence": "what happens"}}
   ],
   "hidden_trait": "Secret revealed after 2+ days as companion",
   "source_display": "Inspired by @{username}"
 }}
 
-IMPORTANT for skills:
+IMPORTANT:
+- ALL interaction options for this comment-generated NPC MUST include (💬@{username}) in the text — this shows viewers their comment created this character
+- The "离开" option does NOT need attribution (it's a default option)
 - Each skill must have SPECIFIC enables tags (e.g. "repair", "craft_tool", "heal_injury")
 - narrative_hooks must describe CONCRETE scenarios where the skill matters
 - Check AVAILABLE CAPABILITIES in context — new companion should COMPLEMENT existing party capabilities"""
@@ -153,8 +162,12 @@ Generate an item. Output valid JSON:
   "durability": -1,
   "enables": ["capability_tag_1", "capability_tag_2"],
   "narrative_hooks": ["concrete future scenario this item can trigger"],
-  "source_display": "Inspired by @{username}"
+  "source_display": "Inspired by @{username}",
+  "comment_source": "@{username}",
+  "pickup_text": "获得 [icon][name] (💬@{username})"
 }}
+
+IMPORTANT: pickup_text is shown to ALL viewers when this item is obtained. It must include the (💬@username) attribution.
 
 IMPORTANT for enables/narrative_hooks:
 - enables: SPECIFIC capability tags like "ranged_combat", "pry_open", "light_source", "signal_for_help". NOT vague like "useful".
