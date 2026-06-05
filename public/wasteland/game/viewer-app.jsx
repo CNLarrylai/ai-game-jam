@@ -45,6 +45,8 @@ function ViewerWrapper() {
   const [avatar, setAvatar] = useStateV("");
   const [connected, setConnected] = useStateV(false);
   const [chatVal, setChatVal] = useStateV("");
+  const chatValRef = useRefV("");
+  chatValRef.current = chatVal;
   const wsRef = useRefV(null);
 
   const onEnter = (n, a) => { setNick(n); setAvatar(a); setEntered(true); };
@@ -65,7 +67,7 @@ function ViewerWrapper() {
   }, [entered]);
 
   const sendComment = () => {
-    const text = chatVal.trim();
+    const text = chatValRef.current.trim();
     if (!text || !wsRef.current || wsRef.current.readyState !== 1) return;
     wsRef.current.send(JSON.stringify({ type: 'comment', text, name: nick, avatar }));
     setChatVal("");
