@@ -364,7 +364,11 @@ async def generation_loop():
             final_cat = resp.get("final_category", "")
             # Always set pending_event so host choices get processed
             pending_event = {"narration": resp.get("narrative", ""), "options": resp.get("options", []), "generated": generated}
-            resp["source_user"] = pick.username  # pass viewer name to host
+            resp["source_user"] = pick.username
+            # Merge Phase 1 fields into response so host has full info (name, danger, etc)
+            if generated.get("name"): resp["event_title"] = generated["name"]
+            if generated.get("danger_level"): resp["danger_level"] = generated["danger_level"]
+            if generated.get("entry_narration") and not resp.get("narrative"): resp["narrative"] = generated["entry_narration"]
             await send_ws({"type": "game_event", "data": resp})
             if resp.get("options"):
                 print(f"  📺 等待主播选择...")

@@ -192,7 +192,7 @@ html, body {
   display: flex; align-items: center; gap: 6px; }
 .viewers b { color: var(--cyan); font-family: var(--pixel); font-size: 14px; }
 
-.chat-list { flex: 1; overflow: hidden; position: relative; padding: 12px 14px;
+.chat-list { flex: 1; overflow-y: auto; overflow-x: hidden; position: relative; padding: 12px 14px;
   display: flex; flex-direction: column; justify-content: flex-end; gap: 9px; }
 .chat-list::before { content:""; position: absolute; top:0; left:0; right:0; height: 40px;
   background: linear-gradient(var(--bg-panel), transparent); z-index: 4; pointer-events:none; }
@@ -375,7 +375,8 @@ html, body {
    ============================================================ */
 .decision { position: absolute; left: 0; right: 0; bottom: 0; z-index: 70;
   background: linear-gradient(180deg, rgba(10,8,20,0), rgba(10,8,20,.96) 30%);
-  padding: 60px 48px 34px; animation: decisionIn .4s ease-out; }
+  padding: 60px 48px 34px; animation: decisionIn .4s ease-out;
+  max-height: 70%; overflow-y: auto; }
 @keyframes decisionIn { from { transform: translateY(40px); opacity: 0; } }
 .decision .d-card { background: rgba(16,13,32,.94); border: 3px solid var(--cyan);
   box-shadow: 0 0 30px rgba(53,224,208,.25), inset 0 0 0 2px rgba(255,255,255,.03);
@@ -477,7 +478,8 @@ html, body {
    DESTINATION MAP (选择目的地)
    ============================================================ */
 .region-map { position: absolute; inset: 0;
-  background: linear-gradient(160deg, #14112a 0%, #0e0a1f 100%); padding: 70px 56px 40px; }
+  background: linear-gradient(160deg, #14112a 0%, #0e0a1f 100%); padding: 70px 56px 40px;
+  overflow-y: auto; }
 .region-map .rm-head { font-size: var(--t-lg); color: var(--txt-dim); margin-bottom: 22px; }
 .region-map .rm-head b { color: var(--cyan); }
 .dest-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px; }
