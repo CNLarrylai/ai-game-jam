@@ -283,7 +283,7 @@ def _safe_json_parse(raw: str) -> dict:
 def call_llm(request: Phase2Request) -> AIRawOutput:
     import json
     response = client.messages.create(
-        model="claude-sonnet-4-5",
+        model=os.environ.get("GAME_MODEL", "claude-haiku-4-5-20251001"),
         max_tokens=512,
         system=SYSTEM_PROMPT,
         messages=[{"role": "user", "content": build_user_prompt(request)}],
@@ -294,7 +294,7 @@ def call_llm(request: Phase2Request) -> AIRawOutput:
 def call_llm_event_choice(event_narrative: str, choice: str, request: Phase2Request) -> AIRawOutput:
     """处理「上游事件 + 玩家选择」，LLM 基于当前状态动态生成结果"""
     response = client.messages.create(
-        model="claude-sonnet-4-5",
+        model=os.environ.get("GAME_MODEL", "claude-haiku-4-5-20251001"),
         max_tokens=512,
         system=EVENT_CHOICE_SYSTEM_PROMPT,
         messages=[{"role": "user", "content": build_event_choice_prompt(event_narrative, choice, request)}],
@@ -413,9 +413,35 @@ class EventChoiceRequest(BaseModel):
     companions_list: List[Companion] = []
     inventory: List[str] = []
     history: List[HistoryEntry] = Field(default_factory=list)
+    precomputed_options: Optional[List[dict]] = Field(None, description="Phase 1 预生成的选项(含outcome+stat_changes)，有则跳过LLM")
 
 @app.post("/phase2_event_choice", response_model=Phase2Response)
 def phase2_event_choice(request: EventChoiceRequest):
+    # 优先查预生成结果（跳过 LLM，省 ~9s）
+    if request.precomputed_options:
+        for opt in request.precomputed_options:
+            if opt.get("text", "") == request.player_choice:
+                sc_raw = opt.get("stat_changes", {})
+                # 映射 spirit→sanity（Phase 1 用 spirit，Phase 2 用 sanity）
+                sc = StatChanges(
+                    hp=sc_raw.get("health", sc_raw.get("hp", 0)),
+                    hunger=sc_raw.get("hunger", 0),
+                    thirst=sc_raw.get("thirst", 0),
+                    sanity=sc_raw.get("spirit", sc_raw.get("sanity", 0)),
+                )
+                inv = InventoryChange(
+                    add_items=[opt["item_gained"]] if opt.get("item_gained") else [],
+                    remove_items=[opt["item_lost"]] if opt.get("item_lost") else [],
+                )
+                return Phase2Response(
+                    type=OutputType.EVENT, final_category="EVENT",
+                    action_type=ActionType.EVENT_CHOICE,
+                    narrative=opt.get("outcome", ""),
+                    companion_agrees=False,
+                    stat_changes=sc, inventory_change=inv,
+                )
+
+    # 没有预生成 or 选项不匹配 → 走 LLM 兜底
     proxy_req = Phase2Request(
         player_input=request.player_choice,
         current_status=request.current_status,

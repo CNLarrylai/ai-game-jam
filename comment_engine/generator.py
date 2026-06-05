@@ -64,15 +64,25 @@ EVENT_USER = """
 
 Source comment: "{comment}" by @{username}
 
-Output valid JSON:
+Output valid JSON (IMPORTANT: each option MUST include outcome and stat_changes so we don't need a second LLM call):
 {{
   "event_title": "emoji + title (max 20 chars, Chinese)",
   "narration": "2-4 sentences. Set scene, end with something player must react to. 2nd person. Absurd comedy.",
-  "suggested_reactions": ["hint 1", "hint 2", "hint 3"],
+  "options": [
+    {{
+      "text": "选项文字 (max 15 chars)",
+      "outcome": "1-2 sentences, what happens if player picks this. Funny, consequential.",
+      "stat_changes": {{"spirit": 0, "health": 0, "hunger": 0, "thirst": 0}},
+      "item_gained": "item name or null",
+      "item_lost": "item name or null"
+    }}
+  ],
   "danger_level": "low|medium|high",
   "source_display": "Inspired by @{username}",
   "thread_hook": "setup for future callback, or null"
-}}"""
+}}
+
+Generate 2-4 options. Each option's outcome must reflect player's current state (low HP = more risky). stat_changes: spirit/health positive=good, hunger/thirst NEGATIVE=good. Max ±20 per stat."""
 
 
 # === EVENT RESOLVE: 玩家输入后生成结果 ===
