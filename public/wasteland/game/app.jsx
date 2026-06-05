@@ -72,15 +72,32 @@ function App(props) {
         if (d.destinations) setDestinations(d.destinations);
         if (d.toasts) setToasts(d.toasts);
         // Decision
-        if (d.decision) setDecision(d.decision);
-        else if (d.decision === null) setDecision(null);
+        setDecision(prev => {
+          if (!d.decision && !prev) return prev;
+          if (!d.decision) return null;
+          if (prev && prev.title === d.decision.title && prev.result === d.decision.result) return prev;
+          return d.decision;
+        });
         // Overlays
-        if (d.banner) { setBanner({ ...d.banner, id: uid() }); }
-        else if (d.banner === null) setBanner(null);
-        if (d.story) setStory(d.story);
-        else if (d.story === null) setStory(null);
-        if (d.phase) setPhase({ ...d.phase, id: uid() });
-        else if (d.phase === null) setPhase(null);
+        // Only update overlays if content CHANGED (avoid re-render on heartbeat)
+        setBanner(prev => {
+          if (!d.banner && !prev) return prev;
+          if (!d.banner) return null;
+          if (prev && prev.html === d.banner.html) return prev;
+          return { ...d.banner, id: uid() };
+        });
+        setStory(prev => {
+          if (!d.story && !prev) return prev;
+          if (!d.story) return null;
+          if (prev && prev.text === d.story.text) return prev;
+          return d.story;
+        });
+        setPhase(prev => {
+          if (!d.phase && !prev) return prev;
+          if (!d.phase) return null;
+          if (prev && prev.big === d.phase.big) return prev;
+          return { ...d.phase, id: uid() };
+        });
         if (d.cta) setCta(d.cta);
         else if (d.cta === null) setCta(null);
         // Explore internal state
@@ -626,8 +643,14 @@ function App(props) {
                 // Apply event-level stat_changes from Phase 2
                 if (ev.stat_changes) {
                   const d2 = {};
-                  Object.entries(ev.stat_changes).forEach(([k, v]) => { if (v) d2[k] = v; });
-                  if (Object.keys(d2).length) applyStats(d2);
+                  Object.entries(ev.stat_changes).forEach(([k, v]) => {
+                    if (!v) return;
+                    d2[k === 'thirst' ? 'supply' : k] = v;
+                  });
+                  if (Object.keys(d2).length) {
+                    applyStats(d2);
+                    toast({ icon: '📊', name: Object.entries(d2).map(([k,v])=>k+(v>0?'+':'')+v).join(', ') });
+                  }
                 }
                 // Also try option-level numeric cost/reward (if they're objects not strings)
                 const raw = opt._raw || {};
@@ -731,11 +754,20 @@ function App(props) {
     };
     const onChoiceResult = (msg) => {
       const r = msg.data || {};
-      // Apply stat changes
+      // Apply stat changes (map thirst→supply for frontend compatibility)
       if (r.stat_changes) {
         const delta = {};
-        Object.entries(r.stat_changes).forEach(([k, v]) => { if (v) delta[k] = v; });
-        if (Object.keys(delta).length) applyStats(delta);
+        Object.entries(r.stat_changes).forEach(([k, v]) => {
+          if (!v) return;
+          if (k === 'thirst') delta.supply = v;
+          else delta[k] = v;
+        });
+        if (Object.keys(delta).length) {
+          applyStats(delta);
+          // Show toast with changes
+          const parts = Object.entries(delta).map(([k,v]) => k + (v>0?'+':'') + v);
+          toast({ icon: '📊', name: parts.join(', ') });
+        }
       }
       // Add items
       if (r.inventory_change?.add_items) {
