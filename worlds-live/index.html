@@ -27,12 +27,14 @@
       console.warn("[WL] 无法加载 " + path + "（将使用空数据）");
       return null;
     }
-    const [intro, dialogue] = await Promise.all([
+    const [intro, dialogue, opening] = await Promise.all([
       load("data/intro.json"),
       load("data/dialogue.json"),
+      load("data/opening.json"),
     ]);
     window.WL_INTRO = intro || [];
     window.WL_DIALOGUE = dialogue || [];
+    window.WL_OPENING = opening || [];
   })();
 </script>
 
@@ -44,6 +46,7 @@
 <script type="text/babel" src="game/chrome.jsx"></script>
 <script type="text/babel" src="game/effects.jsx"></script>
 <script type="text/babel" src="game/scenes-intro.jsx"></script>
+<script type="text/babel" src="game/scenes-script.jsx"></script>
 <script type="text/babel" src="game/scenes-home.jsx"></script>
 <script type="text/babel" src="game/scenes-out.jsx"></script>
 <script type="text/babel" src="game/scenes-end.jsx"></script>

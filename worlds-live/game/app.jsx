@@ -22,10 +22,13 @@ function dwellingForDay(day) {
 }
 
 function App() {
-  // 同伴对话来自技能契约 dialogue.json（引导加载后挂在 window.WL_DIALOGUE）
+  // 同伴对话来自契约 dialogue.json；开局对白演出来自 opening.json
   const COMPANIONS = window.WL_DIALOGUE || [];
+  const OPENING = window.WL_OPENING || [];
+  const scriptForDay = (d) => OPENING.find((s) => s.trigger && s.trigger.day === d);
 
   const [scene, setScene] = useState("intro");
+  const [script, setScript] = useState(null);   // 当前播放的开局对白场景
   const [day, setDay] = useState(1);
   const maxDay = 7;
   const [stats, setStats] = useState({ ...INIT_STATS });
@@ -220,6 +223,13 @@ function App() {
     setScene("win");
   }, [closeDecision]);
 
+  /* 进入某一天:有开局对白(opening.json)就先演,没有直接进 fallback 场景 */
+  const enterDay = useCallback((d, fallback) => {
+    const s = scriptForDay(d);
+    if (s) { setScript(s); setScene("script"); }
+    else { setScene(fallback); }
+  }, []);
+
   const goOut = useCallback(() => {
     showPhase({ big: "🌄 出发", sub: "Day " + day + " · 离开" + dwellingForDay(day).name }, () => setScene("destination"));
   }, [day, showPhase]);
@@ -244,9 +254,10 @@ function App() {
       return s;
     });
     showPhase({ big: "🌙 Day " + nd + "…", sub: starve ? "饥肠辘辘地挪回栖身处（生命 -10）" : "拖着疲惫的身体回到栖身处" }, () => {
-      setDay(nd); setFlags({ knock: false }); setScene("organize");
+      setDay(nd); setFlags({ knock: false });
+      enterDay(nd, "organize");   // 新一幕若有开局对白先演,否则直接整理行囊
     });
-  }, [day, showPhase, triggerWin]);
+  }, [day, showPhase, triggerWin, enterDay]);
 
   /* ---- 征集创意 ---- */
   const startCTA = useCallback(() => {
@@ -274,7 +285,8 @@ function App() {
   const resetGame = useCallback(() => {
     closeDecision(); setStory(null); setBanner(null); setCta(null); setInputHot(false);
     setChatBanner(null); setConfirmD(null); setShare(false); setToasts([]); setFloats([]);
-    setStats({ ...INIT_STATS }); setPack(initPack()); setDay(1); setFlags({ knock: false }); setScene("home");
+    setStats({ ...INIT_STATS }); setPack(initPack()); setDay(1); setFlags({ knock: false });
+    setScript(null); setScene("home");
   }, [closeDecision]);
 
   const goScene = useCallback((s) => { closeDecision(); setStory(null); setScene(s); }, [closeDecision]);
@@ -318,11 +330,20 @@ function App() {
 
   const exploredCount = 5, itemCount = pack.reduce((a, b) => a + b.qty, 0);
 
-  /* 开场代入：全屏 cold-open，结束后进入避难所（重开则跳过，不重看）*/
+  /* 开场代入：全屏 cold-open（纯世界观）→ 第1天开局对白 → 进游戏。重开跳过不重看 */
   if (scene === "intro") {
     return (
       <div id="app">
-        <SceneIntro onStart={() => setScene("home")} />
+        <SceneIntro onStart={() => enterDay(1, "home")} />
+      </div>
+    );
+  }
+
+  /* 开局对白演出：NPC↔玩家 你来我往，勾出当天情景+任务，结束进 home */
+  if (scene === "script") {
+    return (
+      <div id="app">
+        <SceneScript scene={script} onDone={() => setScene("home")} />
       </div>
     );
   }

@@ -216,6 +216,91 @@
 }
 @keyframes introBlink { 50% { opacity: .35; } }
 
+/* ============================================================
+   开局对白演出 scripted scene（scenes-script.jsx）
+   ============================================================ */
+.script-stage {
+  position: absolute; inset: 0; z-index: 100; overflow: hidden; cursor: pointer;
+  background: #08060a;
+  display: flex; flex-direction: column; align-items: center;
+}
+.sc-sky {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(1000px 600px at 50% 120%, rgba(200,53,42,.14), transparent 65%),
+    radial-gradient(700px 480px at 80% 8%, rgba(143,230,176,.05), transparent 70%),
+    linear-gradient(180deg, #14100a, #0a0805);
+}
+.sc-vignette {
+  position: absolute; inset: 0; pointer-events: none;
+  box-shadow: inset 0 0 220px 50px rgba(0,0,0,.8);
+  background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 3px, rgba(0,0,0,.16) 4px);
+  mix-blend-mode: multiply;
+}
+.sc-setting {
+  position: relative; z-index: 2; margin-top: 60px;
+  font-family: var(--pixel); font-size: var(--t-xs); letter-spacing: 2px;
+  color: var(--gold); padding: 10px 20px; border: 2px solid var(--gold-deep);
+  background: rgba(38,31,20,.85);
+}
+
+/* 立绘行 */
+.sc-stage-row {
+  position: relative; z-index: 2; flex: 1; width: 100%;
+  display: flex; align-items: flex-end; justify-content: space-between;
+  padding: 0 9% 30px; max-width: 1400px;
+}
+.sc-portrait { display: flex; flex-direction: column; align-items: center; transition: all .35s; }
+.sc-portrait.empty { width: 1px; }
+.sc-portrait .sc-av {
+  font-size: 150px; line-height: 1;
+  filter: drop-shadow(0 0 26px rgba(200,53,42,.3)) sepia(.25);
+}
+.sc-portrait .sc-name {
+  margin-top: 6px; font-size: var(--t-sm); color: var(--txt-dim);
+  font-family: var(--body); letter-spacing: 2px;
+}
+.sc-portrait.active { transform: translateY(-14px) scale(1.06); }
+.sc-portrait.active .sc-av { filter: drop-shadow(0 0 34px rgba(200,155,84,.55)) sepia(.1); }
+.sc-portrait.active .sc-name { color: var(--gold); }
+.sc-portrait.dim { opacity: .4; filter: grayscale(.4) brightness(.7); }
+
+/* 对白框 */
+.sc-box {
+  position: relative; z-index: 3; width: 84%; max-width: 1040px; margin-bottom: 70px;
+  background: rgba(18,16,10,.94); border: 2px solid var(--line);
+  border-left: 5px solid var(--gold); padding: 22px 28px 16px;
+  box-shadow: 0 -6px 40px rgba(0,0,0,.6);
+}
+.sc-speaker {
+  font-family: var(--body); font-weight: 700; font-size: var(--t-md);
+  color: var(--gold); margin-bottom: 10px; letter-spacing: 1px;
+}
+.sc-speaker.right { color: var(--cyan); }
+.sc-text {
+  font-family: var(--body); font-size: var(--t-lg); line-height: 1.7; color: var(--txt);
+  min-height: 1.7em;
+}
+.sc-hint {
+  text-align: right; margin-top: 10px;
+  font-size: var(--t-xs); color: var(--txt-faint);
+}
+
+/* 任务卡 */
+.sc-objective {
+  position: relative; z-index: 3; width: 80%; max-width: 760px; margin-bottom: 90px;
+  text-align: center; background: rgba(38,31,20,.95);
+  border: 2px solid var(--gold); padding: 34px 30px;
+  box-shadow: 0 0 50px rgba(200,155,84,.25); animation: introIn .7s ease-out;
+}
+.sc-obj-badge { font-family: var(--pixel); font-size: var(--t-xs); color: var(--gold); letter-spacing: 2px; margin-bottom: 14px; }
+.sc-obj-text { font-family: var(--body); font-size: var(--t-lg); line-height: 1.6; color: var(--txt); margin-bottom: 26px; }
+
+.sc-progress { position: absolute; bottom: 28px; z-index: 4; display: flex; gap: 8px; }
+.sc-dot { width: 22px; height: 4px; background: var(--bg-raised); border: 1px solid var(--line); }
+.sc-dot.done { background: var(--gold-deep); }
+.sc-dot.cur { background: var(--gold); box-shadow: 0 0 8px rgba(200,155,84,.7); }
+
 /* —— 空格潜行提示条（WotW 新增交互） —— */
 .stealth-hint {
   position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
