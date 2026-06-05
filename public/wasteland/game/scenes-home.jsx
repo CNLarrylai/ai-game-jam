@@ -3,15 +3,24 @@
    ============================================================ */
 const { useState: useStateH, useEffect: useEffectH } = React;
 
-/* ---------- shared pixel shelter backdrop ---------- */
+/* ---------- shared pixel shelter backdrop ----------
+   Claude Design 回流「末日之家」活背景（design-home/，252×448 动画画布）。
+   子元素挂在 9:16 居中容器内，定位百分比相对房间本身。 */
 function ShelterBg({ children }) {
+  const live = !!window.DesignHomeCanvas;
   return (
-    <div className="shelter">
-      <div className="home-bg" />
-      <div className="wall-grid" />
-      <div className="floor-grid" />
-      <div className="lamp" />
-      {children}
+    <div className={"shelter" + (live ? " design-home" : "")}>
+      {live ? (
+        <div className="design-home-stage">
+          <window.DesignHomeCanvas />
+          {children}
+        </div>
+      ) : (
+        <React.Fragment>
+          <div className="home-bg" />
+          {children}
+        </React.Fragment>
+      )}
     </div>
   );
 }
@@ -109,16 +118,16 @@ function SceneHome({ D, flags, companions }) {
     <div className="scene">
       <div className="scene-title-chip">🏠 家中 · Day {D.day} · 点击物体互动</div>
       <ShelterBg>
-        {/* door — event hotspot · aligned over the painted wood door (bottom-center of room) */}
+        {/* door — event hotspot · bottom-center entrance of the Design room (rug / doorway zone) */}
         <Hotspot variant="gold" label={flags.knock ? "🚪 门口（已查看）" : "🚪 查看门口"}
           badge={flags.knock ? null : "!"} onClick={openDoor}
-          style={{ left: "44%", top: "78%", width: 130, height: 150 }}>
-          {/* transparent click region — the painted door in home_scene shows through */}
+          style={{ left: "34%", top: "85%", width: "32%", height: "11%" }}>
+          {/* transparent click region — implied doorway at the bottom edge of the room */}
           <div style={{ width: "100%", height: "100%" }} />
         </Hotspot>
 
-        {/* hero (not interactive) — official idle pixel sprite, stands on open floor */}
-        <div className="char-sprite hero bob" style={{ left: "46%", top: 400 }}>
+        {/* hero (not interactive) — official idle pixel sprite, stands on the rug */}
+        <div className="char-sprite hero bob" style={{ left: "40%", top: "73%" }}>
           <img className="player-sprite" src="../assets/characters/char_player_idle.png"
             width={96} height={96} alt="" />
           <div className="shadow" />
@@ -127,7 +136,7 @@ function SceneHome({ D, flags, companions }) {
 
         {/* companions — only render if they exist */}
         {companions && companions[0] && <Hotspot variant="magenta" label={"💬 和 " + companions[0].name + " 对话"} onClick={() => talk(companions[0])}
-          style={{ left: "58%", top: 400 }}>
+          style={{ left: "62%", top: "70%" }}>
           <div className="char-sprite" style={{ position: "static" }}>
             <CompanionSprite av={companions[0].av} glow="rgba(127,112,138,.7)" />
             <div className="shadow" />
@@ -135,7 +144,7 @@ function SceneHome({ D, flags, companions }) {
           </div>
         </Hotspot>}
         {companions && companions[1] && <Hotspot label={"💬 和 " + companions[1].name + " 对话"} onClick={() => talk(companions[1])}
-          style={{ left: "30%", top: 540 }}>
+          style={{ left: "8%", top: "66%" }}>
           <div className="char-sprite" style={{ position: "static" }}>
             <CompanionSprite av={companions[1].av} glow="rgba(30,188,115,.7)" />
             <div className="shadow" />
@@ -164,10 +173,10 @@ function SceneHome({ D, flags, companions }) {
 
 
 
-        {/* supplies — open inventory · aligned over the painted cabinet + bookshelf (top-right of room) */}
+        {/* supplies — open inventory · aligned over the desk + stacked cans/crate (mid-left of room) */}
         <Hotspot label="📦 整理物资" onClick={() => D.goScene("organize")}
-          style={{ left: "62%", top: "30%", width: 170, height: 130 }}>
-          {/* transparent click region — aligns over the painted storage cabinet/shelf */}
+          style={{ left: "18%", top: "45%", width: "50%", height: "14%" }}>
+          {/* transparent click region — aligns over the desk, supply cans and crate */}
           <div style={{ width: "100%", height: "100%" }} />
         </Hotspot>
       </ShelterBg>

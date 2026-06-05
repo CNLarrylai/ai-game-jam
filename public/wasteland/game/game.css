@@ -866,7 +866,7 @@ img, .pack-slot, .t-icon, .dc-thumb-obj { image-rendering: pixelated; }
 /* ---------- 事件 / 决策弹窗框：event_card_frame（顶 18 保标题条）---------- */
 .decision .d-card {
   background: var(--ui-panel); border: none; box-shadow: none;
-  border-image: url("../../assets/ui/event_card_frame.png") 18 4 4 4 fill stretch;
+  border-image: url("../../assets/ui/event_card_frame.png") 18 4 4 4 stretch;
   border-image-width: 22px 8px 8px 8px;
   image-rendering: pixelated;
 }
@@ -947,3 +947,17 @@ img, .pack-slot, .t-icon, .dc-thumb-obj { image-rendering: pixelated; }
 
 /* ---------- 滚动条收紧 ---------- */
 ::-webkit-scrollbar-thumb { background: var(--ui-line); border-radius: 0; }
+
+/* ---------- Claude Design 回流「末日之家」活背景（design-home/） ---------- */
+.shelter.design-home { background: #070a0f; }
+.shelter.design-home .design-home-stage {
+  position: absolute; top: 0; bottom: 0; left: 50%; transform: translateX(-50%);
+  aspect-ratio: 252 / 448; }
+.shelter.design-home .design-home-stage > canvas {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  image-rendering: pixelated; image-rendering: crisp-edges; }
+/* 画布两侧暗化收边，像舞台侧幕 */
+.shelter.design-home::before, .shelter.design-home::after {
+  content: ""; position: absolute; top: 0; bottom: 0; width: 18%; z-index: 5; pointer-events: none; }
+.shelter.design-home::before { left: 0; background: linear-gradient(90deg, #070a0f 55%, transparent); }
+.shelter.design-home::after { right: 0; background: linear-gradient(270deg, #070a0f 55%, transparent); }
