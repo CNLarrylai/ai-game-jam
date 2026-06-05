@@ -50,6 +50,8 @@ function App(props) {
   sceneRef.current = scene;
   const decisionRef = useRef(decision);
   decisionRef.current = decision;
+  const storyRef = useRef(story);
+  storyRef.current = story;
 
   /* ---- VIEWER MODE: receive all state from host via WebSocket ---- */
   useEffect(() => {
@@ -538,6 +540,15 @@ function App(props) {
           destinations: destinations.map(d => ({ id: d.id, icon: d.icon, name: d.name, danger: d.danger, reward: d.reward, ap: d.ap, generated: d.generated, by: d.by })),
         });
       }
+      // Also process any queued events if nothing is blocking
+      if (!decisionRef.current && !storyRef.current && eventQueueRef.current.length > 0) {
+        const next = eventQueueRef.current.shift();
+        console.log('[HOST] Processing queued event, remaining:', eventQueueRef.current.length);
+        // Dispatch via WsSync listener
+        if (window.WsSync && WsSync.listeners['game_event']) {
+          WsSync.listeners['game_event'].forEach(cb => cb(next));
+        }
+      }
     }, 3000);
     return () => clearInterval(t);
   }, [day, stats, scene, decision, banner, story, phase, cta, flags, pack, companions, destinations, confirmD, toasts]);
@@ -600,7 +611,7 @@ function App(props) {
       }
 
       // If there's an active story, queue the event
-      if (story) {
+      if (storyRef.current) {
         eventQueueRef.current.push(msg);
         toast({ icon: '📋', name: '新事件已排队' });
         return;

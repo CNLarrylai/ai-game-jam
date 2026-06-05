@@ -81,11 +81,11 @@ wss.on('connection', (ws) => {
         break;
       case 'game_event':
         broadcast({ type: 'game_event', data: msg.data }, 'all');
-        // Store for host if disconnected
-        if (!host || host.readyState !== 1) {
-          pendingEventsForHost.push({ type: 'game_event', data: msg.data });
-          if (pendingEventsForHost.length > MAX_PENDING) pendingEventsForHost.shift();
-        }
+        // Always store — host might miss it even if "connected" (browser tab inactive etc)
+        pendingEventsForHost.push({ type: 'game_event', data: msg.data });
+        if (pendingEventsForHost.length > MAX_PENDING) pendingEventsForHost.shift();
+        // Also store latest game_event in latestState so viewers get it on reconnect
+        if (latestState) latestState._lastGameEvent = msg.data;
         break;
       case 'choice_result':
         broadcast({ type: 'choice_result', data: msg.data }, 'all');
