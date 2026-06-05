@@ -534,6 +534,9 @@ html, body {
   display: flex; align-items: center; justify-content: center; font-size: 40px; }
 .hex.fog .hx-inner { background: #161130; color: rgba(255,255,255,.12); }
 .hex.fog { filter: brightness(.6); }
+/* 观众端: fog格子的❔要可见 */
+body.viewer-mode .hex.fog .hx-inner { color: rgba(255,255,255,.5); font-size: 32px; }
+body.viewer-mode .hex.fog { filter: brightness(.8); }
 .hex.revealed .hx-inner { background: #221c40; }
 .hex.empty .hx-inner { background: #1d1838; }
 .hex.adjacent { cursor: pointer; }
