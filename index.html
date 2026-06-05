@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI Game Jam — 在线试玩</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --ink:#0a0805; --paper:#ece3d2; --dim:#b6a888; --faint:#837459;
+    --gold:#c89b54; --red:#c8352a; --green:#8fe6b0; --line:#3a2f1d;
+    --body:"Noto Serif SC",serif; --pixel:"Press Start 2P",monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    min-height:100vh; font-family:var(--body); color:var(--paper);
+    background:
+      radial-gradient(1200px 700px at 50% -10%, #2a0f0a 0%, var(--ink) 60%);
+    padding:64px 24px 80px;
+  }
+  .wrap{max-width:920px;margin:0 auto;}
+  header{text-align:center;margin-bottom:54px;}
+  .kicker{font-family:var(--pixel);font-size:13px;letter-spacing:3px;color:var(--gold);text-transform:uppercase;}
+  h1{font-size:46px;font-weight:700;letter-spacing:4px;margin:18px 0 12px;
+     background:linear-gradient(180deg,var(--paper),var(--gold));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;}
+  .sub{color:var(--dim);font-size:17px;line-height:1.8;max-width:620px;margin:0 auto;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px;}
+  .card{
+    display:block;text-decoration:none;color:inherit;
+    border:2px solid var(--line);background:rgba(38,31,20,.5);
+    padding:28px;transition:all .2s;position:relative;overflow:hidden;
+  }
+  .card:hover{border-color:var(--gold);background:rgba(46,38,24,.7);transform:translateY(-3px);}
+  .card.live::after{content:"可玩";position:absolute;top:14px;right:0;
+    background:var(--green);color:#06250f;font-family:var(--pixel);font-size:10px;
+    padding:5px 14px;letter-spacing:1px;}
+  .card.soon{opacity:.55;cursor:default;}
+  .card.soon::after{content:"建设中";position:absolute;top:14px;right:0;
+    background:var(--line);color:var(--dim);font-family:var(--pixel);font-size:10px;padding:5px 14px;}
+  .emoji{font-size:54px;line-height:1;margin-bottom:16px;filter:sepia(.3) drop-shadow(0 0 18px rgba(200,53,42,.3));}
+  .ctitle{font-size:24px;font-weight:700;letter-spacing:2px;margin-bottom:8px;}
+  .ctag{color:var(--dim);font-size:15px;line-height:1.7;margin-bottom:18px;}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;}
+  .chip{font-size:12px;color:var(--gold);border:1px solid var(--line);padding:4px 10px;}
+  .play{margin-top:18px;display:inline-block;font-family:var(--pixel);font-size:11px;color:var(--gold);letter-spacing:1px;}
+  footer{text-align:center;margin-top:56px;color:var(--faint);font-size:13px;line-height:2;}
+  footer a{color:var(--gold);text-decoration:none;}
+  .note{margin-top:10px;font-size:12px;color:var(--faint);}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="kicker">AI GAME JAM · 在线试玩</div>
+    <h1>观众弹幕，写进剧情</h1>
+    <p class="sub">一组由 AI 与观众共同驱动的末日生存直播游戏。点开任意一个即可在浏览器里游玩——把链接发给任何人，无需安装。</p>
+  </header>
+
+  <div class="grid">
+    <!-- WORLDS LIVE -->
+    <a class="card live" href="worlds-live/index.html">
+      <div class="emoji">🛸</div>
+      <div class="ctitle">WORLDS LIVE</div>
+      <div class="ctag">《世界大战》改编 · 维多利亚末日。火星人入侵，你只是个普通人——打不赢，只能躲。带妻逃亡，撑过七天。</div>
+      <div class="meta">
+        <span class="chip">生存抉择</span>
+        <span class="chip">隐蔽 / 潜行</span>
+        <span class="chip">同伴互动</span>
+        <span class="chip">观众弹幕</span>
+      </div>
+      <span class="play">▶ 开始游玩</span>
+    </a>
+
+    <!-- placeholder for更多 build -->
+    <div class="card soon">
+      <div class="emoji">📖</div>
+      <div class="ctitle">更多剧本</div>
+      <div class="ctag">小说→游戏引擎可把任意一本书变成同款直播间生存游戏。下一个 build 会出现在这里。</div>
+      <div class="meta"><span class="chip">novel → game</span></div>
+    </div>
+  </div>
+
+  <footer>
+    源码 · <a href="https://github.com/CNLarrylai/ai-game-jam">github.com/CNLarrylai/ai-game-jam</a><br />
+    <span class="note">本页随项目更新自动重新发布 · 静态托管于 GitHub Pages</span>
+  </footer>
+</div>
+</body>
+</html>

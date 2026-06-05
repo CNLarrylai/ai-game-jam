@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>WORLDS LIVE — 世界大战 · 火星入侵生存直播</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Noto+Serif+SC:wght@400;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet" />
+<!-- 基底（复用 WASTELAND 的全部组件样式）→ 再叠维多利亚末日主题 -->
+<link rel="stylesheet" href="game/game-base.css" />
+<link rel="stylesheet" href="game/theme.css" />
+</head>
+<body>
+<div id="stage">
+  <div id="frame">
+    <div id="root"></div>
+  </div>
+</div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="game/data.jsx"></script>
+<script type="text/babel" src="game/chrome.jsx"></script>
+<script type="text/babel" src="game/effects.jsx"></script>
+<script type="text/babel" src="game/scenes-intro.jsx"></script>
+<script type="text/babel" src="game/scenes-home.jsx"></script>
+<script type="text/babel" src="game/scenes-out.jsx"></script>
+<script type="text/babel" src="game/scenes-end.jsx"></script>
+<script type="text/babel" src="game/app.jsx"></script>
+
+<script>
+  // 把 1920x1080 的舞台等比缩放进任意视口（letterbox）
+  function fitStage() {
+    var f = document.getElementById('frame');
+    if (!f) return;
+    var w = window.innerWidth, h = window.innerHeight;
+    if (!w || !h) return;
+    var s = Math.min(w / 1920, h / 1080);
+    if (!s || s <= 0) return;
+    f.style.transform = 'scale(' + s + ')';
+  }
+  window.addEventListener('resize', fitStage);
+  window.addEventListener('load', fitStage);
+  var stageEl = document.getElementById('stage');
+  if (window.ResizeObserver && stageEl) new ResizeObserver(fitStage).observe(stageEl);
+  requestAnimationFrame(fitStage);
+  fitStage();
+</script>
+</body>
+</html>
