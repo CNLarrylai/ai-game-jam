@@ -40,7 +40,12 @@ function parseGameData(raw: string) {
   const a = s.indexOf("{"), b = s.lastIndexOf("}");
   if (a === -1 || b === -1 || b <= a) throw new Error("未找到 JSON");
   const body = s.slice(a, b + 1);
-  const repaired = body.replace(/,(\s*[}\]])/g, "$1").replace(/^\s*\/\/.*$/gm, "");
+  const repaired = body
+    .replace(/^\s*\/\/.*$/gm, "")        // 行注释
+    .replace(/,(\s*[}\]])/g, "$1")        // 尾随逗号
+    .replace(/\}(\s*)\{/g, "},$1{")       // 数组中对象间漏逗号 }{ → },{
+    .replace(/\](\s*)\[/g, "],$1[")       // ][ → ],[
+    .replace(/"(\s*\n\s*)"/g, '",$1"');   // 相邻字符串元素漏逗号
   let o: any;
   try { o = JSON.parse(body); } catch { o = JSON.parse(repaired); }
   if (!o.ITEMS || !o.DESTINATIONS || !o.SCENE_COMMENTS) throw new Error("GAME_DATA 缺关键字段");
@@ -48,18 +53,26 @@ function parseGameData(raw: string) {
   return o;
 }
 
-// 引擎 A：Anthropic API（线上，需 key）
+// 引擎 A：Anthropic API（线上，需 key）。输入精简 + 单次超时,保证落在 Vercel 60s 内
 async function apiRaw(novelText: string): Promise<string> {
   const key = process.env.ANTHROPIC_API_KEY!;
-  const model = process.env.GENERATE_MODEL || "claude-sonnet-4-6";
-  const res = await fetch("https://api.anthropic.com/v1/messages", {
-    method: "POST",
-    headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
-    body: JSON.stringify({ model, max_tokens: 2400, system: SPEC, messages: [{ role: "user", content: `小说原文：\n"""\n${String(novelText).slice(0, 12000)}\n"""` }] }),
-  });
-  if (!res.ok) throw new Error(`API ${res.status}: ${(await res.text()).slice(0, 160)}`);
-  const data = await res.json();
-  return (data?.content?.map((c: any) => c.text || "").join("")) || "";
+  // Haiku 快(~10s级),稳进 Vercel 60s 函数上限;结构化提取质量足够
+  const model = process.env.GENERATE_MODEL || "claude-haiku-4-5-20251001";
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 45000);
+  try {
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
+      body: JSON.stringify({ model, max_tokens: 3200, system: SPEC, messages: [{ role: "user", content: `小说原文（节选，据此提炼世界观/物资/地点/人物即可）：\n"""\n${String(novelText).slice(0, 5000)}\n"""` }] }),
+      signal: ctrl.signal,
+    });
+    if (!res.ok) throw new Error(`API ${res.status}: ${(await res.text()).slice(0, 160)}`);
+    const data = await res.json();
+    return (data?.content?.map((c: any) => c.text || "").join("")) || "";
+  } finally {
+    clearTimeout(t);
+  }
 }
 
 // 引擎 B：本机 claude -p 订阅（无 key 时）
@@ -78,7 +91,7 @@ function agentRaw(novelText: string): Promise<string> {
   });
 }
 
-async function generate(novelText: string, attempts = 3): Promise<any> {
+async function generate(novelText: string, attempts = 2): Promise<any> {
   const useApi = !!process.env.ANTHROPIC_API_KEY;
   let last = "";
   for (let i = 0; i < attempts; i++) {
