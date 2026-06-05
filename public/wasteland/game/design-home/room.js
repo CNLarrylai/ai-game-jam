@@ -42,8 +42,7 @@
       this.A.camLed = { ...cam.led, c: C.mag2, period: 1.2, on: 0.18 };
       HS.frames(p, 196, 60);
       // countdown scratched into wall, right of window
-      p.text(198, 150, 'DAY', C.grn2, 1, 1);
-      p.text(216, 150, '53', C.grn3, 1, 1);
+      /* 墙上只留无数字刻痕——具体天数由游戏 HUD 显示，写死会和 Day 1/7 冲突 */
       HS.tally(p, 198, 160, 53, alpha(C.grn1, 0.9));
       p.text(198, 178, 'STILL', C.grn1, 1, 1);
       p.text(198, 186, 'HERE', C.grn1, 1, 1);
