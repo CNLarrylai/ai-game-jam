@@ -420,7 +420,11 @@ function App(props) {
         phase: phase ? { big: phase.big, sub: phase.sub } : null,
         cta: cta ? { prompt: cta.prompt } : null,
         flags: flags,
-        companions: companions.map(c => ({ id: c.id, name: c.name, av: c.av, role: c.role, status: c.status, hp: c.hp, mood: c.mood })),
+        companions: companions.map(c => ({
+          id: c.id, name: c.name, av: c.av, role: c.role, status: c.status, hp: c.hp, mood: c.mood,
+          detail: c.detail || "", ask: c.ask || "",
+          skill: c.skill ? { id: c.skill.id, label: c.skill.label, icon: c.skill.icon, note: c.skill.note, effect: c.skill.effect, line: c.skill.line } : { id:"", label:"", icon:"", note:"", effect:{}, line:"" },
+        })),
         confirmD: confirmD ? { name: confirmD.name, confirm: confirmD.confirm, icon: confirmD.icon, danger: confirmD.danger, ap: confirmD.ap } : null,
         toasts: toasts.map(t => ({ id: t.id, icon: t.icon, name: t.name, lose: t.lose })),
         explore: window.__EXPLORE_STATE__ || null,
