@@ -22,6 +22,25 @@ from typing import Optional, List
 
 
 @dataclass
+class CompanionSkill:
+    type: str  # craft|combat|knowledge|social|survival
+    description: str
+    enables: list = field(default_factory=list)
+    narrative_hooks: list = field(default_factory=list)
+
+
+@dataclass
+class NarrativeHook:
+    hook_id: str
+    setup: str
+    setup_day: int
+    min_delay: int = 1
+    max_delay: int = 3
+    suggested_payoffs: list = field(default_factory=list)
+    resolved: bool = False
+
+
+@dataclass
 class Companion:
     name: str
     skill: str
@@ -32,6 +51,17 @@ class Companion:
     hidden_trait: str = ""
     revealed: bool = False
     source_comment: str = ""
+    skills: list = field(default_factory=list)  # List[CompanionSkill]
+
+    def get_enables(self) -> list:
+        """返回该同伴的所有能力标签"""
+        tags = []
+        for s in self.skills:
+            if isinstance(s, CompanionSkill):
+                tags.extend(s.enables)
+            elif isinstance(s, dict):
+                tags.extend(s.get("enables", []))
+        return tags
 
 
 @dataclass
@@ -45,6 +75,8 @@ class Item:
     is_hardcoded: bool = False  # True = 剧本物品（硬规则效果）, False = AI生成
     usable_at_home: bool = True
     usable_outside: bool = True
+    enables: list = field(default_factory=list)
+    narrative_hooks: list = field(default_factory=list)
     source_comment: str = ""
 
 
@@ -101,6 +133,7 @@ class GameState:
     event_history: list = field(default_factory=list)
     visited_locations: list = field(default_factory=list)
     unresolved_threads: list = field(default_factory=list)
+    hook_queue: list = field(default_factory=list)         # List[NarrativeHook]
     adopted_comments: list = field(default_factory=list)
     available_maps: list = field(default_factory=lambda: ["废弃工厂", "大型超市"])
 
@@ -164,7 +197,11 @@ class GameState:
 - Visited: {', '.join(s['visited_locations']) or '无'}
 - Unresolved threads: {', '.join(s['unresolved_threads']) or '无'}
 - Recent event history:
-{events_str}"""
+{events_str}
+
+{self.capabilities_string()}
+
+{self.hooks_string()}"""
 
     # ============================================================
     # 数值变更
@@ -330,3 +367,59 @@ class GameState:
         self.location = location
         if location not in self.visited_locations:
             self.visited_locations.append(location)
+
+    # === 能力驱动系统 ===
+
+    def get_capabilities(self) -> dict:
+        caps = {"from_inventory": {}, "from_companions": {}}
+        for item in self.inventory:
+            if isinstance(item, Item) and item.enables:
+                caps["from_inventory"][item.name] = item.enables
+        for comp in self.companions:
+            if isinstance(comp, Companion):
+                enables = comp.get_enables()
+                if enables:
+                    caps["from_companions"][comp.name] = enables
+        return caps
+
+    def capabilities_string(self) -> str:
+        caps = self.get_capabilities()
+        lines = ["AVAILABLE CAPABILITIES:"]
+        if caps["from_inventory"]:
+            lines.append("From Inventory:")
+            for name, tags in caps["from_inventory"].items():
+                lines.append(f"  - [{name}] {' / '.join(tags)}")
+        if caps["from_companions"]:
+            lines.append("From Companions:")
+            for name, tags in caps["from_companions"].items():
+                lines.append(f"  - [{name}] {' / '.join(tags)}")
+        return "\n".join(lines)
+
+    def add_hook(self, setup: str, suggested_payoffs: list, min_delay: int = 1, max_delay: int = 3):
+        hook_id = f"hook_{len(self.hook_queue) + 1:03d}"
+        self.hook_queue.append(NarrativeHook(
+            hook_id=hook_id, setup=setup, setup_day=self.day,
+            min_delay=min_delay, max_delay=max_delay, suggested_payoffs=suggested_payoffs,
+        ))
+
+    def resolve_hook(self, hook_id: str):
+        for h in self.hook_queue:
+            if isinstance(h, NarrativeHook) and h.hook_id == hook_id:
+                h.resolved = True
+
+    def hooks_string(self) -> str:
+        active = [h for h in self.hook_queue if isinstance(h, NarrativeHook) and not h.resolved]
+        if not active:
+            return "NARRATIVE HOOK QUEUE: empty"
+        lines = ["NARRATIVE HOOK QUEUE:"]
+        for h in active:
+            waiting = self.day - h.setup_day
+            if waiting >= h.max_delay:
+                status = "MUST_TRIGGER"
+            elif waiting >= h.min_delay:
+                status = "CAN_TRIGGER"
+            else:
+                status = "WAITING"
+            lines.append(f"  - [{h.hook_id}] {h.setup} (waiting {waiting}d, status={status})")
+            lines.append(f"    payoffs: {', '.join(h.suggested_payoffs)}")
+        return "\n".join(lines)

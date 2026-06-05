@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>最后的人 · 冷开场</title>
+<!--
+  末日生存冷开场 — 《最后的人》(The Last Man, Mary Shelley)
+  视觉系统:沿用 Claude Design「末日·暗调视觉系统」(frontend/doom.css)
+            + 木刻插画系统(DoomArtDefs / DoomScene / SurvivorPortrait,源自 design-ref/doom-art.jsx)
+  内容:世界圣经(dist/world_bible.json)+ 卡点 V2-CVII「孤舍里的弃者」
+  场景插画:按 design 的木刻画法,为本作场景自绘(windsorDusk / derelictHut)。
+  自包含:浏览器直接打开即可游玩(需联网加载 React CDN)。
+-->
+<link rel="stylesheet" href="doom.css" />
+</head>
+<body>
+<div id="root"></div>
+
+<script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+<script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel" data-presets="react">
+const { useState, useEffect, useRef } = React;
+
+/* ============================================================
+   内容:全部来自《最后的人》的世界圣经与卡点
+   ============================================================ */
+
+// world_bible.json → catastrophe.progression_phases(阶段2/3:本土爆发、退守温莎)
+const WORLD_LINES = [
+  { t: '瘟疫从东方蔓延而来,越过了海峡。', cls: '' },
+  { t: '英格兰的城市,一座接一座沉默。', cls: '' },
+  { t: '你带着最后的亲人,退守温莎的高墙之内。', cls: 'accent2' },
+  { t: '粮食、药,还有人心,正一天天见底。', cls: 'accent' },
+];
+const DAY = 612;
+
+// world_bible.json → cast(高墙内你要守护的人;阿德里安带"悬念")
+// recipe 用 design 的参数化木刻肖像配方(body × trait × emblem × eyes)
+const CREW = [
+  { key: 'idris', name: '伊德丽丝', tag: '你的妻子', line: ['她的眼里,只剩下', '孩子的安危。'],
+    recipe: { id: 'idris', body: 'mid', trait: 'ponytail', rim: 'oklch(0.8 0.08 70)', bg: 'oklch(0.6 0.06 72)', emblem: { type: 'strap', color: 'oklch(0.78 0.1 60)' } } },
+  { key: 'clara', name: '克拉拉', tag: '雷蒙德的遗女', line: ['她还不懂,为什么', '大人都不再说话。'],
+    recipe: { id: 'clara', body: 'small', trait: 'scarf', rim: 'oklch(0.76 0.06 40)', bg: 'oklch(0.52 0.05 45)' } },
+  { key: 'adrian', name: '阿德里安', tag: '病弱的挚友', line: ['他咳嗽的样子,', '你不敢多看。'], suspense: true,
+    recipe: { id: 'adrian', body: 'tall', trait: 'hood', rim: 'oklch(0.62 0.05 210)', bg: 'oklch(0.46 0.04 205)', emblem: { type: 'mark', color: 'oklch(0.6 0.13 150)' }, eyes: 'oklch(0.72 0.06 150)' } },
+];
+
+// 卡点 V2-CVII「孤舍里的弃者」
+const SITUATION = [
+  { t: '墙外,一队逃难者把染疫的同伴,丢在了水闸旁的破屋里。', cls: '' },
+  { t: '方圆半英里,没人敢靠近。', cls: '' },
+  { t: '村民拦住你——去救他,也许就再回不到妻儿身边。', cls: 'dusk' },
+];
+const CHOICES = [
+  {
+    id: 'tend_him', num: '1', act: '进屋照料他', hint: '良心会安稳,但那扇门后的东西,未必如你所想',
+    tone: 'bad', costs: [{ res: 'morale', d: +2 }, { res: 'health', d: -1 }],
+    title: '他早已冰冷',
+    body: '你推开虚掩的门——稻草上的人早死了,屋里弥漫着致命的恶气。你夺门而逃。几小时后你确认自己并未染病:你什么也没带回家,只带回了一张<span class="tox">永远忘不掉的脸</span>。',
+    foot: '你做了该做的事。代价,刻进了记忆里。',
+  },
+  {
+    id: 'leave_supplies', num: '2', act: '在屋外留下水和干粮', hint: '一点物资,换一夜不必愧疚的睡眠',
+    tone: 'neutral', costs: [{ res: 'food', d: -2 }, { res: 'morale', d: +1 }],
+    title: '隔着门槛的善意',
+    body: '你把水囊和干粮放在门口就退开了。你不知道他是否还活着取用——但你没有像旁人那样彻底背弃他,也没让任何东西靠近自家门。',
+    foot: '没有英雄,只有一个不愿全然冷血的人。',
+  },
+  {
+    id: 'turn_back', num: '3', act: '转身回家,把家人放在第一位', hint: '安全,但有些东西会留在你心里',
+    tone: 'bad', costs: [{ res: 'morale', d: -3 }],
+    title: '你走开了',
+    body: '你随村民一起退去。家人安然,你身上没有半分疫气——可那个独自等死的人,从此住进了你的夜里。',
+    foot: '活下来的人,都带着没回头的那一眼。',
+  },
+];
+
+const START_RES = { food: 3, health: 6, morale: 5 };
+const RES_DEF = [
+  { id: 'food', ic: '🥫', label: 'Food' },
+  { id: 'health', ic: '💊', label: 'Health' },
+  { id: 'morale', ic: '🔥', label: 'Morale' },
+];
+
+/* ============================================================
+   木刻插画系统(源自 design-ref/doom-art.jsx,场景为本作自绘)
+   ============================================================ */
+function DoomArtDefs() {
+  return (
+    <svg width="0" height="0" style={{ position: 'absolute' }} aria-hidden="true">
+      <defs>
+        <filter id="dRough"><feTurbulence type="fractalNoise" baseFrequency="0.022" numOctaves="2" seed="5" result="n" /><feDisplacementMap in="SourceGraphic" in2="n" scale="9" /></filter>
+        <filter id="dRough2"><feTurbulence type="fractalNoise" baseFrequency="0.05" numOctaves="2" seed="13" result="n" /><feDisplacementMap in="SourceGraphic" in2="n" scale="5" /></filter>
+        <linearGradient id="duskSky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="oklch(0.2 0.03 258)" />
+          <stop offset="0.46" stopColor="oklch(0.26 0.05 290)" />
+          <stop offset="0.76" stopColor="oklch(0.4 0.1 35)" />
+          <stop offset="1" stopColor="oklch(0.52 0.13 45)" />
+        </linearGradient>
+        <radialGradient id="duskGlow" cx="0.52" cy="0.96" r="0.62">
+          <stop offset="0" stopColor="oklch(0.72 0.15 52)" stopOpacity="0.85" />
+          <stop offset="1" stopColor="oklch(0.72 0.15 52)" stopOpacity="0" />
+        </radialGradient>
+      </defs>
+    </svg>
+  );
+}
+function svgSurvivor(x, y, s) {
+  return `<g transform="translate(${x},${y})" filter="url(#dRough2)">
+    <rect fill="#0a0b0e" x="${-7 * s}" y="${5 * s}" width="${14 * s}" height="${30 * s}" rx="${6 * s}"/>
+    <circle fill="#0a0b0e" cx="0" cy="0" r="${9 * s}"/>
+  </g>`;
+}
+
+/* 场景库(viewBox 0 0 1000 560)— 按 design 木刻画法为《最后的人》自绘 */
+const DOOM_SCENES = {
+  // 世界层:温莎城堡暮色剪影,远山、枯树
+  windsorDusk: `
+    <rect x="0" y="0" width="1000" height="560" fill="url(#duskSky)"/>
+    <ellipse cx="500" cy="476" rx="580" ry="210" fill="url(#duskGlow)"/>
+    <g fill="#0b0d12" filter="url(#dRough)">
+      <path d="M0 432 Q250 392 520 420 Q770 446 1000 404 L1000 560 L0 560 Z"/>
+    </g>
+    <!-- Windsor castle silhouette -->
+    <g fill="#08090c" filter="url(#dRough)">
+      <rect x="352" y="350" width="78" height="84"/>
+      <rect x="430" y="300" width="86" height="134"/>
+      <rect x="516" y="338" width="120" height="96"/>
+      <rect x="636" y="356" width="60" height="78"/>
+      <rect x="338" y="326" width="18" height="108"/>
+      <rect x="694" y="320" width="22" height="114"/>
+      <!-- merlons on the keep -->
+      <path d="M430 300 h86 v-12 h-12 v6 h-14 v-6 h-14 v6 h-14 v-6 h-12 v6 h-6 z"/>
+    </g>
+    <!-- bare trees -->
+    <g stroke="#0a0b0e" stroke-width="3" fill="none" filter="url(#dRough2)" opacity="0.9">
+      <path d="M118 434 V388 M118 406 l-14 -12 M118 412 l14 -12"/>
+      <path d="M886 434 V394 M886 410 l-12 -12 M886 416 l12 -12"/>
+    </g>
+  `,
+  // 抉择层:博尔特水闸旁的破屋,门内透出不祥微光,芦苇与暗水
+  derelictHut: `
+    <rect x="0" y="0" width="1000" height="560" fill="url(#duskSky)"/>
+    <ellipse cx="520" cy="300" rx="470" ry="180" fill="url(#duskGlow)" opacity="0.7"/>
+    <!-- far treelines flanking -->
+    <g fill="#0c0e13" filter="url(#dRough)">
+      <path d="M0 300 Q190 284 360 298 L360 322 L0 322 Z"/>
+      <path d="M648 300 Q820 284 1000 294 L1000 322 L648 322 Z"/>
+    </g>
+    <!-- the derelict hut -->
+    <g fill="#08090c" filter="url(#dRough)">
+      <rect x="404" y="252" width="192" height="120"/>
+      <path d="M390 254 L500 196 L610 254 Z"/>
+      <rect x="470" y="300" width="46" height="72"/>
+    </g>
+    <!-- faint ominous light from the half-open door -->
+    <rect x="479" y="312" width="28" height="54" fill="oklch(0.66 0.13 58)" opacity="0.34" filter="url(#dRough2)"/>
+    <!-- lock posts / reeds at the waterline -->
+    <g stroke="#0a0b0e" stroke-width="4" fill="none" filter="url(#dRough2)" opacity="0.85">
+      <path d="M296 372 V412 M328 372 V418 M690 372 V410 M722 372 V420 M754 372 V412"/>
+    </g>
+    <!-- dark water -->
+    <rect x="0" y="372" width="1000" height="188" fill="#06070a" filter="url(#dRough)"/>
+    <!-- faint doorway reflection on the water -->
+    <rect x="486" y="392" width="20" height="64" fill="oklch(0.6 0.1 58)" opacity="0.1"/>
+    <!-- a lone figure on the near path -->
+    ${svgSurvivor(250, 356, 1.3)}
+  `,
+};
+function DoomScene({ name, className, style }) {
+  return (
+    <div className={`doom-scene ${className || ''}`} style={style}>
+      <svg viewBox="0 0 1000 560" preserveAspectRatio="xMidYMax slice" dangerouslySetInnerHTML={{ __html: DOOM_SCENES[name] || '' }}></svg>
+      <div className="scene-hatch"></div>
+      <div className="scene-grain"></div>
+    </div>
+  );
+}
+
+/* 参数化木刻肖像(body × trait × emblem × eyes)— 源自 design-ref/doom-art.jsx */
+const PORTRAIT_BODY = {
+  tall:  { sx: 'M8 150 L13 106 Q22 86 50 80 L82 80 Q110 86 119 108 L124 150 Z', hx: 64, hy: 54, rx: 25, ry: 27 },
+  mid:   { sx: 'M12 150 L17 112 Q25 92 50 88 L84 88 Q110 96 117 116 L122 150 Z', hx: 64, hy: 58, rx: 24, ry: 26 },
+  small: { sx: 'M22 150 L27 116 Q34 100 52 97 L80 97 Q98 101 104 120 L109 150 Z', hx: 64, hy: 62, rx: 21, ry: 23 },
+};
+function portraitSVG(r) {
+  const B = PORTRAIT_BODY[r.body || 'mid'];
+  const rim = r.rim || 'oklch(0.74 0.05 220)';
+  const bg = r.bg || rim;
+  const isHood = r.trait === 'hood';
+  let p = `<defs><radialGradient id="pg_${r.id}" cx="0.5" cy="0.4" r="0.62"><stop offset="0" stop-color="${bg}" stop-opacity="0.3"/><stop offset="1" stop-color="${bg}" stop-opacity="0"/></radialGradient></defs>`;
+  p += `<rect width="132" height="150" fill="url(#pg_${r.id})"/>`;
+  p += `<g filter="url(#dRough2)" fill="#14110d"><path d="${B.sx}"/>`;
+  if (!isHood) p += `<ellipse cx="${B.hx}" cy="${B.hy}" rx="${B.rx}" ry="${B.ry}"/>`;
+  p += `</g>`;
+  if (r.trait === 'glasses') {
+    p += `<g fill="none" stroke="${rim}" stroke-width="2.3" opacity="0.72"><circle cx="${B.hx - 10}" cy="${B.hy + 2}" r="8"/><circle cx="${B.hx + 10}" cy="${B.hy + 2}" r="8"/><path d="M${B.hx - 2.5} ${B.hy + 2} H${B.hx + 2.5}"/></g>`;
+  } else if (r.trait === 'ponytail') {
+    p += `<g filter="url(#dRough2)" fill="#14110d"><path d="M${B.hx + 16} ${B.hy - 16} Q${B.hx + 36} ${B.hy - 18} ${B.hx + 32} ${B.hy + 8} Q${B.hx + 28} ${B.hy + 22} ${B.hx + 16} ${B.hy + 16} Z"/></g>`;
+  } else if (r.trait === 'cap') {
+    p += `<g filter="url(#dRough2)" fill="#14110d"><path d="M${B.hx - 26} ${B.hy - 10} Q${B.hx} ${B.hy - 30} ${B.hx + 26} ${B.hy - 10} L${B.hx + 32} ${B.hy - 4} L${B.hx - 22} ${B.hy - 4} Z"/></g>`;
+  } else if (r.trait === 'scarf') {
+    p += `<g filter="url(#dRough2)" fill="#14110d"><path d="M${B.hx - 24} ${B.hy + B.ry - 2} Q${B.hx} ${B.hy + B.ry + 12} ${B.hx + 24} ${B.hy + B.ry - 2} L${B.hx + 20} ${B.hy + B.ry + 14} L${B.hx - 20} ${B.hy + B.ry + 14} Z"/></g>`;
+  } else if (isHood) {
+    p += `<g filter="url(#dRough)" fill="#120f0c"><path d="M${B.hx - 38} ${B.hy + 46} Q${B.hx - 42} ${B.hy - 22} ${B.hx} ${B.hy - 26} Q${B.hx + 42} ${B.hy - 22} ${B.hx + 38} ${B.hy + 46} Q${B.hx + 30} ${B.hy + 2} ${B.hx} ${B.hy + 6} Q${B.hx - 30} ${B.hy + 2} ${B.hx - 38} ${B.hy + 46} Z"/></g>`;
+    p += `<path d="M${B.hx - 24} ${B.hy + 8} Q${B.hx - 20} ${B.hy + 32} ${B.hx} ${B.hy + 38} Q${B.hx + 20} ${B.hy + 32} ${B.hx + 24} ${B.hy + 10} Q${B.hx + 14} ${B.hy + 24} ${B.hx} ${B.hy + 26} Q${B.hx - 14} ${B.hy + 24} ${B.hx - 24} ${B.hy + 8} Z" fill="#0a0807"/>`;
+  }
+  if (!isHood) p += `<path d="M${B.hx - B.rx + 2} ${B.hy - 8} Q${B.hx - B.rx - 2} ${B.hy + 8} ${B.hx - B.rx + 6} ${B.hy + 22}" stroke="${rim}" stroke-width="2.4" fill="none" opacity="0.4"/>`;
+  const em = r.emblem || {};
+  if (em.type === 'cross') p += `<g transform="translate(${B.hx},122)" filter="url(#dRough2)"><rect x="-3.2" y="-9" width="6.4" height="18" fill="${em.color}"/><rect x="-9" y="-3.2" width="18" height="6.4" fill="${em.color}"/></g>`;
+  else if (em.type === 'strap') p += `<path d="M${B.hx - 14} 96 L${B.hx + 8} 150" stroke="#0c0a07" stroke-width="8" stroke-linecap="round" opacity="0.9"/><circle cx="${B.hx - 2}" cy="120" r="3.4" fill="${em.color}" opacity="0.85"/>`;
+  else if (em.type === 'armband') p += `<rect x="${B.hx + 12}" y="102" width="22" height="9" rx="2" fill="${em.color}" opacity="0.85" transform="rotate(22 ${B.hx + 22} 106)"/>`;
+  else if (em.type === 'mark') p += `<ellipse cx="${B.hx + 22}" cy="100" rx="9" ry="6" fill="${em.color}" opacity="0.45" filter="url(#dRough2)"/>`;
+  if (isHood && r.eyes) p += `<circle cx="${B.hx - 7}" cy="${B.hy + 18}" r="1.7" fill="${r.eyes}" opacity="0.5"/><circle cx="${B.hx + 8}" cy="${B.hy + 18}" r="1.7" fill="${r.eyes}" opacity="0.5"/>`;
+  return p;
+}
+function SurvivorPortrait({ recipe }) {
+  const r = recipe;
+  return (
+    <div className={`portrait portrait-${r.id}`}>
+      <svg viewBox="0 0 132 150" dangerouslySetInnerHTML={{ __html: portraitSVG(r) }}></svg>
+      <div className="portrait-hatch"></div>
+    </div>
+  );
+}
+
+/* ============================================================
+   环境音 + 音效(WebAudio,自包含)
+   ============================================================ */
+let _ac, _drone;
+function ensureAudio() { if (_ac) return _ac; try { _ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} return _ac; }
+function startDrone() {
+  const ac = ensureAudio(); if (!ac || _drone) return;
+  const o1 = ac.createOscillator(), o2 = ac.createOscillator(), g = ac.createGain();
+  o1.type = 'sine'; o1.frequency.value = 55; o2.type = 'sine'; o2.frequency.value = 82.5;
+  g.gain.value = 0; o1.connect(g); o2.connect(g); g.connect(ac.destination);
+  o1.start(); o2.start(); g.gain.linearRampToValueAtTime(0.05, ac.currentTime + 3);
+  _drone = { g, ac };
+}
+function setMute(m) { if (_drone) _drone.g.gain.linearRampToValueAtTime(m ? 0 : 0.05, _drone.ac.currentTime + 0.4); }
+function sfx(type) {
+  const ac = ensureAudio(); if (!ac) return; if (ac.state === 'suspended') ac.resume();
+  const now = ac.currentTime;
+  const tone = (f, t0, dur, vol, wave) => {
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = wave || 'sine'; o.frequency.setValueAtTime(f, now + t0);
+    g.gain.setValueAtTime(0, now + t0); g.gain.linearRampToValueAtTime(vol, now + t0 + 0.05);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + t0 + dur);
+    o.connect(g).connect(ac.destination); o.start(now + t0); o.stop(now + t0 + dur + 0.05);
+  };
+  if (type === 'tick') tone(180, 0, 0.16, 0.05, 'triangle');
+  else if (type === 'hold') tone(98, 0, 0.7, 0.07, 'sine');
+  // 柔和版"吉凶":低沉、缓起的两声正弦下行,代替原先刺耳的锯齿 buzz
+  else if (type === 'bad') { tone(146.83, 0, 0.6, 0.05, 'sine'); tone(110, 0.18, 1.0, 0.055, 'sine'); }
+  else if (type === 'good') { tone(196, 0, 0.45, 0.06, 'sine'); tone(261.6, 0.16, 0.6, 0.05, 'sine'); }
+}
+
+/* ============================================================ */
+function Ash() {
+  const bits = useRef(Array.from({ length: 26 }).map(() => ({
+    left: Math.random() * 100, dur: 9 + Math.random() * 12, delay: -Math.random() * 18,
+    sway: (Math.random() * 80 - 40) + 'px', size: 2 + Math.random() * 2.5, op: 0.3 + Math.random() * 0.4,
+  })));
+  return (
+    <div className="ash">
+      {bits.current.map((b, i) => (
+        <i key={i} style={{ left: b.left + '%', width: b.size, height: b.size, opacity: b.op,
+          '--sway': b.sway, animationDuration: b.dur + 's', animationDelay: b.delay + 's' }}></i>
+      ))}
+    </div>
+  );
+}
+
+function ResBar({ values, deltas, show }) {
+  return (
+    <div className={`resbar ${show ? 'show' : ''}`}>
+      {RES_DEF.map(r => {
+        const v = values[r.id];
+        return (
+          <div key={r.id} className={`res ${r.id}`}>
+            <span className="ic">{r.ic}</span>
+            <div className="col">
+              <span className="rl">{r.label}</span>
+              <div className="seg">{Array.from({ length: 10 }).map((_, i) => <span key={i} className={i < v ? 'on' : ''}></span>)}</div>
+            </div>
+            {deltas[r.id] != null && deltas[r.id] !== 0 && (
+              <span className={`delta ${deltas[r.id] > 0 ? 'up' : 'down'}`}>{deltas[r.id] > 0 ? '+' : ''}{deltas[r.id]}</span>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+function App() {
+  const [phase, setPhase] = useState('world');
+  const [lineN, setLineN] = useState(0);
+  const [sitN, setSitN] = useState(0);
+  const [crewN, setCrewN] = useState(0);
+  const [choicesIn, setChoicesIn] = useState(false);
+  const [resShow, setResShow] = useState(false);
+  const [dayShow, setDayShow] = useState(false);
+  const [values, setValues] = useState(START_RES);
+  const [deltas, setDeltas] = useState({});
+  const [reveal, setReveal] = useState(null);
+  const [flash, setFlash] = useState(null);
+  const [shake, setShake] = useState(false);
+  const [muted, setMuted] = useState(false);
+  const [hairline, setHairline] = useState(8);
+  const [sceneShow, setSceneShow] = useState(false);
+
+  const firstClick = useRef(false);
+  const onFirstInteract = () => { if (!firstClick.current) { firstClick.current = true; startDrone(); } };
+
+  useEffect(() => {
+    if (phase !== 'world') return;
+    setTimeout(() => setDayShow(true), 600);
+    if (lineN < WORLD_LINES.length) {
+      const t = setTimeout(() => { setLineN(n => n + 1); sfx('tick'); }, lineN === 0 ? 900 : 2100);
+      return () => clearTimeout(t);
+    }
+  }, [phase, lineN]);
+
+  const worldAdvance = () => { onFirstInteract(); if (lineN < WORLD_LINES.length) setLineN(WORLD_LINES.length); else goCrew(); };
+  const goCrew = () => { setPhase('crew'); setHairline(36); setTimeout(() => setResShow(true), 1400); };
+
+  useEffect(() => {
+    if (phase !== 'crew') return;
+    if (crewN < CREW.length) {
+      const t = setTimeout(() => { setCrewN(n => n + 1); sfx('tick'); }, crewN === 0 ? 500 : 900);
+      return () => clearTimeout(t);
+    }
+  }, [phase, crewN]);
+
+  const goChoice = () => { onFirstInteract(); setPhase('choice'); setHairline(64); setResShow(true); };
+
+  useEffect(() => {
+    if (phase !== 'choice') return;
+    if (sitN < SITUATION.length) {
+      const t = setTimeout(() => { setSitN(n => n + 1); sfx('tick'); }, sitN === 0 ? 500 : 1500);
+      return () => clearTimeout(t);
+    } else if (!choicesIn) {
+      const t = setTimeout(() => setChoicesIn(true), 500);
+      return () => clearTimeout(t);
+    }
+  }, [phase, sitN]);
+
+  // 抉择场景插画淡入
+  useEffect(() => {
+    if (phase === 'choice') { const t = setTimeout(() => setSceneShow(true), 60); return () => clearTimeout(t); }
+    setSceneShow(false);
+  }, [phase]);
+
+  const skipToChoice = () => {
+    onFirstInteract(); setPhase('choice'); setResShow(true); setDayShow(true);
+    setSitN(SITUATION.length); setChoicesIn(true); setHairline(64);
+  };
+
+  const pick = (choice) => {
+    if (reveal) return;
+    onFirstInteract();
+    const net = choice.costs.reduce((s, c) => s + c.d, 0);
+    const good = net > 0 && choice.tone === 'good';
+    setHairline(100);
+    setReveal({ phase: 'hold', choice }); sfx('hold');
+    setTimeout(() => setReveal({ phase: 'show', choice, nums: false }), 1100);
+    setTimeout(() => {
+      const d = {}; choice.costs.forEach(c => { d[c.res] = c.d; });
+      setDeltas(d);
+      setValues(prev => { const n = { ...prev }; choice.costs.forEach(c => { n[c.res] = Math.max(0, Math.min(10, n[c.res] + c.d)); }); return n; });
+      setReveal(r => r ? { ...r, nums: true } : r);
+      if (good) { setFlash('good'); sfx('good'); } else { setFlash('bad'); setShake(true); sfx('bad'); }
+      setTimeout(() => { setFlash(null); setShake(false); setDeltas({}); }, 1100);
+    }, 2200);
+  };
+
+  const goEnding = () => { setReveal(null); setPhase('ending'); };
+  const replay = () => {
+    setPhase('world'); setLineN(0); setSitN(0); setCrewN(0); setChoicesIn(false);
+    setResShow(false); setValues(START_RES); setDeltas({}); setReveal(null); setFlash(null); setHairline(8); setSceneShow(false);
+  };
+  const toggleMute = () => { const m = !muted; setMuted(m); setMute(m); };
+
+  return (
+    <div className={`world ${shake ? 'shake' : ''}`}>
+      <DoomArtDefs />
+      <div className="horizon"></div>
+      {phase === 'world' && <DoomScene name="windsorDusk" className={`world-scene ${dayShow ? 'show' : ''}`} />}
+      {phase === 'choice' && <DoomScene name="derelictHut" className={`choice-scene ${sceneShow ? 'show' : ''}`} />}
+      <Ash />
+      <div className="grain"></div>
+      <div className="vignette"></div>
+
+      {phase === 'world' && <div className="tap-zone" onClick={worldAdvance}></div>}
+
+      <div className="stage">
+        <div className="topbar">
+          <div className={`daystamp ${dayShow ? 'show' : ''}`}>
+            <span className="d-plague">PLAGUE</span>
+            <span className="d-num">DAY <b>{DAY}</b></span>
+          </div>
+          <ResBar values={values} deltas={deltas} show={resShow} />
+        </div>
+
+        <div className={`center ${phase === 'choice' ? 'choice-mode' : ''}`}>
+          {phase === 'world' && (
+            <div className="phase">
+              <div className="world-lines">
+                {WORLD_LINES.map((l, i) => (
+                  <div key={i} className={`wline ${l.cls} ${i < lineN ? 'in' : ''} ${lineN >= WORLD_LINES.length && i < WORLD_LINES.length - 1 ? 'dim' : ''}`}>{l.t}</div>
+                ))}
+              </div>
+              <div className={`advance-hint ${lineN >= WORLD_LINES.length ? 'show' : ''}`} onClick={worldAdvance}>▸ 继续</div>
+            </div>
+          )}
+
+          {phase === 'crew' && (
+            <div className="phase">
+              <div className="crew-intro">— 高墙之内,你还守着这三个人 —</div>
+              <div className="crew-row">
+                {CREW.map((c, i) => (
+                  <div key={c.key} className={`survivor ${c.suspense ? 'suspense' : ''} ${i < crewN ? 'in' : ''}`} style={{ transitionDelay: (i * 0.04) + 's' }}>
+                    <SurvivorPortrait recipe={c.recipe} />
+                    <div className="s-name">{c.name}</div>
+                    <div className="s-tag">{c.tag}</div>
+                    <div className="s-line">{c.line.map((ln, k) => <div key={k}>{k === c.line.length - 1 ? <b>{ln}</b> : ln}</div>)}</div>
+                  </div>
+                ))}
+              </div>
+              <button className={`continue ${crewN >= CREW.length ? 'in' : ''}`} onClick={goChoice}>往前走 ▸</button>
+            </div>
+          )}
+
+          {phase === 'choice' && (
+            <div className="phase">
+              <div className="situation">
+                {SITUATION.map((s, i) => (
+                  <div key={i} className={`sit-line ${s.cls} ${i < sitN ? 'in' : ''}`}>{s.t}</div>
+                ))}
+              </div>
+              <div className="choice-list">
+                {CHOICES.map((c, i) => (
+                  <button key={c.id} className={`choice ${choicesIn ? 'in' : ''}`} style={{ transitionDelay: (i * 0.12) + 's' }} onClick={() => pick(c)}>
+                    <span className="c-num">{c.num}</span>
+                    <span className="c-body">
+                      <span className="c-act">{c.act}</span>
+                      <span className="c-hint">{c.hint}</span>
+                    </span>
+                    <span className="c-arrow">▸</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {phase === 'ending' && (
+            <div className="ending">
+              <div className="e-title">最 后 的 人</div>
+              <div className="e-sub">这只是瘟疫之年的一个清晨。<br />你能在温莎的高墙里撑过多少个这样的清晨,取决于接下来每一个抉择。</div>
+              <div className="e-note">— 冷开场到此 · 《最后的人》正式游戏在此接入 —</div>
+              <button className="e-replay" onClick={replay}>↺ 重看开场</button>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {reveal && (
+        <React.Fragment>
+          <div className="reveal-scrim"></div>
+          <div className={`reveal-box ${reveal.phase === 'show' ? (reveal.choice.tone === 'good' ? 'good' : 'bad') : ''}`}>
+            {reveal.phase === 'hold' ? (
+              <div className="rv-hold">屏息<div className="dots"><i></i><i></i><i></i></div></div>
+            ) : (
+              <React.Fragment>
+                <div className="rv-kicker">结果</div>
+                <div className="rv-title">{reveal.choice.title}</div>
+                <div className="rv-body" dangerouslySetInnerHTML={{ __html: reveal.choice.body }}></div>
+                {reveal.nums && (
+                  <div className="rv-deltas">
+                    {reveal.choice.costs.map((c, i) => {
+                      const def = RES_DEF.find(r => r.id === c.res);
+                      return <span key={i} className={`rv-delta ${c.d > 0 ? 'up' : 'down'}`}>{def.ic} {c.d > 0 ? '+' : ''}{c.d}</span>;
+                    })}
+                  </div>
+                )}
+                {reveal.nums && <div className="rv-foot">{reveal.choice.foot}</div>}
+                {reveal.nums && <button className="rv-cont" onClick={goEnding}>故事继续 ▸</button>}
+              </React.Fragment>
+            )}
+          </div>
+        </React.Fragment>
+      )}
+
+      {flash && <div className={`flash ${flash}`}></div>}
+
+      <div className="hairline" style={{ width: hairline + '%' }}></div>
+      {(phase === 'world' || phase === 'crew') && <button className="skip" onClick={skipToChoice}>跳过 ⏩</button>}
+      <button className="mute" onClick={toggleMute} title="环境音">{muted ? '🔇' : '🔊'}</button>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

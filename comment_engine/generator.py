@@ -52,7 +52,12 @@ RULES:
 2. Include 2-3 "suggested reactions" as hints only.
 3. Must reference at least one past event (callback).
 4. End narration with something player MUST react to.
-5. Output valid JSON only."""
+5. Output valid JSON only.
+
+CAPABILITY-DRIVEN RULES:
+6. If AVAILABLE CAPABILITIES are listed in context, at least 1 suggested_reaction MUST reference an available capability.
+7. If NARRATIVE HOOK QUEUE has a MUST_TRIGGER hook, this event MUST create a scenario that pays it off.
+8. When a companion skill is relevant, mention the companion by name in the narration."""
 
 EVENT_USER = """
 {context}
@@ -163,8 +168,13 @@ Output valid JSON:
   "usable_at_home": true,
   "usable_outside": true,
   "side_effect": "funny downside or null",
+  "enables": ["capability_tag_1", "capability_tag_2"],
+  "narrative_hooks": ["concrete future scenario this item can trigger"],
   "source_display": "Inspired by @{username}"
-}}"""
+}}
+
+enables: SPECIFIC tags like "ranged_combat", "pry_open", "light_source". NOT vague.
+narrative_hooks: CONCRETE scenarios. Check AVAILABLE CAPABILITIES — complement, don't duplicate."""
 
 
 # === LOCATION ===

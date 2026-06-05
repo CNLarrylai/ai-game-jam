@@ -29,6 +29,7 @@ CHARACTER_KEYWORDS = {
     "黑客", "幸存者", "老人", "女孩", "男人", "女人", "机器人",
     "robot", "soldier", "doctor", "scientist", "hacker", "survivor",
     "trader", "merchant", "child", "veteran", "old man", "stranger",
+    "老头", "大叔", "少年", "大妈", "护士", "工程师", "机械师", "修理工",
     "狗", "猫", "机械狗", "变异", "怪物", "龙", "蛇", "鸟", "虫",
     "dog", "cat", "mechanical", "mutant", "creature", "monster", "dragon", "snake", "bird",
 }
