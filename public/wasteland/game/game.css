@@ -416,9 +416,9 @@ html, body {
 .banner { display: flex; align-items: center; gap: 14px; padding: 14px 26px 14px 20px;
   background: linear-gradient(90deg, rgba(255,207,63,.95), rgba(255,77,141,.9));
   color: #2a1500; border: 3px solid #fff3c4; max-width: 84%;
-  box-shadow: 0 0 30px rgba(255,207,63,.5); animation: bannerSlide 3.4s ease-out forwards; }
+  box-shadow: 0 0 30px rgba(255,207,63,.5); animation: bannerSlide 8s ease-out forwards; }
 .banner.big { padding: 20px 34px 20px 26px; border-width: 4px;
-  box-shadow: 0 0 50px rgba(255,207,63,.7); animation: bannerSlideBig 3.6s ease-out forwards; }
+  box-shadow: 0 0 50px rgba(255,207,63,.7); animation: bannerSlideBig 8s ease-out forwards; }
 .banner .b-icon { font-size: 30px; }
 .banner.big .b-icon { font-size: 44px; }
 .banner .b-text { font-size: var(--t-md); line-height: 1.4; }

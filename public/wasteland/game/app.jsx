@@ -127,7 +127,7 @@ function App(props) {
       // Banner from AI generation
       if (msg.type === 'banner' && msg.data) {
         setBanner({ ...msg.data, id: uid() });
-        setTimeout(() => setBanner(null), 4500);
+        setTimeout(() => setBanner(null), 8000);
       }
       // Game event from AI generation
       if (msg.type === 'game_event' && msg.data) {
@@ -156,7 +156,7 @@ function App(props) {
       if (msg.type === 'comment_adopted' && msg.data) {
         if (msg.data.banner) {
           setBanner({ ...msg.data.banner, id: uid() });
-          setTimeout(() => setBanner(null), 5000);
+          setTimeout(() => setBanner(null), 8000);
         }
       }
       // Comment feedback (accepted/rejected)
