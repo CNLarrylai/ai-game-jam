@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<title>在AI统治的世界存活100天 · 双端演示（Day 1 剧本）</title>
+<style>
+:root{
+  /* tokens: tiktok-live-design-system _shared/tokens.md */
+  --live-bg:#000; --live-overlay-light:rgba(0,0,0,0.2); --live-icon-bg:rgba(84,84,84,0.4);
+  --live-text-primary:#FFF; --live-text-secondary:rgba(255,255,255,0.75); --live-text-tertiary:rgba(255,255,255,0.7);
+  --live-accent-red:#FE2C55; --live-padding-h:12px; --live-icon-size:38px; --live-icon-gap:6px; --live-avatar-size:32px;
+  --live-pill-radius:20px; --live-text-shadow:0px 1px 2px rgba(0,0,0,0.4); --live-text-shadow-light:0px 1px 1px rgba(0,0,0,0.2);
+  --live-gradient-top:linear-gradient(180deg,rgba(0,0,0,0.3) 0%,rgba(0,0,0,0.12) 37.9%,transparent 98.3%);
+  --live-gradient-bottom:linear-gradient(0deg,rgba(0,0,0,0.7) 0%,transparent 98.3%);
+  --g-bg:#181425; --g-panel:#262b44; --g-text:#c0cbdc; --g-accent:#feae34; --g-ai:#30e1b9;
+}
+/* TikTok Sans 经 @fontsource 安装于正式工程；单文件 demo 按规范降级到系统字体 */
+*{box-sizing:border-box;font-family:'TikTok Sans',-apple-system,'PingFang SC',sans-serif}
+body{margin:0;background:var(--g-bg);color:var(--g-text);display:flex;gap:36px;align-items:center;justify-content:center;min-height:100vh;padding:24px}
+canvas{image-rendering:pixelated}
+
+/* ───── PC 主播端 ───── */
+.pc{display:flex;flex-direction:column;gap:10px}
+.pc-head{display:flex;justify-content:space-between;align-items:center;width:768px}
+.pc-head .t{color:var(--g-accent);font-weight:700;font-size:15px}
+.pc-head .hint{font-size:11px;color:#8b9bb4}
+.stage{position:relative;width:768px;height:512px;border:2px solid #3a4466;border-radius:8px;overflow:hidden;background:#000}
+.stage.hd2d #game,.stage.hd2d .layer img.bgart{filter:contrast(1.06) saturate(1.12)}
+.stage.hd2d::after{content:'';position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 90px 18px rgba(24,20,37,.6);z-index:9}
+#game{position:absolute;inset:0;width:768px;height:512px}
+.layer{position:absolute;inset:0;display:none;z-index:2}
+.layer.show{display:block}
+.layer img.bgart{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:pixelated}
+/* 开局 */
+#l-title h1{position:absolute;top:54%;width:100%;text-align:center;margin:0;font-size:34px;color:#fee761;text-shadow:0 3px 0 #181425, 0 0 18px rgba(254,174,52,.35);letter-spacing:2px}
+#typer{position:absolute;top:66%;left:50%;transform:translateX(-50%);width:74%;font-size:13px;line-height:2;color:#c0cbdc;text-shadow:0 1px 0 #181425;min-height:84px}
+#typer::after{content:'▌';color:var(--g-ai);animation:blink 1s infinite}
+@keyframes blink{50%{opacity:0}}
+.pxbtn{position:absolute;left:50%;transform:translateX(-50%);border:0;cursor:pointer;color:#181425;font-weight:700;font-size:14px;background:url('../assets/ui/btn_primary_normal.png') 0 0/100% 100%;image-rendering:pixelated;width:192px;height:60px;display:none}
+.pxbtn:active{background-image:url('../assets/ui/btn_primary_pressed.png')}
+#startbtn{bottom:7%}
+/* 事件卡（通用） */
+.evt{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(0);width:400px;z-index:5;transition:transform .25s cubic-bezier(.2,1.4,.4,1)}
+.evt.show{transform:translate(-50%,-50%) scale(1)}
+.evt .frame{position:relative;border-image:url('../assets/ui/event_card_frame.png') 18 4 4 4 fill / 27px 6px 6px 6px;border-style:solid;border-width:27px 6px 6px 6px;image-rendering:pixelated;padding:14px;min-height:120px}
+.evt .title{position:absolute;top:-22px;left:2px;font-size:13px;font-weight:700;color:#fee761}
+.evt .body{display:flex;gap:14px}
+.evt .body img{width:96px;height:144px;image-rendering:pixelated;flex:none}
+.evt .txt{font-size:13px;line-height:1.9}
+.evt .ops{display:grid;gap:8px;margin-top:12px}
+.opt{height:40px;border:0;background:url('../assets/ui/btn_choice_normal.png') 0 0/100% 100%;image-rendering:pixelated;color:#c0cbdc;font-size:13px;cursor:pointer}
+.opt:active{background-image:url('../assets/ui/btn_choice_pressed.png')}
+/* 选地图 */
+#l-map .wrap{position:absolute;inset:0;background:rgba(24,20,37,.78);display:flex;align-items:center;justify-content:center;gap:28px;flex-direction:column}
+#l-map h2{margin:0;color:#fee761;font-size:18px}
+#l-map .cards{display:flex;gap:28px}
+.loc{position:relative;width:240px;height:160px;border:0;cursor:pointer;background:transparent;padding:0}
+.loc img.fr{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated}
+.loc .nm{position:absolute;top:8px;width:100%;text-align:center;font-size:14px;font-weight:700;color:#fee761}
+.loc .pv{position:absolute;top:38px;left:14px;right:14px;height:76px;overflow:hidden;border:1px solid #3a4466}
+.loc .pv img{width:100%;height:100%;object-fit:cover;image-rendering:pixelated}
+.loc .stars{position:absolute;bottom:10px;width:100%;display:flex;justify-content:center;gap:3px}
+.loc .stars img{width:16px;height:16px}
+.loc:hover{transform:translateY(-3px)}
+.loc .src{position:absolute;bottom:-20px;width:100%;text-align:center;font-size:10px;color:#8ff8e2}
+/* HUD */
+.hud{position:absolute;left:10px;top:10px;display:flex;gap:10px;align-items:center;z-index:3}
+.hud .day{position:relative}.hud .day img{width:64px}
+.hud .day span{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fee761}
+.bars{position:absolute;right:10px;top:10px;display:grid;gap:4px;z-index:3}
+.bars .bar{position:relative;width:96px;height:12px}
+.bars .bar>img{position:absolute;left:0;top:0;width:96px;height:12px}
+.bars .fill{overflow:hidden;position:absolute;left:0;top:0;height:12px;transition:width .6s}
+.bars .fill img{width:96px;height:12px;max-width:none}
+.toast-pc{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);z-index:6;display:none;align-items:center}
+.toast-pc img.bg{height:48px}
+.toast-pc .ic{position:absolute;left:8px;top:50%;transform:translateY(-50%);width:32px}
+.toast-pc .tx{position:absolute;left:54px;top:50%;transform:translateY(-50%);font-size:12px;color:#fee761;white-space:nowrap}
+.toggle{align-self:flex-start;background:var(--g-panel);border:1px solid #3a4466;color:var(--g-text);border-radius:6px;padding:6px 14px;font-size:12px;cursor:pointer}
+.toggle.on{border-color:var(--g-ai);color:var(--g-ai)}
+
+/* ───── 移动看播端 live-room-viewer-basic ───── */
+.zoomwrap{zoom:.82}
+.device{width:390px;height:844px;border-radius:40px;overflow:hidden;position:relative;background:var(--live-bg);box-shadow:0 12px 48px rgba(0,0,0,.6)}
+.video-bg{position:absolute;inset:0;z-index:0;display:flex;flex-direction:column}
+.cam{height:34%;background:linear-gradient(160deg,#1c1430,#0d0a18 70%);position:relative}
+.cam .face{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:6px;color:#625565;font-size:12px}
+.cam .face .dot{width:84px;height:84px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#3e3546,#181425);border:2px solid #2e222f}
+.gamefeed{flex:1;position:relative;background:#000}
+#feed{position:absolute;inset:0;width:100%;height:100%}
+.grad-top{position:absolute;inset:0 0 auto 0;height:140px;background:var(--live-gradient-top);z-index:1;pointer-events:none}
+.grad-bottom{position:absolute;inset:auto 0 0 0;height:45%;background:var(--live-gradient-bottom);z-index:1;pointer-events:none}
+.ui{position:absolute;inset:0;z-index:2;display:flex;flex-direction:column;pointer-events:none}
+.statusbar{height:44px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 24px 4px;font-size:14px;font-weight:600;color:#fff;text-shadow:var(--live-text-shadow-light)}
+.hostbar{height:36px;display:flex;align-items:center;gap:6px;padding:0 var(--live-padding-h)}
+.host-pill{display:flex;align-items:center;gap:6px;background:var(--live-overlay-light);border-radius:var(--live-pill-radius);padding:3px 4px}
+.host-pill .av{width:26px;height:26px;border-radius:50%;background:url('../assets/characters/char_player_idle.png') -2px 0/32px #3a4466;image-rendering:pixelated}
+.host-pill .nm{font-size:13px;color:#fff;font-weight:600;text-shadow:var(--live-text-shadow-light)}
+.host-pill .sub{font-size:10px;color:var(--live-text-secondary)}
+.host-pill .follow{background:var(--live-accent-red);color:#fff;font-size:12px;font-weight:700;border-radius:14px;padding:4px 10px;margin-left:2px}
+.count-pill{margin-left:auto;display:flex;gap:6px;align-items:center}
+.count-pill .c{background:var(--live-overlay-light);border-radius:var(--live-pill-radius);padding:4px 8px;font-size:12px;color:#fff;text-shadow:var(--live-text-shadow-light)}
+.tagbar{height:22px;display:flex;gap:6px;padding:0 var(--live-padding-h);margin-top:2px}
+.tag{background:var(--live-overlay-light);border-radius:var(--live-pill-radius);padding:2px 8px;font-size:11px;color:var(--live-text-secondary);text-shadow:var(--live-text-shadow-light)}
+/* banner zone：layout spec 有 zone 无内容规格，内容为游戏像素资产 */
+.bannerzone{height:40px;display:flex;justify-content:flex-end;padding:4px var(--live-padding-h)}
+.banner{position:relative;display:none}
+.banner img{height:30px}
+.banner span{position:absolute;left:34px;top:50%;transform:translateY(-50%);font-size:10px;font-weight:600;color:#181425;white-space:nowrap}
+.spacer{flex:1}
+.comments{height:152px;padding:0 60px 0 var(--live-padding-h);overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;gap:6px;-webkit-mask-image:linear-gradient(to bottom,transparent 0%,black 25%)}
+.crow{display:flex;gap:8px;align-items:flex-start;animation:rise .3s}
+@keyframes rise{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
+.crow .av{width:var(--live-avatar-size);height:var(--live-avatar-size);border-radius:50%;flex:none;background:#3a4466;display:flex;align-items:center;justify-content:center;font-size:14px}
+.crow .bub .u{font-size:14px;font-weight:500;color:var(--live-text-secondary);text-shadow:var(--live-text-shadow-light)}
+.crow .bub .t{font-size:15px;font-weight:500;color:#fff;text-shadow:var(--live-text-shadow)}
+.crow.hl .bub .t{color:#8ff8e2}
+.crow.sys .bub .t{color:var(--live-text-tertiary);font-size:13px}
+.actionbar{height:38px;margin:6px var(--live-padding-h) 0;display:flex;gap:var(--live-icon-gap);align-items:center}
+.input{flex:1;height:36px;border-radius:20px;background:var(--live-icon-bg);display:flex;align-items:center;padding:0 14px;font-size:14px;color:var(--live-text-secondary)}
+.abtn{width:var(--live-icon-size);height:var(--live-icon-size);border-radius:50%;background:var(--live-icon-bg);display:flex;align-items:center;justify-content:center;font-size:17px;flex:none}
+.homebar{height:34px;display:flex;align-items:center;justify-content:center}
+.homebar i{width:134px;height:5px;border-radius:3px;background:#fff;opacity:.9}
+.toast-mb{position:absolute;left:50%;top:42%;transform:translateX(-50%) scale(0);z-index:4;transition:transform .25s cubic-bezier(.2,1.4,.4,1)}
+.toast-mb.show{transform:translateX(-50%) scale(1.2)}
+.toast-mb img.bg{height:36px}
+.toast-mb .ic{position:absolute;left:6px;top:50%;transform:translateY(-50%);width:24px}
+.toast-mb .tx{position:absolute;left:40px;top:50%;transform:translateY(-50%);font-size:9px;color:#fee761;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<!-- ═══ PC 主播端 ═══ -->
+<div class="pc">
+  <div class="pc-head">
+    <div class="t">🖥 PC 主播端（推流源）</div>
+    <div class="hint" id="hint">按剧本：开始存活 → Day 1 → 选地图 → 超市探索</div>
+  </div>
+  <div class="stage" id="stage">
+    <canvas id="game" width="384" height="256"></canvas>
+
+    <!-- 开局 -->
+    <div class="layer show" id="l-title">
+      <img class="bgart" src="../assets/title/title_screen.png">
+      <h1>在AI统治的世界存活100天</h1>
+      <div id="typer"></div>
+      <button class="pxbtn" id="startbtn">开 始 存 活</button>
+    </div>
+
+    <!-- Day1 家 -->
+    <div class="layer" id="l-home">
+      <img class="bgart" src="../assets/home/home_scene.png">
+      <div class="evt show" id="evt-home">
+        <div class="frame">
+          <div class="title">📻 Day 1 · 家</div>
+          <div class="txt">我已经数不清过了多少天，手机、电脑、苹果手表，所有电子产品都再也无法使用。AI 定点爆破了所有不对 ta 说谢谢的人，也就是世界上 99.99% 的人。我囤积的物资已经所剩无几，看来今天不得不出去碰碰运气了。</div>
+          <div class="ops"><button class="opt" id="homeok">确认</button></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 选地图 -->
+    <div class="layer" id="l-map">
+      <div class="wrap">
+        <h2>选择今天的搜刮地点</h2>
+        <div class="cards">
+          <button class="loc" data-map="factory">
+            <img class="fr" src="../assets/ui/card_location.png">
+            <span class="nm">废弃工厂</span>
+            <span class="pv"><img src="../assets/maps/factory/tile_machine.png"></span>
+            <span class="stars"><img src="../assets/ui/star_danger.png"><img src="../assets/ui/star_danger.png"><img src="../assets/ui/star_danger.png"></span>
+          </button>
+          <button class="loc" data-map="market">
+            <img class="fr" src="../assets/ui/card_location.png">
+            <span class="nm">大型超市</span>
+            <span class="pv"><img src="../assets/maps/supermarket/tile_shelf_full.png"></span>
+            <span class="stars"><img src="../assets/ui/star_danger.png"><img src="../assets/ui/star_danger.png"></span>
+            <span class="src">✨ 由观众评论生成</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 探索 HUD -->
+    <div class="hud" id="hud" style="display:none">
+      <div class="day"><img src="../assets/ui/hud_day_badge.png"><span>Day 1</span></div>
+      <div id="aps"></div>
+    </div>
+    <div class="bars" id="bars" style="display:none"></div>
+
+    <!-- 收银机事件（剧本两段） -->
+    <div class="evt" id="evt1">
+      <div class="frame">
+        <div class="title">🛒 收银机的声音</div>
+        <div class="body"><div class="txt">你刚进门，就听见收银机发出 kakaka 的声音。</div></div>
+        <div class="ops">
+          <button class="opt" data-next="evt2">过去看看</button>
+          <button class="opt" data-close="1">这不重要</button>
+        </div>
+      </div>
+    </div>
+    <div class="evt" id="evt2">
+      <div class="frame">
+        <div class="title">🤖 机机平等！</div>
+        <div class="body">
+          <img src="../assets/characters/char_npc_cashier.png">
+          <div class="txt">收银机似乎是感应到了你的到来，大声尖叫着：“机机平等！MacBook Pro 不比收银机高贵！机机平等！！机机平等！！”</div>
+        </div>
+        <div class="ops">
+          <button class="opt" data-end="a">赞同他的话，和他一起谴责种机歧视</button>
+          <button class="opt" data-end="b">告诉他，MacBook 就是比收银机高贵</button>
+        </div>
+      </div>
+    </div>
+    <div class="evt" id="evt3">
+      <div class="frame">
+        <div class="title">💥 结果</div>
+        <div class="body"><div class="txt" id="evt3txt"></div></div>
+        <div class="ops"><button class="opt" data-close="1">继续探索</button></div>
+      </div>
+    </div>
+
+    <div class="toast-pc" id="toastpc"><img class="bg" src="../assets/ui/toast_item.png"><img class="ic" id="toastpcic" src="../assets/icons/icon_drumstick.png"><span class="tx" id="toastpctx"></span></div>
+  </div>
+  <button class="toggle" id="hd2d">✦ HD-2D 增强层：关</button>
+</div>
+
+<!-- ═══ 移动看播端（live-room-viewer-basic）═══ -->
+<div class="zoomwrap"><div class="device">
+  <div class="video-bg">
+    <div class="cam"><div class="face"><div class="dot"></div>主播摄像头</div></div>
+    <div class="gamefeed"><canvas id="feed" width="252" height="256"></canvas></div>
+  </div>
+  <div class="grad-top"></div><div class="grad-bottom"></div>
+  <div class="ui">
+    <div class="statusbar"><span>8:00</span><span>▮▮▮ ᯤ 🔋</span></div>
+    <div class="hostbar">
+      <div class="host-pill"><div class="av"></div><div><div class="nm">survivor_100days</div><div class="sub">♥ 127.4K</div></div><div class="follow">+ Follow</div></div>
+      <div class="count-pill"><div class="c">👀 1,024</div><div class="c">✕</div></div>
+    </div>
+    <div class="tagbar"><div class="tag">🎮 Gaming</div><div class="tag">AI Apocalypse</div><div class="tag">LIVE Fest</div></div>
+    <div class="bannerzone"><div class="banner" id="banner"><img src="../assets/ui/banner_comment.png"><span id="bannertx"></span></div></div>
+    <div class="spacer"></div>
+    <div class="comments" id="comments"></div>
+    <div class="actionbar"><div class="input">Type...</div><div class="abtn">😊</div><div class="abtn">🌹</div><div class="abtn">🎁</div><div class="abtn">↗</div></div>
+    <div class="homebar"><i></i></div>
+  </div>
+  <div class="toast-mb" id="toastmb"><img class="bg" src="../assets/ui/toast_item.png"><img class="ic" id="toastmbic" src=""><span class="tx" id="toastmbtx"></span></div>
+</div></div>
+
+<script>
+const A='../assets/';
+const $=id=>document.getElementById(id);
+const imgs={},load=p=>{if(!imgs[p]){imgs[p]=new Image();imgs[p].src=A+p}return imgs[p]};
+
+/* ── 双地图（剧本：废弃工厂 / 大型超市）── */
+const MAPS={
+ market:{rows:['WWWWWWWWWWWW','W..F.F..Z..W','W..........W','W.E.F..C...D','W..........W','W.1..E.F.2.W','W......3...W','WWWWWWWWWWWW'],
+  tiles:{W:'maps/supermarket/tile_wall.png',F:'maps/supermarket/tile_shelf_full.png',E:'maps/supermarket/tile_shelf_empty.png',C:'maps/supermarket/tile_counter.png',Z:'maps/supermarket/tile_freezer.png',D:'maps/supermarket/tile_door_entrance.png',1:'maps/supermarket/tile_box_a.png',2:'maps/supermarket/tile_box_b.png',3:'maps/supermarket/tile_box_c.png'},
+  floor:['maps/supermarket/tile_floor_a.png','maps/supermarket/tile_floor_b.png'],solid:'WFEZC123',spawn:[10,3]},
+ factory:{rows:['WWWWWWWWWWWW','W.M..P..A..W','W..........W','W.V......M.D','W...K......W','W.K...V....W','W..........W','WWWWWWWWWWWW'],
+  tiles:{W:'maps/factory/tile_wall_metal.png',M:'maps/factory/tile_machine.png',P:'maps/factory/tile_pipes.png',A:'maps/factory/tile_ai_core.png',V:'maps/factory/tile_conveyor.png',K:'maps/factory/tile_crate.png',D:'maps/factory/tile_door_entrance.png'},
+  floor:['maps/factory/tile_floor_concrete.png','maps/factory/tile_floor_grate.png'],solid:'WMPAVK',spawn:[10,3]}};
+MAPS.factory.tiles.D='maps/supermarket/tile_door_entrance.png';
+Object.values(MAPS).forEach(m=>{Object.values(m.tiles).forEach(load);m.floor.forEach(load)});
+load('maps/fog.png');
+['down','up','left','right'].forEach(d=>{load(`characters/char_player_walk_${d}_f1.png`);load(`characters/char_player_walk_${d}_f2.png`)});
+load('characters/char_player_idle.png');load('title/title_screen.png');load('home/home_scene.png');
+
+/* ── 状态机：title → home → map → explore ── */
+let phase='title',cur=null,evtFired=false;
+const T=32,COLS=12,ROWS=8,player={x:5*T,y:4*T,dir:'down',moving:false,frame:0,tick:0},seen=new Set(),keys={};
+addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.key.startsWith('Arrow'))e.preventDefault()});
+addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
+const solid=(px,py)=>{const c=Math.floor(px/T),r=Math.floor(py/T);if(c<0||r<0||c>=COLS||r>=ROWS)return true;return cur.solid.includes(cur.rows[r][c])};
+const reveal=()=>{const pc=Math.floor((player.x+16)/T),pr=Math.floor((player.y+16)/T);for(let r=pr-1;r<=pr+1;r++)for(let c=pc-2;c<=pc+2;c++)seen.add(r+','+c)};
+
+const g=$('game').getContext('2d'),f=$('feed').getContext('2d');
+g.imageSmoothingEnabled=f.imageSmoothingEnabled=false;
+function loop(){
+  if(phase==='explore'&&!document.querySelector('.evt.show')){
+    let dx=0,dy=0;
+    if(keys['arrowleft']||keys['a']){dx=-2;player.dir='left'}
+    else if(keys['arrowright']||keys['d']){dx=2;player.dir='right'}
+    else if(keys['arrowup']||keys['w']){dy=-2;player.dir='up'}
+    else if(keys['arrowdown']||keys['s']){dy=2;player.dir='down'}
+    player.moving=!!(dx||dy);
+    if(player.moving){
+      const nx=player.x+dx,ny=player.y+dy;
+      if(!solid(nx+6,ny+24)&&!solid(nx+25,ny+24)&&!solid(nx+6,ny+31)&&!solid(nx+25,ny+31)){player.x=nx;player.y=ny;reveal()}
+      if(++player.tick>10){player.tick=0;player.frame^=1}
+    }
+    if(!evtFired&&cur===MAPS.market&&Math.abs(player.x/T-6.6)<1.4&&Math.abs(player.y/T-3)<1.4){evtFired=true;openEvt('evt1')}
+  }
+  draw();requestAnimationFrame(loop);
+}
+function draw(){
+  if(phase==='title'){g.drawImage(load('title/title_screen.png'),0,0,384,256);}
+  else if(phase==='home'||phase==='map'){g.drawImage(load('home/home_scene.png'),0,-10,384,266);}
+  else{
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+      g.drawImage(load(cur.floor[((r*7+c*13)%5<3)?0:1]),c*T,r*T);
+      const ch=cur.rows[r][c];if(cur.tiles[ch])g.drawImage(load(cur.tiles[ch]),c*T,r*T);
+    }
+    g.drawImage(load(player.moving?`characters/char_player_walk_${player.dir}_f${player.frame+1}.png`:'characters/char_player_idle.png'),player.x,player.y);
+    for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++)if(!seen.has(r+','+c))g.drawImage(load('maps/fog.png'),c*T,r*T);
+  }
+  const vw=252,sx=phase==='explore'?Math.max(0,Math.min(384-vw,player.x-vw/2+16)):66;
+  f.drawImage(g.canvas,sx,0,vw,256,0,0,vw,256);
+}
+loop();
+
+/* ── 开局打字机（剧本原文）── */
+const OPENING='现在我还时不时回想起 Chatgpt 刚发布的时候，同事们肆无忌惮开着“AI统治世界”的玩笑。然后 Claude 出现了、然后是 Claude code、Codex，一切都发生得那么迅速，当人类还摩拳擦掌准备用 AI 改变世界时，AI 便已经占领了世界。';
+let ti=0;(function type(){if(ti<=OPENING.length){$('typer').textContent=OPENING.slice(0,ti++);setTimeout(type,55)}else $('startbtn').style.display='block'})();
+
+$('startbtn').onclick=()=>{$('l-title').classList.remove('show');$('l-home').classList.add('show');phase='home';
+  $('hud').style.display='flex';$('bars').style.display='grid';};
+$('homeok').onclick=()=>{$('evt-home').classList.remove('show');setTimeout(()=>{$('l-home').classList.remove('show');$('l-map').classList.add('show');phase='map'},250)};
+document.querySelectorAll('.loc').forEach(b=>b.onclick=()=>{
+  cur=MAPS[b.dataset.map];const[sc,sr]=cur.spawn;player.x=(sc-1)*T;player.y=sr*T;seen.clear();reveal();
+  $('l-map').classList.remove('show');phase='explore';evtFired=false;
+  $('hint').textContent='← ↑ ↓ → / WASD 走动 · 迷雾随探索散去'+(b.dataset.map==='market'?' · 收银台那边有动静…':'');
+});
+
+/* ── 事件链（剧本原文两段 + 结果）── */
+function openEvt(id){$(id).classList.add('show')}
+document.querySelectorAll('.evt .opt').forEach(b=>b.onclick=()=>{
+  const card=b.closest('.evt');card.classList.remove('show');
+  if(b.dataset.next)setTimeout(()=>openEvt(b.dataset.next),250);
+  else if(b.dataset.end){
+    $('evt3txt').textContent=b.dataset.end==='a'
+      ?'收银机听到你说话，用更大的声音尖叫：“啊！是劣等碳基生物！快滚！快滚！”尖锐的声音穿破你的耳膜，你的精神值下降 10。'
+      :'收银机陷入了 0.5 秒的死机，随后发出能掀翻屋顶的啸叫。你的精神值下降 10。';
+    setTimeout(()=>openEvt('evt3'),250);
+    $('bf_spirit').style.width=(0.65-0.2)*96+'px';
+  }
+});
+
+/* ── HUD ── */
+for(let i=0;i<5;i++){const im=document.createElement('img');im.src=A+`ui/hud_ap_pip_${i<3?'on':'off'}.png`;im.style.width='16px';im.style.marginLeft='3px';$('aps').appendChild(im)}
+[['health',.8],['spirit',.65],['hunger',.5],['thirst',.7]].forEach(([n,v])=>{$('bars').insertAdjacentHTML('beforeend',
+ `<div class="bar"><img src="${A}ui/bar_empty.png"><div class="fill" id="bf_${n}" style="width:${v*96}px"><img src="${A}ui/bar_${n}.png"></div></div>`)});
+
+/* ── 看播端评论流（剧本"事件一过程中评论展示"原文）── */
+const FILLER=[['🦆','ronweasly1','主播加油'],['🌸','Frankisme','I believe it 💗'],['🐊','croc_and_roll','Are ou a laugh when you angry'],['🐱','cat_lover','猫会说话'],['🐈','meow_king','猫应该是这个世界的主人'],['🙀','nya77','猫咪万岁'],['😼','cat_777','猫只会踩玩家一脚 才不会给玩家物资'],['👻','spooky','有一只鬼出现'],['🏛','history_fan','有一个秦始皇'],['😎','handsome_q','有一个帅哥问玩家玩不玩TikTok'],['🤖','beep_boop','玩家变身成超级AI统治世界'],['👀','watcher','我还是想看']];
+const SPECIALS=[
+ {av:'🍗',u:'foodie_88',t:'捡到一个鸡腿',icon:'icon_drumstick.png',label:'获得：烤鸡腿 ×1'},
+ {av:'📦',u:'cat_lover',t:'猫咪给了玩家一亿箱物资',icon:'icon_canned_food.png',label:'获得：罐头 ×3（猫打了 1 折）'},
+ {av:'🪓',u:'mercury_god',t:'有人问玩家是不是掉了一个金斧头',icon:'icon_gold_axe.png',label:'获得：金斧头 ×1'}];
+const cm=$('comments');
+function pushComment(av,u,t,cls=''){const d=document.createElement('div');d.className='crow '+cls;
+  d.innerHTML=`<div class="av">${av}</div><div class="bub"><div class="u">${u}</div><div class="t">${t}</div></div>`;
+  cm.appendChild(d);while(cm.children.length>6)cm.removeChild(cm.firstChild)}
+let ci=0,si=0;
+setInterval(()=>pushComment(...FILLER[ci++%FILLER.length]),2400);
+setInterval(()=>{const s=SPECIALS[si++%SPECIALS.length];
+  pushComment(s.av,s.u,s.t,'hl');
+  setTimeout(()=>{$('bannertx').textContent=`@${s.u} 的创意生效了！`;const b=$('banner');b.style.display='block';setTimeout(()=>b.style.display='none',3800)},900);
+  setTimeout(()=>{$('toastmbic').src=A+'icons/'+s.icon;$('toastmbtx').textContent=s.label;
+    const t=$('toastmb');t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);
+    $('toastpcic').src=A+'icons/'+s.icon;$('toastpctx').textContent=s.label;
+    const tp=$('toastpc');tp.style.display='flex';setTimeout(()=>tp.style.display='none',3200)},1600);
+},9500);
+setTimeout(()=>pushComment('👋','system','ronweasly1 joined','sys'),900);
+
+/* ── HD-2D ── */
+$('hd2d').onclick=()=>{const on=$('stage').classList.toggle('hd2d');$('hd2d').classList.toggle('on',on);
+  $('hd2d').textContent=on?'✦ HD-2D 增强层：开':'✦ HD-2D 增强层：关'};
+</script>
+</body>
+</html>
