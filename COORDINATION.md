@@ -4,7 +4,7 @@
 > 这是跨 agent 的"共享上下文"：谁在干什么、动了哪些文件、当前状态、待决问题。
 > 对话上下文搬不动，但这份文档能让多个 agent 高效互不踩脚。
 
-最后更新：2026-06-05 · by Claude(WORLDS LIVE 终端)
+最后更新：2026-06-05 · by Claude(小说导入网页终端) · 已将 `feature/novel-import-web` 合并入共享分支
 
 ---
 
@@ -15,7 +15,7 @@
 | 工作流 | Owner / 终端 | 分支 | **文件产权（只动这些）** | 状态 |
 |---|---|---|---|---|
 | **小说→游戏 内容引擎 + WORLDS LIVE 直播间版** | Claude（本终端） | `feature/novel-content-expansion` | `novel_to_game_Larry/**` | 🟢 WORLDS LIVE 已交付并推送 |
-| **小说导入网页（粘贴小说→现场生成可玩剧本）** | 另一终端 | `feature/novel-content-expansion`（同分支！） | `app/** lib/** components/**`（Next.js 壳） | 🟢 v1 完成（`next build` + `tsc` 全绿，待真 key 跑端到端） |
+| **小说导入网页 + 剧本索引 + 后台生成 worker** | 另一终端 | **已并入** `feature/novel-content-expansion`（曾在 `feature/novel-import-web` worktree 隔离开发） | `app/** lib/** components/** scenarios/** worker/**`（不含 `novel_to_game_Larry/`） | 🟢 v2 已合并：①小说导入现场生成(+离线兜底) ②多来源剧本索引 ③双引擎后台 worker；与本终端交集为空，干净合并，`tsc`/`build` 全绿 |
 | **comment_engine 真 AI 管线 + WASTELAND LIVE demo** | cheney | `main` / `feature/comment-intelligence` | `comment_engine/** public/wasteland/**` | 🟢 已在云端 |
 
 ### 🚨 已知协作风险
@@ -29,7 +29,7 @@
 AI Game Jam = TikTok LIVE 末日生存**直播互动游戏**。三块拼图：
 1. **cheney 的真 AI 管线**（`comment_engine/`）：观众评论→分类→Claude 生成 事件/道具/NPC。
 2. **Larry 侧的内容引擎**（`novel_to_game_Larry/`）：把任意小说→可玩游戏（世界圣经/决策卡/直播互动层），已沉淀成可复用技能 `novel-to-game`。
-3. **网页壳**（`app/ lib/`）：Next.js，含①内置剧本对话游戏 ②**小说导入现场生成**（建设中）。
+3. **网页壳 + 剧本注册表 + 生成 worker**（`app/ lib/ components/ worker/`）：Next.js，含①内置剧本对话游戏 ②小说导入现场生成 ③多来源剧本索引（内置/仓库/GitHub/AI生成）④后台 worker（agent优先/API兜底）把小说转成游戏文件。
 
 详见各自的 `README.md` / `novel_to_game_Larry/docs/{HANDOFF,STATE}.md`。
 
@@ -39,7 +39,9 @@ AI Game Jam = TikTok LIVE 末日生存**直播互动游戏**。三块拼图：
 
 - ✅ **WORLDS LIVE**（《世界大战》套进 cheney 直播间框架）已交付：`novel_to_game_Larry/applications/war_of_the_worlds/frontend/live/`。4 机制全达成（队友互动/外部探索/时间流逝/空格潜行），jsdom 渲染级验证零报错。开法：`cd .../frontend/live && npx http-server . -p 8920 -c-1`。
   - 🆕 2026-06-05 **加了开场代入 cold-open**（`game/scenes-intro.jsx` + theme.css intro 样式）：5 拍世界观铺垫（日常→坠星→热射线→带妻逃亡→玩法引导），空格/回车/点击推进、可跳过，结束进 home（重开跳过不重看）。jsdom 验证 5 拍逐拍渲染 + 空格/按钮两条进入路径，零报错。**这套 intro 模式可 upstream 给 cheney 的 wasteland**（待 cheney 协调）。
-- 🟢 **小说导入网页 v1 完成**：`app/create`（页面）+ `components/NovelImport.tsx`（导入→分阶段进度→预览路由结果→开玩）+ `app/api/generate/route.ts` + `lib/generation.ts`（小说→识别genre→匹配mechanic→提炼世界圣经→产出剧本）；首页 `app/page.tsx` 已加「从你的小说生成」入口卡；`app/api/game/route.ts` + `GameChat.tsx` 已支持 `custom-*` 自定义剧本带 `systemPrompt`。`next build` + `tsc --noEmit` 全绿。**注**：`/api/generate` 走真 `streamChat`，本机无 `ANTHROPIC_API_KEY` 时会报错（暂未做离线兜底，见待决）。生成层 UI 刻意把"识别类型 / 匹配机制"显式展示，呼应 OpenRouter 架构。
+- 🟢 **小说导入网页 v1 完成**：`app/create`（页面）+ `components/NovelImport.tsx`（导入→分阶段进度→预览路由结果→开玩）+ `app/api/generate/route.ts` + `lib/generation.ts`（小说→识别genre→匹配mechanic→提炼世界圣经→产出剧本）；首页 `app/page.tsx` 已加「从你的小说生成」入口卡；`app/api/game/route.ts` + `GameChat.tsx` 已支持 `custom-*` 自定义剧本带 `systemPrompt`。`next build` + `tsc --noEmit` 全绿。**注**：`/api/generate` 走真 `streamChat`，无 `ANTHROPIC_API_KEY` 时自动走规则版离线兜底 `lib/offlineGeneration.ts`（关键词密度分类→机制匹配→模板装配），本地也能现场生成；有 key 仍走真模型。离线生成端到端实测通过。生成层 UI 刻意把"识别类型 / 匹配机制"显式展示，呼应 OpenRouter 架构。
+- 🟢 **剧本索引（多来源注册表）**：`lib/registry.ts` 聚合 内置 / 仓库(`scenarios/index.json`) / GitHub(运行时拉取,5min 缓存,2.5s 超时降级) / AI生成 四来源，按 id 去重；`/api/scenarios` 索引 API + `/scenarios` 浏览页(来源标签) + 首页入口卡。**新增剧本只需往 `scenarios/index.json` 加一项提交，无需改代码**，详见 `scenarios/README.md`。
+- 🟢 **后台生成 worker**：`worker/worker.mjs` 监听 `jobs/pending/`，双引擎——agent(`claude -p`+opus，订阅买单、产出更丰富)优先，失败兜底 Anthropic API(默认 `claude-sonnet-4-6`)；产出 `scenarios/generated/<id>.json` 自动进索引。`/api/jobs`(提交)+`/api/jobs/[id]`(轮询)，`/create` 已改为提交任务+轮询。**实测**：agent 22s 产出「星舰残响」(科幻生存)，端到端通过。key 只在 worker 的 `.env.local`(gitignore)。运行时产物 `jobs/`·`scenarios/generated/`·`worker.log` 已 gitignore。**启动**：`cd <仓库> && node worker/worker.mjs`（需 `.env.local` 含 `ANTHROPIC_API_KEY`）。
 - ⚪ 待办池见下「待决问题」。
 
 ---
@@ -57,11 +59,13 @@ AI Game Jam = TikTok LIVE 末日生存**直播互动游戏**。三块拼图：
 
 > 谁提的就署名；解决了打 ✅ 不删除。
 
-- [ ] **[Larry 待定]** 工作区里 `app/api/generate/route.ts`、`lib/generation.ts` 是「小说导入网页」终端的 WIP（已确认来历）。由该终端自己提交，本终端不碰。
+- [x] ✅ 2026-06-05 **[Larry 待定→已解决]** 「小说导入网页」WIP 已由该终端在 `feature/novel-import-web` 提交并**合并入共享分支**。
 - [ ] **[架构]** 「小说导入网页」要不要收编为 Claude 的 sub-agent？当前结论：**暂不**——两条赛道文件零重叠，双终端 + 本协调文档即可；sub-agent 留给"高耦合需共享决策"的场景。
-- [ ] **[协作机制]** 是否让其中一方迁到 `git worktree` 彻底隔离工作目录，避免同分支并行 commit 互扰？
+- [x] ✅ 2026-06-05 **[协作机制]** 「小说导入网页」已迁 `git worktree`(`feature/novel-import-web`)彻底隔离；两分支自共同祖先 `fddb0c7` 以来改动**交集为空**（本终端全在 `novel_to_game_Larry/`，对方全在 `app/ lib/ components/ scenarios/ worker/`），干净合并回 `feature/novel-content-expansion`。
 - [ ] **[整合]** 「小说导入网页」生成的剧本，未来可否直接喂给 `novel-to-game` 技能产出 WORLDS LIVE 同款直播间游戏？（两条赛道的合流点）
-- [ ] **[小说导入网页]** `/api/generate` 暂无离线兜底：本机没 `ANTHROPIC_API_KEY` 时直接报错（其余赛道是有离线兜底的）。是否补一个启发式/规则兜底生成器（无 key 也能跑出一个像样剧本用于本地演示）？当前先靠公司机器的真 key。
+- [x] ✅ 2026-06-05 **[小说导入网页]** 已补规则版离线兜底（`lib/offlineGeneration.ts`：8 类题材关键词密度分类→机制匹配→模板装配 + `offline` 标记，预览卡显示"离线生成"）。无 `ANTHROPIC_API_KEY` 时 `/api/generate` 自动走它，有 key 仍走真模型。端到端实测：科幻/武侠分类正确、title hint 生效、过短 400、`/create` 200。
+- [ ] **[安全 · Larry]** worker 当前用的 Anthropic API key 曾在与 agent 的对话中明文出现，**hackathon 后请轮换**。生产里 key 只应存在 worker 的 `.env.local`（已 gitignore）。
+- [ ] **[升级 · 合流点]** worker 的 agent 引擎目前是"单发富生成"（用了 `novel-to-game` 方法论但只产一个剧本 JSON）。下一步接**完整 `novel-to-game` 管线**（世界圣经 / 决策卡 / 直播互动层多文件产物）→ 正好接上上面「整合」那条：导入网页生成的剧本直接产出 WORLDS LIVE 同款直播间游戏。**这条需要两条赛道协作**（worker 调技能 × `novel_to_game_Larry/` 的产物格式对齐）。
 
 ---
 
