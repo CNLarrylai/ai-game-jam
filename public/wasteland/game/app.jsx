@@ -538,44 +538,88 @@ function App(props) {
       if (cat === 'EVENT' || cat === 'CHARACTER' || cat === 'NPC_ENCOUNTER' || cat === 'EVENT_TRIGGER') {
         // If there's already an active decision, inject a new option from the viewer
         if (decision && !decision.result) {
+          const optLabel = ev.event_title || ev.narrative?.substring(0, 20) || '观众创意';
           const newOpt = {
             id: 'viewer_' + Date.now(),
-            label: ev.event_title || ev.narrative?.substring(0, 20) || '观众创意',
+            label: optLabel,
             icon: '✨',
-            sub: '由 @' + source + ' 创造'
+            sub: '由 @' + source + ' 创造',
+            _raw: ev.options?.[0] || { result: ev.narrative || optLabel },
           };
           setDecision(d => d ? {
             ...d,
             options: [...(d.options || []), newOpt],
           } : d);
-          showBanner({ icon: '✨', html: '<b>@' + source + '</b> 为当前事件添加了新选项！「' + newOpt.label + '」' });
+          showBanner({ icon: '✨', html: '<b>@' + source + '</b> 为当前事件添加了新选项！「' + optLabel + '」' });
           return;
         }
 
         // No active decision — create a new one
-        const opts = (ev.options || []).map(o =>
-          typeof o === 'string' ? { id: o, label: o, icon: '▸' }
-          : { id: o.id || o.label, label: o.label || o.text, icon: o.icon || '▸', sub: o.sub || '' }
-        );
+        const rawOpts = ev.options || [];
+        const opts = rawOpts.map((o, i) => {
+          const opt = typeof o === 'string' ? { id: o, label: o } : { id: o.id || o.label || ('opt' + i), label: o.label || o.text || o, sub: o.sub || '' };
+          // Attach stat effects from Phase 2 response
+          opt.icon = o.icon || (o.cost ? '⚠️' : o.reward ? '✅' : '▸');
+          const effects = [];
+          if (o.cost) Object.entries(o.cost).forEach(([k, v]) => { if (v) effects.push(k + ' ' + (v > 0 ? '+' : '') + v); });
+          if (o.reward) Object.entries(o.reward).forEach(([k, v]) => { if (v) effects.push(k + ' ' + (v > 0 ? '+' : '') + v); });
+          if (effects.length) opt.sub = (opt.sub ? opt.sub + ' · ' : '') + effects.join(', ');
+          opt._raw = o; // preserve raw for applying effects
+          return opt;
+        });
         showBanner({ big: true, icon: '✨', html: '<b>@' + source + '</b> 的创意生效了！' + (ev.event_title ? '「' + ev.event_title + '」' : '') });
         if (opts.length) {
           setTimeout(() => {
             openDecision({
               id: 'ai_' + Date.now(), icon: '🎮',
-              title: ev.event_title || 'AI 生成事件 (by @' + source + ')',
+              title: '✨ ' + (ev.event_title || 'AI 事件') + '  — by @' + source,
               desc: ev.narrative || '',
               options: opts,
               onChoose: (opt) => {
+                // Send choice to bridge for Phase 2 processing
                 if (window.WsSync && WsSync.connected) {
                   WsSync.send({ type: 'host_action', action: 'choice', data: { choice: opt.label || opt.id } });
                 }
-                return '你选择了「' + (opt.label || opt.id) + '」，等待结果...';
+                // Immediately apply visible effects from the option
+                const raw = opt._raw || {};
+                const delta = {};
+                if (raw.cost) Object.entries(raw.cost).forEach(([k, v]) => { if (v) delta[k] = v; });
+                if (raw.reward) Object.entries(raw.reward).forEach(([k, v]) => { if (v) delta[k] = v; });
+                if (Object.keys(delta).length) applyStats(delta);
+                // If option has successRate, show result
+                const resultText = raw.result || ('你选择了「' + (opt.label || opt.id) + '」');
+                return resultText;
               },
-              onContinue: () => closeDecision(),
+              onContinue: () => {
+                closeDecision();
+                // Check if the chosen option implies a scene transition
+                // Match destination names in the option text
+                const lastResult = decision?.result || '';
+                const allDests = destinations || [];
+                const matchedDest = allDests.find(d =>
+                  lastResult.includes(d.name) || (decision?.title && decision.title.includes(d.name))
+                );
+                if (matchedDest) {
+                  // Transition to that destination
+                  confirmDest(matchedDest);
+                  toast({ icon: '🗺️', name: '前往: ' + matchedDest.name });
+                } else {
+                  toast({ icon: '✅', name: '@' + source + ' 的剧情已完成' });
+                }
+              },
             });
           }, 1500);
         } else if (ev.narrative) {
-          setStory({ illus: '✨', text: ev.narrative, source: '@' + source, onContinue: () => setStory(null) });
+          // No options — show as story with stat effects
+          setStory({ illus: '✨', text: ev.narrative, source: '@' + source, onContinue: () => {
+            setStory(null);
+            // Apply any stat changes from the event
+            if (ev.stat_changes) {
+              const delta = {};
+              Object.entries(ev.stat_changes).forEach(([k, v]) => { if (v) delta[k] = v; });
+              if (Object.keys(delta).length) applyStats(delta);
+            }
+          }});
         }
       }
 
@@ -607,14 +651,34 @@ function App(props) {
     };
     const onChoiceResult = (msg) => {
       const r = msg.data || {};
-      if (r.narrative) {
-        closeDecision();
-        setStory({ illus: '📖', text: r.narrative, source: '', onContinue: () => setStory(null) });
-      }
+      // Apply stat changes
       if (r.stat_changes) {
         const delta = {};
         Object.entries(r.stat_changes).forEach(([k, v]) => { if (v) delta[k] = v; });
         if (Object.keys(delta).length) applyStats(delta);
+      }
+      // Add items
+      if (r.inventory_change?.add_items) {
+        r.inventory_change.add_items.forEach(item => {
+          addItem(item);
+          toast({ icon: '🎒', name: '获得: ' + item });
+        });
+      }
+      if (r.narrative) {
+        closeDecision();
+        // Check if narrative mentions going to a specific destination
+        const allDests = destinations || [];
+        const matchedDest = allDests.find(d => r.narrative.includes(d.name));
+        setStory({
+          illus: '📖', text: r.narrative, source: '',
+          onContinue: () => {
+            setStory(null);
+            if (matchedDest) {
+              confirmDest(matchedDest);
+              toast({ icon: '🗺️', name: '前往: ' + matchedDest.name });
+            }
+          }
+        });
       }
     };
 
