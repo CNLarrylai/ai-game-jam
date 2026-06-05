@@ -255,21 +255,27 @@ async def on_host_action(msg):
 
     elif action == "choice":
         choice_text = data.get("choice", "")
+        print(f"🎮 主播选择: \"{choice_text}\" (pending_event: {'YES' if pending_event else 'NONE'})")
+        event_info = ""
         if pending_event:
-            print(f"🎮 主播选择: \"{choice_text}\"")
-            try:
-                event_info = pending_event.get("narration", "")
-                generated = pending_event.get("generated", {})
-                if generated.get("type") == "CHARACTER":
-                    event_info = json.dumps(generated, ensure_ascii=False)
-
-                resp = await call_phase2_event_choice(event_info, choice_text)
-                apply_phase2_response(resp)
-                await send_ws({"type": "choice_result", "data": resp})
-                print(f"  ✅ {resp.get('narrative', '')[:60]}")
-            except Exception as e:
-                print(f"  ❌ Phase 2 event_choice 失败: {e}")
-            pending_event = None
+            event_info = pending_event.get("narration", "")
+            generated = pending_event.get("generated", {})
+            if generated.get("type") == "CHARACTER":
+                event_info = json.dumps(generated, ensure_ascii=False)
+        try:
+            resp = await call_phase2_event_choice(event_info or choice_text, choice_text)
+            apply_phase2_response(resp)
+            await send_ws({"type": "choice_result", "data": resp})
+            print(f"  ✅ {resp.get('narrative', '')[:60]}")
+        except Exception as e:
+            print(f"  ❌ Phase 2 event_choice 失败: {e}")
+            # Fallback: send a simple result so host isn't stuck
+            await send_ws({"type": "choice_result", "data": {
+                "narrative": f"你选择了「{choice_text}」。",
+                "stat_changes": {"hp": 0, "hunger": 0, "thirst": 0, "sanity": -5},
+                "inventory_change": {"remove_items": [], "add_items": []},
+            }})
+        pending_event = None
 
     elif action == "player_action":
         player_input = data.get("input", "")
