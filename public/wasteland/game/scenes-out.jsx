@@ -51,16 +51,35 @@ function hexPos(x, y) {
 }
 
 function SceneExplore({ D }) {
-  const [ap, setAp] = useStateO(3);
-  const [revealed, setRevealed] = useStateO({});   // id -> true
-  const [foe, setFoe] = useStateO(null);            // battle tile active
-  const [npc, setNpc] = useStateO(null);            // npc tile active
+  const isViewer = window.__VIEWER_MODE__;
+  const ext = isViewer ? (window.__EXPLORE_STATE__ || {}) : null;
+
+  const [ap, setAp] = useStateO(ext ? (ext.ap ?? 3) : 3);
+  const [revealed, setRevealed] = useStateO(ext ? (ext.revealed || {}) : {});
+  const [foe, setFoe] = useStateO(ext ? ext.foe : null);
+  const [npc, setNpc] = useStateO(ext ? ext.npc : null);
   const tiles = window.HEX_TILES;
 
-  // Expose internal state for viewer sync
+  // Host: expose internal state for viewer sync
   useEffectO(() => {
-    window.__EXPLORE_STATE__ = { ap, revealed, foe: foe ? { name: foe.name, icon: foe.icon } : null, npc: npc ? { name: npc.name, av: npc.av, line: npc.line } : null };
+    if (!isViewer) {
+      window.__EXPLORE_STATE__ = { ap, revealed, foe: foe ? { name: foe.name, icon: foe.icon } : null, npc: npc ? { name: npc.name, av: npc.av, line: npc.line } : null };
+    }
   }, [ap, revealed, foe, npc]);
+
+  // Viewer: continuously read external state
+  useEffectO(() => {
+    if (!isViewer) return;
+    const t = setInterval(() => {
+      const s = window.__EXPLORE_STATE__;
+      if (!s) return;
+      setAp(s.ap ?? ap);
+      setRevealed(s.revealed || {});
+      setFoe(s.foe || null);
+      setNpc(s.npc || null);
+    }, 300);
+    return () => clearInterval(t);
+  }, [isViewer]);
 
   const isAdjacent = (t) =>
     NEIGHBORS.some(([nx, ny]) => nx === t.x && ny === t.y) && !revealed[t.id] && t.type !== "hero";

@@ -61,18 +61,21 @@ function App(props) {
         if (d.scene) setScene(d.scene);
         if (d.pack) setPack(d.pack);
         if (d.flags) setFlags(d.flags);
+        if (d.companions) setCompanions(d.companions);
+        if (d.confirmD !== undefined) setConfirmD(d.confirmD);
+        if (d.toasts) setToasts(d.toasts);
         // Decision
         if (d.decision) setDecision(d.decision);
-        else setDecision(null);
+        else if (d.decision === null) setDecision(null);
         // Overlays
         if (d.banner) { setBanner({ ...d.banner, id: uid() }); }
-        else setBanner(null);
+        else if (d.banner === null) setBanner(null);
         if (d.story) setStory(d.story);
-        else setStory(null);
+        else if (d.story === null) setStory(null);
         if (d.phase) setPhase({ ...d.phase, id: uid() });
-        else setPhase(null);
+        else if (d.phase === null) setPhase(null);
         if (d.cta) setCta(d.cta);
-        else setCta(null);
+        else if (d.cta === null) setCta(null);
         // Explore internal state
         if (d.explore) window.__EXPLORE_STATE__ = d.explore;
       }
@@ -417,10 +420,13 @@ function App(props) {
         phase: phase ? { big: phase.big, sub: phase.sub } : null,
         cta: cta ? { prompt: cta.prompt } : null,
         flags: flags,
+        companions: companions.map(c => ({ id: c.id, name: c.name, av: c.av, role: c.role, status: c.status, hp: c.hp, mood: c.mood })),
+        confirmD: confirmD ? { name: confirmD.name, confirm: confirmD.confirm, icon: confirmD.icon, danger: confirmD.danger, ap: confirmD.ap } : null,
+        toasts: toasts.map(t => ({ id: t.id, icon: t.icon, name: t.name, lose: t.lose })),
         explore: window.__EXPLORE_STATE__ || null,
       });
     }
-  }, [day, stats, scene, decision, banner, story, phase, cta, flags, pack, confirmD, share]);
+  }, [day, stats, scene, decision, banner, story, phase, cta, flags, pack, companions, confirmD, share]);
 
   // Broadcast explore internal state changes separately (since they're in a child component)
   useEffect(() => {
