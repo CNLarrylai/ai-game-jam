@@ -41,6 +41,7 @@ function App(props) {
   const [confirmD, setConfirmD] = useState(null);
   const [share, setShare] = useState(false);
   const [flags, setFlags] = useState({ knock: false });
+  const [destinations, setDestinations] = useState([...(window.DESTINATIONS || [])]);
   const [viewerCountdown, setViewerCountdown] = useState(30);
 
   const voteTimer = useRef(null);
@@ -67,6 +68,7 @@ function App(props) {
         if (d.flags) setFlags(d.flags);
         if (d.companions) setCompanions(d.companions);
         if (d.confirmD !== undefined) setConfirmD(d.confirmD);
+        if (d.destinations) setDestinations(d.destinations);
         if (d.toasts) setToasts(d.toasts);
         // Decision
         if (d.decision) setDecision(d.decision);
@@ -430,6 +432,7 @@ function App(props) {
     phase: showPhase, goOut, confirmDest, returnShelter, goScene, setFlag, day, stats,
     addCompanion: (c) => { setCompanions((prev) => [...prev, c]); },
     generateAIEvent,
+    destinations,
   };
 
   /* enter-scene chat banners */
@@ -480,9 +483,10 @@ function App(props) {
         confirmD: confirmD ? { name: confirmD.name, confirm: confirmD.confirm, icon: confirmD.icon, danger: confirmD.danger, ap: confirmD.ap } : null,
         toasts: toasts.map(t => ({ id: t.id, icon: t.icon, name: t.name, lose: t.lose })),
         explore: window.__EXPLORE_STATE__ || null,
+        destinations: destinations.map(d => ({ id: d.id, icon: d.icon, name: d.name, danger: d.danger, reward: d.reward, ap: d.ap, generated: d.generated, by: d.by })),
       });
     }
-  }, [day, stats, scene, decision, banner, story, phase, cta, flags, pack, companions, confirmD, share]);
+  }, [day, stats, scene, decision, banner, story, phase, cta, flags, pack, companions, destinations, confirmD, share]);
 
   // Broadcast explore internal state changes separately (since they're in a child component)
   useEffect(() => {
@@ -524,8 +528,7 @@ function App(props) {
           ap: ev.ap || 3, generated: true, by: source,
           confirm: '确定前往「' + locName + '」？这是观众 @' + source + ' 创造的地点。'
         };
-        // Add to DESTINATIONS global
-        if (window.DESTINATIONS) window.DESTINATIONS.push(newDest);
+        setDestinations(ds => [...ds, newDest]);
         showBanner({ big: true, icon: '🏭', html: '<b>@' + source + '</b> 创造了新地点！「' + locName + '」已加入目的地列表' });
         toast({ icon: '🗺️', name: '新目的地: ' + locName + ' (by @' + source + ')' });
         return;

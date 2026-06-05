@@ -7,7 +7,7 @@ const { useState: useStateO, useEffect: useEffectO } = React;
    选择目的地
    ============================================================ */
 function SceneDestination({ D }) {
-  /* no fake banners */
+  const dests = D.destinations || window.DESTINATIONS || [];
 
   return (
     <div className="scene">
@@ -15,10 +15,10 @@ function SceneDestination({ D }) {
       <div className="region-map">
         <div className="rm-head">扫描周边区域 — 选择一处探索目标 · 当前行动点 <b>5</b></div>
         <div className="dest-grid">
-          {DESTINATIONS.map((d) => (
+          {dests.map((d) => (
             <div key={d.id} className={"dest-card " + (d.generated ? "generated" : "")}
               onClick={() => D.confirmDest(d)}>
-              {d.generated && <div className="gen-tag">✨ 由观众评论生成</div>}
+              {d.generated && <div className="gen-tag">✨ 由 @{d.by || '观众'} 创造</div>}
               <div className="dc-thumb">{d.icon}</div>
               <div className="dc-name">{d.name}</div>
               <div className="dc-row"><span>危险等级</span>
@@ -26,8 +26,8 @@ function SceneDestination({ D }) {
               <div className="dc-row"><span>预估收益</span>
                 <span className="reward">{d.reward}</span></div>
               <div className="dc-row"><span>行动点</span><span>{d.ap}</span></div>
-              {d.generated && <div style={{ fontSize: "var(--t-xs)", color: "var(--gold)",
-                marginTop: 8 }}>灵感来源：@雾</div>}
+              {d.generated && d.by && <div style={{ fontSize: "var(--t-xs)", color: "var(--gold)",
+                marginTop: 8 }}>灵感来源：@{d.by}</div>}
             </div>
           ))}
         </div>
