@@ -511,30 +511,81 @@ function App(props) {
     // Host receives AI-generated events from bridge
     const onGameEvent = (msg) => {
       const ev = msg.data || {};
-      console.log('[HOST] AI game_event:', ev.final_category, ev.narrative?.substring(0, 60));
-      // Show banner
-      showBanner({ big: true, icon: '✨', html: ev.narrative ? ev.narrative.substring(0, 80) : 'AI 生成了新内容' });
-      // If has options, show as decision for host to choose
-      if (ev.options && ev.options.length) {
-        setTimeout(() => {
-          openDecision({
-            id: 'ai_' + Date.now(), icon: '🎮', title: ev.event_title || 'AI 生成事件',
-            desc: ev.narrative || '',
-            options: ev.options.map(o => typeof o === 'string' ? { id: o, label: o, icon: '▸' } : { id: o.id || o.label, label: o.label || o.text, icon: o.icon || '▸', sub: o.sub || '' }),
-            onChoose: (opt) => {
-              // Send choice back to bridge
-              if (window.WsSync && WsSync.connected) {
-                WsSync.send({ type: 'host_action', action: 'choice', data: { choice: opt.label || opt.id } });
-              }
-              return '你选择了「' + (opt.label || opt.id) + '」，等待结果...';
-            },
-            onContinue: () => closeDecision(),
-          });
-        }, 1500);
-      } else if (ev.narrative) {
-        // No options, just show story
-        setStory({ illus: '✨', text: ev.narrative, source: '', onContinue: () => setStory(null) });
+      const cat = ev.final_category || ev.type || '';
+      const source = ev.source_user || '观众';
+      console.log('[HOST] AI game_event:', cat, ev.narrative?.substring(0, 60));
+
+      // ============ LOCATION: 新增目的地 ============
+      if (cat === 'LOCATION' || cat === 'LOCATION_PASSTHROUGH') {
+        const locName = ev.event_title || ev.name || ev.narrative?.match(/「(.+?)」/)?.[1] || '观众创造的地点';
+        const newDest = {
+          id: 'gen_' + Date.now(), icon: '✨', name: locName,
+          danger: ev.danger_level || 3, reward: ev.reward || '未知',
+          ap: ev.ap || 3, generated: true, by: source,
+          confirm: '确定前往「' + locName + '」？这是观众 @' + source + ' 创造的地点。'
+        };
+        // Add to DESTINATIONS global
+        if (window.DESTINATIONS) window.DESTINATIONS.push(newDest);
+        showBanner({ big: true, icon: '🏭', html: '<b>@' + source + '</b> 创造了新地点！「' + locName + '」已加入目的地列表' });
+        toast({ icon: '🗺️', name: '新目的地: ' + locName + ' (by @' + source + ')' });
+        return;
       }
+
+      // ============ EVENT/CHARACTER: 新增选项或弹决策 ============
+      if (cat === 'EVENT' || cat === 'CHARACTER' || cat === 'NPC_ENCOUNTER' || cat === 'EVENT_TRIGGER') {
+        // If there's already an active decision, inject a new option from the viewer
+        if (decision && !decision.result) {
+          const newOpt = {
+            id: 'viewer_' + Date.now(),
+            label: ev.event_title || ev.narrative?.substring(0, 20) || '观众创意',
+            icon: '✨',
+            sub: '由 @' + source + ' 创造'
+          };
+          setDecision(d => d ? {
+            ...d,
+            options: [...(d.options || []), newOpt],
+          } : d);
+          showBanner({ icon: '✨', html: '<b>@' + source + '</b> 为当前事件添加了新选项！「' + newOpt.label + '」' });
+          return;
+        }
+
+        // No active decision — create a new one
+        const opts = (ev.options || []).map(o =>
+          typeof o === 'string' ? { id: o, label: o, icon: '▸' }
+          : { id: o.id || o.label, label: o.label || o.text, icon: o.icon || '▸', sub: o.sub || '' }
+        );
+        showBanner({ big: true, icon: '✨', html: '<b>@' + source + '</b> 的创意生效了！' + (ev.event_title ? '「' + ev.event_title + '」' : '') });
+        if (opts.length) {
+          setTimeout(() => {
+            openDecision({
+              id: 'ai_' + Date.now(), icon: '🎮',
+              title: ev.event_title || 'AI 生成事件 (by @' + source + ')',
+              desc: ev.narrative || '',
+              options: opts,
+              onChoose: (opt) => {
+                if (window.WsSync && WsSync.connected) {
+                  WsSync.send({ type: 'host_action', action: 'choice', data: { choice: opt.label || opt.id } });
+                }
+                return '你选择了「' + (opt.label || opt.id) + '」，等待结果...';
+              },
+              onContinue: () => closeDecision(),
+            });
+          }, 1500);
+        } else if (ev.narrative) {
+          setStory({ illus: '✨', text: ev.narrative, source: '@' + source, onContinue: () => setStory(null) });
+        }
+      }
+
+      // ============ ITEM: 获得物品 ============
+      if (cat === 'ITEM' || cat === 'ITEM_RECEIVED') {
+        const itemName = ev.event_title || ev.name || ev.narrative?.match(/「(.+?)」/)?.[1] || '神秘物品';
+        showBanner({ icon: '✨', html: '<b>@' + source + '</b> 的创意生效了！获得「' + itemName + '」' });
+        toast({ icon: '🎒', name: '获得: ' + itemName + ' (by @' + source + ')' });
+        if (ev.narrative) {
+          pushComment({ user: '🎮 系统', av: '🎮', text: ev.narrative, system: true });
+        }
+      }
+
       // Apply stat changes if any
       if (ev.stat_changes) {
         const delta = {};
@@ -544,11 +595,8 @@ function App(props) {
         if (ev.stat_changes.thirst) delta.supply = ev.stat_changes.thirst;
         if (Object.keys(delta).length) applyStats(delta);
       }
-      // Add items
       if (ev.inventory_change?.add_items) {
-        ev.inventory_change.add_items.forEach(item => {
-          toast({ icon: '🎒', name: '获得: ' + item });
-        });
+        ev.inventory_change.add_items.forEach(item => toast({ icon: '🎒', name: '获得: ' + item }));
       }
     };
     const onBanner = (msg) => {
