@@ -559,6 +559,9 @@ function App(props) {
   );
 }
 
+// Expose App globally so viewer-app.jsx can use it
+window.App = App;
+
 // Only auto-mount if NOT in viewer mode (viewer-app.jsx mounts its own wrapper)
 if (!window.__VIEWER_MODE__) {
   ReactDOM.createRoot(document.getElementById("root")).render(<App />);
