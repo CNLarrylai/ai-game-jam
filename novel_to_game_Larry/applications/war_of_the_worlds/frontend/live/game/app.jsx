@@ -22,7 +22,7 @@ function dwellingForDay(day) {
 }
 
 function App() {
-  const [scene, setScene] = useState("home");
+  const [scene, setScene] = useState("intro");
   const [day, setDay] = useState(1);
   const maxDay = 7;
   const [stats, setStats] = useState({ ...INIT_STATS });
@@ -314,6 +314,15 @@ function App() {
   };
 
   const exploredCount = 5, itemCount = pack.reduce((a, b) => a + b.qty, 0);
+
+  /* 开场代入：全屏 cold-open，结束后进入避难所（重开则跳过，不重看）*/
+  if (scene === "intro") {
+    return (
+      <div id="app">
+        <SceneIntro onStart={() => setScene("home")} />
+      </div>
+    );
+  }
 
   return (
     <div id="app">

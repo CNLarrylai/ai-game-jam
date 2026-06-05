@@ -140,6 +140,82 @@
 /* 让正文字体更有年代感，标题仍用像素体做"直播 UI"反差 */
 .d-desc, .s-text, .cf-desc { font-family: var(--body); letter-spacing: .2px; }
 
+/* ============================================================
+   开场代入 cold-open（scenes-intro.jsx）
+   ============================================================ */
+.intro-stage {
+  position: absolute; inset: 0; z-index: 100; overflow: hidden; cursor: pointer;
+  background: #08060a;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+}
+.intro-sky {
+  position: absolute; inset: 0; pointer-events: none;
+  background:
+    radial-gradient(1100px 700px at 50% -12%, #3a120c 0%, transparent 60%),
+    radial-gradient(600px 400px at 78% 14%, rgba(200,53,42,.18), transparent 70%),
+    radial-gradient(500px 500px at 16% 86%, rgba(143,230,176,.06), transparent 70%);
+  animation: introDrift 14s ease-in-out infinite alternate;
+}
+@keyframes introDrift { from { transform: translateY(-10px) scale(1.02); } to { transform: translateY(10px) scale(1.06); } }
+.intro-vignette {
+  position: absolute; inset: 0; pointer-events: none;
+  box-shadow: inset 0 0 240px 60px rgba(0,0,0,.85);
+  background: repeating-linear-gradient(to bottom, rgba(0,0,0,0) 0 3px, rgba(0,0,0,.18) 4px);
+  mix-blend-mode: multiply;
+}
+.intro-skip {
+  position: absolute; top: 26px; right: 30px; z-index: 3;
+  background: transparent; border: 2px solid var(--line); color: var(--txt-faint);
+  font-family: var(--body); font-size: var(--t-xs); padding: 8px 16px; cursor: pointer;
+  transition: all .2s;
+}
+.intro-skip:hover { color: var(--txt); border-color: var(--gold-deep); }
+
+.intro-card {
+  position: relative; z-index: 2; max-width: 880px; width: 86%; text-align: center;
+  padding: 20px; opacity: 0; transform: translateY(24px);
+}
+.intro-card.in { animation: introIn .9s cubic-bezier(.2,.7,.2,1) forwards; }
+@keyframes introIn { to { opacity: 1; transform: translateY(0); } }
+
+.intro-art {
+  font-size: 120px; line-height: 1; margin-bottom: 18px;
+  filter: drop-shadow(0 0 30px rgba(200,53,42,.35)) sepia(.3);
+  animation: introArt 5s ease-in-out infinite alternate;
+}
+@keyframes introArt { from { transform: translateY(0) rotate(-1deg); } to { transform: translateY(-10px) rotate(1deg); } }
+.intro-tag {
+  font-family: var(--pixel); font-size: var(--t-xs); letter-spacing: 2px;
+  color: var(--gold); margin-bottom: 14px; text-transform: uppercase;
+}
+.intro-title {
+  font-family: var(--body); font-weight: 700; font-size: 46px; color: var(--txt);
+  margin-bottom: 22px; letter-spacing: 4px;
+  text-shadow: 0 2px 20px rgba(0,0,0,.6);
+}
+.intro-lines { margin: 0 auto 34px; max-width: 720px; }
+.intro-lines p {
+  font-family: var(--body); font-size: var(--t-md); line-height: 2;
+  color: var(--txt-dim); margin-bottom: 14px; opacity: 0;
+  animation: introLine .8s ease-out forwards;
+}
+.intro-lines p b { color: var(--cyan); font-weight: 600; }
+@keyframes introLine { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.intro-go { font-size: var(--t-md); padding: 16px 34px; animation: introPulse 2.2s ease-in-out infinite; }
+@keyframes introPulse { 50% { box-shadow: 0 0 26px rgba(200,155,84,.55); } }
+
+.intro-dots { position: absolute; bottom: 60px; z-index: 3; display: flex; gap: 10px; }
+.intro-dot { width: 30px; height: 5px; background: var(--bg-raised); border: 1px solid var(--line); }
+.intro-dot.done { background: var(--gold-deep); }
+.intro-dot.cur { background: var(--gold); box-shadow: 0 0 10px rgba(200,155,84,.7); }
+.intro-hint {
+  position: absolute; bottom: 30px; z-index: 3;
+  font-family: var(--body); font-size: var(--t-xs); color: var(--txt-faint);
+  animation: introBlink 2.4s ease-in-out infinite;
+}
+@keyframes introBlink { 50% { opacity: .35; } }
+
 /* —— 空格潜行提示条（WotW 新增交互） —— */
 .stealth-hint {
   position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);

@@ -37,3 +37,4 @@
 - **WotW 重铸亮点**:资源轴改 生命/补给/理智/**隐蔽**(火星人只能躲不能打,吃隐蔽轴,忠于原著);三脚机器人=躲避对峙非战斗;可移动栖身(顶栏 chip 显暴露度);撑到 D7=细菌击倒火星人通关;美术=维多利亚末日(灰烬+火星红草+热射线惨绿,theme.css 覆盖)。
 - **验证**:jsdom+Babel 渲染级验证——7 jsx 编译通过、<App/> 零运行时报错、全流程 home→explore→空格(AP 5→4) 端到端 ✅。**未做**:真人浏览器手验观感(Chrome 自动化不可用)。开法:`cd frontend/live && npx http-server . -p 8920 -c-1` → `http://127.0.0.1:8920/index.html`。
 - **下一步**:① 真人浏览器逐帧手验 UI/观感;② 接 cheney 真 AI(generateAIEvent 钩子已留,公司机器有 Python+key 即可);③ sim 调平(目前数值靠手调,未跑模拟器)。
+- 🆕 **开场代入 cold-open**(2026-06-05):`live/game/scenes-intro.jsx` + theme.css intro 样式。Larry 反馈"一上来直接甩进 Day1 缺代入感",补了 5 拍开场(日常→坠星→热射线→带妻逃亡→玩法引导,取自 world_bible.catastrophe.progression_phases)。app.jsx 初始 scene 改 "intro",末拍 onStart→home;**重开(resetGame)走 home 不重看开场**。空格/回车/点击推进、右上跳过。jsdom 验证:5 拍逐拍渲染✅ + 空格&按钮两条进入路径✅ + 零报错。index.html 在 effects 后、scenes-home 前加载 scenes-intro.jsx。**通用 intro 模式可 upstream 给 cheney wasteland**。
