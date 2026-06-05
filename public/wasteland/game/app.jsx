@@ -48,6 +48,8 @@ function App(props) {
   const voteTimer = useRef(null);
   const sceneRef = useRef(scene);
   sceneRef.current = scene;
+  const decisionRef = useRef(decision);
+  decisionRef.current = decision;
 
   /* ---- VIEWER MODE: receive all state from host via WebSocket ---- */
   useEffect(() => {
@@ -569,7 +571,8 @@ function App(props) {
       console.log('[HOST] AI game_event:', cat, ev.narrative?.substring(0, 60));
 
       // If there's an active decision, inject as new option (any type)
-      if (decision && !decision.result) {
+      const curDec = decisionRef.current;
+      if (curDec && !curDec.result) {
         const optLabel = ev.event_title || ev.name || ev.narrative?.substring(0, 25) || '观众创意';
         const newOpt = {
           id: 'viewer_' + Date.now(),
@@ -761,7 +764,7 @@ function App(props) {
     const onChoiceResult = (msg) => {
       const r = msg.data || {};
 
-      // Build stat change summary
+      // Apply stat changes
       const statParts = [];
       if (r.stat_changes) {
         const delta = {};
@@ -769,36 +772,38 @@ function App(props) {
           if (!v) return;
           const key = k === 'thirst' ? 'supply' : k;
           delta[key] = v;
-          statParts.push(key + (v > 0 ? '+' : '') + v);
+          const label = { hp: '❤️HP', hunger: '🍞饱腹', supply: '📦物资', sanity: '🧠理智' }[key] || key;
+          statParts.push(label + (v > 0 ? '+' : '') + v);
         });
         if (Object.keys(delta).length) applyStats(delta);
       }
 
-      // Build item summary
+      // Apply items
       const itemParts = [];
       if (r.inventory_change?.add_items) {
-        r.inventory_change.add_items.forEach(item => {
-          addItem(item);
-          itemParts.push('+' + item);
-        });
+        r.inventory_change.add_items.forEach(item => { addItem(item); itemParts.push('✅ 获得: ' + item); });
       }
       if (r.inventory_change?.remove_items) {
-        r.inventory_change.remove_items.forEach(item => {
-          removeItem(item);
-          itemParts.push('-' + item);
-        });
+        r.inventory_change.remove_items.forEach(item => { removeItem(item); itemParts.push('❌ 失去: ' + item); });
       }
 
-      // Show result IN the decision card (not as full-screen story)
-      const resultText = (r.narrative || '选择完成。')
-        + (statParts.length ? '\n\n📊 数值变化: ' + statParts.join(', ') : '')
-        + (itemParts.length ? '\n🎒 物品: ' + itemParts.join(', ') : '');
+      // Close decision, show full-screen story with result + stats
+      closeDecision();
+      const storyText = (r.narrative || '选择完成。')
+        + (statParts.length ? '\n\n' + statParts.join('  ') : '')
+        + (itemParts.length ? '\n' + itemParts.join('  ') : '');
 
-      setDecision(d => d ? { ...d, result: resultText } : d);
-
-      // Toast summary
-      if (statParts.length) toast({ icon: '📊', name: statParts.join(', ') });
-      if (itemParts.length) toast({ icon: '🎒', name: itemParts.join(', ') });
+      setStory({
+        illus: '📖', text: storyText, source: '',
+        onContinue: () => {
+          setStory(null);
+          // Process queued events
+          if (eventQueueRef.current.length > 0) {
+            const next = eventQueueRef.current.shift();
+            setTimeout(() => onGameEvent(next), 500);
+          }
+        }
+      });
     };
 
     WsSync.on('viewer_comment', onViewerComment);
