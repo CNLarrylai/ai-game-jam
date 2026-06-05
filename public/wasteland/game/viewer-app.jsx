@@ -55,7 +55,7 @@ function ViewerWrapper() {
   useEffectV(() => {
     if (!entered) return;
     const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const url = isLocal ? 'ws://localhost:3002' : 'wss://wasteland-ws.loca.lt';
+    const url = isLocal ? 'ws://localhost:3002' : 'wss://wasteland-live-ws.onrender.com';
     let ws;
     try { ws = new WebSocket(url); } catch { return; }
     ws.onopen = () => {
