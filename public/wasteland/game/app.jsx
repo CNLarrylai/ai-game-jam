@@ -516,10 +516,10 @@ function App(props) {
         WsSync.broadcastGameState({
           day, stats, scene,
           pack: pack.map(i => ({ id: i.id, name: i.name, qty: i.qty, icon: i.icon })),
-          decision: decision ? {
-            icon: decision.icon, title: decision.title, desc: decision.desc,
-            options: decision.options || decision.opts, votes: decision.votes, result: decision.result
-          } : null,
+          decision: (() => { const d = decisionRef.current; return d ? {
+            icon: d.icon, title: d.title, desc: d.desc,
+            options: d.options || d.opts, votes: d.votes, result: d.result
+          } : null; })(),
           banner: banner ? { icon: banner.icon, html: banner.html, big: banner.big } : null,
           story: story ? { illus: story.illus, text: story.text, source: story.source } : null,
           phase: phase ? { big: phase.big, sub: phase.sub } : null,
@@ -645,36 +645,12 @@ function App(props) {
               desc: ev.narrative || '',
               options: opts,
               onChoose: (opt) => {
-                // Send choice to bridge for Phase 2 processing
+                // Send choice to bridge → Phase 2 will return choice_result with real stat changes
                 if (window.WsSync && WsSync.connected) {
                   WsSync.send({ type: 'host_action', action: 'choice', data: { choice: opt.label || opt.id } });
                 }
-                // Apply event-level stat_changes from Phase 2
-                if (ev.stat_changes) {
-                  const d2 = {};
-                  Object.entries(ev.stat_changes).forEach(([k, v]) => {
-                    if (!v) return;
-                    d2[k === 'thirst' ? 'supply' : k] = v;
-                  });
-                  if (Object.keys(d2).length) {
-                    applyStats(d2);
-                    toast({ icon: '📊', name: Object.entries(d2).map(([k,v])=>k+(v>0?'+':'')+v).join(', ') });
-                  }
-                }
-                // Also try option-level numeric cost/reward (if they're objects not strings)
-                const raw = opt._raw || {};
-                if (raw.cost && typeof raw.cost === 'object') {
-                  const d3 = {};
-                  Object.entries(raw.cost).forEach(([k, v]) => { if (typeof v === 'number' && v) d3[k] = v; });
-                  if (Object.keys(d3).length) applyStats(d3);
-                }
-                if (raw.reward && typeof raw.reward === 'object') {
-                  const d4 = {};
-                  Object.entries(raw.reward).forEach(([k, v]) => { if (typeof v === 'number' && v) d4[k] = v; });
-                  if (Object.keys(d4).length) applyStats(d4);
-                }
-                const resultText = raw.result || ('你选择了「' + (opt.label || opt.id) + '」— 等待 AI 反馈...');
-                return resultText;
+                // Don't apply stats here — wait for choice_result from Phase 2
+                return '你选择了「' + (opt.label || opt.id) + '」\n\nAI 正在生成结果...';
               },
               onContinue: () => {
                 closeDecision();
