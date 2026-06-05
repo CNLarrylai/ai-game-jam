@@ -29,3 +29,11 @@
 - polish 第3轮(主agent直调平衡):起始资源 8/9/8 + 金主 every3/+2;sim1500 随机死亡率 90%→26%(评分线第2项达标)。剩余给定时任务:① 让 poll/predict 观众投票真正改变抉择结果(signature,目前只 +1士气)② 打磨'最后的人'结局的情感冲击 + 确认死亡结局已多样(注:完整通关锁'最后的人'本就忠于原著)。
 - polish 第4轮(cron):实现观众投票真正改变结果——顺应强民意(≥50%)软化该选项最重负代价+1、逆强民意士气−1(engine 加通用 extraAdjust,game.html 不传不受影响);sim600 平衡不变;engine 解析正常。**未标 DONE**:Chrome 自动化不可用、未能亲自浏览器实测,留待用户早上验证。下一步:① 人工实测 game-v2 全流程 ② 可选:打磨'最后的人'结局情感冲击 + poll/predict 之外的事件分支。
 - polish 第5轮(cron):强化'最后的人'结局文案(罗马刻字+扬帆,忠于原著,engine 共用 game.html 同步受益);node --check engine 语法 OK。**判定达到评分线 → 写 frontend/game/POLISH_DONE.md,停止 2 小时夜间循环以省额度**。唯一未达项=人工浏览器实测(Chrome 自动化不可用),留用户早上验证;删 POLISH_DONE.md 可恢复循环。
+
+## 2026-06-05 新增:WORLDS LIVE(把 WotW 套进 cheney 直播间框架)
+- **位置**:`applications/war_of_the_worlds/frontend/live/`(index.html + game/*.jsx + theme.css;基底 game-base.css = 复制 cheney 的 game.css)。区别于 `frontend/game/` 的 journey 单人版,这是**直播间互动版**。
+- **做了什么**:吃透 cheney `feature/comment-intelligence` 的 WASTELAND LIVE 框架(三栏直播间/状态机 home→organize→destination→explore→Day+1/导演 D/观众回路),把《世界大战》的世界观+美术+玩法重铸进去。
+- **4 个需求达成**:① 队友互动=栖身处点击 妻子(D1-2)/牧师(D3-5)/炮兵(D6-7) 对话;② 外部探索=选路线+六边形地图(AP 限制);③ 时间流逝=DAY x/7 + 行动点 + 补给见底扣血;④ **空格探索=探索时按空格"屏息潜行"自动揭最近格(scenes-out.jsx stealthProbe,带冷却)**。
+- **WotW 重铸亮点**:资源轴改 生命/补给/理智/**隐蔽**(火星人只能躲不能打,吃隐蔽轴,忠于原著);三脚机器人=躲避对峙非战斗;可移动栖身(顶栏 chip 显暴露度);撑到 D7=细菌击倒火星人通关;美术=维多利亚末日(灰烬+火星红草+热射线惨绿,theme.css 覆盖)。
+- **验证**:jsdom+Babel 渲染级验证——7 jsx 编译通过、<App/> 零运行时报错、全流程 home→explore→空格(AP 5→4) 端到端 ✅。**未做**:真人浏览器手验观感(Chrome 自动化不可用)。开法:`cd frontend/live && npx http-server . -p 8920 -c-1` → `http://127.0.0.1:8920/index.html`。
+- **下一步**:① 真人浏览器逐帧手验 UI/观感;② 接 cheney 真 AI(generateAIEvent 钩子已留,公司机器有 Python+key 即可);③ sim 调平(目前数值靠手调,未跑模拟器)。
