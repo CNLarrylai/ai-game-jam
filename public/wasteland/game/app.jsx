@@ -104,17 +104,25 @@ function App(props) {
       }
       // Game event from AI generation
       if (msg.type === 'game_event' && msg.data) {
-        const ev = msg.data;
-        if (ev.narrative) {
-          // Show as a story card
-          setStory({ illus: '✨', text: ev.narrative, source: ev.source_user || '' });
-          setTimeout(() => setStory(null), 8000);
-        }
-        if (ev.options && ev.options.length) {
-          setDecision({
-            icon: '🎮', title: ev.event_title || 'AI 生成事件',
-            desc: ev.narrative || '', options: ev.options,
-          });
+        if (isViewer) {
+          // Viewer: only show notification, decision comes via state_sync from host
+          const ev = msg.data;
+          const tid = uid();
+          setToasts(ts => [...ts, { id: tid, icon: '🎮', name: 'AI 正在为主播生成新事件...' }]);
+          setTimeout(() => setToasts(ts => ts.filter(t => t.id !== tid)), 4000);
+        } else {
+          // Host: show decision card for host to interact with
+          const ev = msg.data;
+          if (ev.narrative) {
+            setStory({ illus: '✨', text: ev.narrative, source: ev.source_user || '' });
+            setTimeout(() => setStory(null), 8000);
+          }
+          if (ev.options && ev.options.length) {
+            setDecision({
+              icon: '🎮', title: ev.event_title || 'AI 生成事件',
+              desc: ev.narrative || '', options: ev.options,
+            });
+          }
         }
       }
       // Comment adopted notification
