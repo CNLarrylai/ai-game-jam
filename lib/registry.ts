@@ -14,7 +14,7 @@ import type { Scenario } from "./types";
  * 用户在 /create 现场生成的剧本是第四种来源（generated，客户端临时态），不在此索引内。
  */
 
-export type ScenarioSource = "builtin" | "repo" | "github";
+export type ScenarioSource = "builtin" | "repo" | "github" | "generated";
 
 export interface IndexedScenario extends Scenario {
   source: ScenarioSource;
@@ -42,6 +42,27 @@ async function readRepoScenarios(): Promise<Scenario[]> {
     const data = JSON.parse(raw);
     const arr = Array.isArray(data?.scenarios) ? data.scenarios : [];
     return arr.filter(isValidScenario);
+  } catch {
+    return [];
+  }
+}
+
+/** 来源 3：后台 worker 现场生成的剧本（scenarios/generated/*.json，每个文件一个剧本） */
+async function readGeneratedScenarios(): Promise<Scenario[]> {
+  try {
+    const dir = path.join(process.cwd(), "scenarios", "generated");
+    const files = await fs.readdir(dir);
+    const out: Scenario[] = [];
+    for (const f of files) {
+      if (!f.endsWith(".json")) continue;
+      try {
+        const obj = JSON.parse(await fs.readFile(path.join(dir, f), "utf-8"));
+        if (isValidScenario(obj)) out.push(obj);
+      } catch {
+        /* 跳过坏文件 */
+      }
+    }
+    return out;
   } catch {
     return [];
   }
@@ -95,10 +116,11 @@ export async function getAllScenarios(opts?: {
     (s: Scenario): IndexedScenario => ({ ...(s as IndexedScenario), source });
 
   const repo = (await readRepoScenarios()).map(tag("repo"));
+  const generated = (await readGeneratedScenarios()).map(tag("generated"));
   const github =
     opts?.github === false ? [] : (await fetchGithubScenarios()).map(tag("github"));
 
-  return mergeById(builtin.map(tag("builtin")), repo, github);
+  return mergeById(builtin.map(tag("builtin")), repo, github, generated);
 }
 
 /** 按 id 解析一个剧本（跨来源）。 */

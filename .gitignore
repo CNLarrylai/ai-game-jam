@@ -28,6 +28,11 @@ next-env.d.ts
 # vercel
 .vercel
 
+# worker 运行时产物（任务队列 / 现场生成的剧本 / 日志）
+/jobs/
+/scenarios/generated/
+/worker/worker.log
+
 # editor
 .vscode/*
 !.vscode/extensions.json

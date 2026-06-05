@@ -9,6 +9,7 @@ const SOURCE_META: Record<ScenarioSource, { label: string; cls: string }> = {
   builtin: { label: "内置", cls: "border-white/15 text-parchment/55" },
   repo: { label: "仓库", cls: "border-sky-400/40 bg-sky-400/10 text-sky-300" },
   github: { label: "GitHub", cls: "border-ember/40 bg-ember/10 text-ember" },
+  generated: { label: "AI生成", cls: "border-emerald-400/40 bg-emerald-400/10 text-emerald-300" },
 };
 
 export default function ScenarioBrowser({

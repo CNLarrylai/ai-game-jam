@@ -28,6 +28,7 @@ export default function NovelImport() {
 
   const [generated, setGenerated] = useState<GeneratedGame | null>(null);
   const [scenario, setScenario] = useState<Scenario | null>(null);
+  const [engine, setEngine] = useState<string | null>(null);
   const [stage, setStage] = useState(0);
   const [dragging, setDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -65,17 +66,39 @@ export default function NovelImport() {
   async function generate() {
     if (!ready) return;
     setError(null);
+    setEngine(null);
     setView("generating");
     try {
-      const res = await fetch("/api/generate", {
+      // 1) 提交任务给后台 worker
+      const res = await fetch("/api/jobs", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ novelText, title }),
       });
       if (!res.ok) throw new Error(await res.text());
-      const game = (await res.json()) as GeneratedGame;
-      setGenerated(game);
-      setView("preview");
+      const { jobId } = (await res.json()) as { jobId: string };
+
+      // 2) 轮询结果（最多 ~4 分钟）
+      const deadline = Date.now() + 240000;
+      while (Date.now() < deadline) {
+        await new Promise((r) => setTimeout(r, 2000));
+        const sres = await fetch(`/api/jobs/${jobId}`);
+        if (!sres.ok) continue;
+        const data = (await sres.json()) as {
+          status: string;
+          engine?: string;
+          scenario?: GeneratedGame;
+          error?: string;
+        };
+        if (data.status === "done" && data.scenario) {
+          setGenerated(data.scenario);
+          setEngine(data.engine || null);
+          setView("preview");
+          return;
+        }
+        if (data.status === "error") throw new Error(data.error || "生成失败");
+      }
+      throw new Error("生成超时——后台 worker 可能没在运行。");
     } catch (err) {
       setError((err as Error).message || "生成失败，请重试。");
       setView("input");
@@ -84,7 +107,20 @@ export default function NovelImport() {
 
   function startPlay() {
     if (!generated) return;
-    setScenario(toScenario(generated));
+    // worker 产出的剧本自带稳定 id；离线/旧路径无 id 时再造一个 custom-*
+    const withId = generated as GeneratedGame & { id?: string };
+    setScenario(
+      withId.id
+        ? {
+            id: withId.id,
+            title: generated.title,
+            tagline: generated.tagline,
+            emoji: generated.emoji,
+            opening: generated.opening,
+            systemPrompt: generated.systemPrompt,
+          }
+        : toScenario(generated),
+    );
     setView("play");
   }
 
@@ -177,6 +213,14 @@ export default function NovelImport() {
                   <span className="rounded-full border border-ember/40 bg-ember/10 px-3 py-1 text-xs text-ember">
                     匹配机制 · {generated.mechanic}
                   </span>
+                  {engine && (
+                    <span
+                      title={engine === "agent" ? "由 Claude agent（订阅）生成" : "由 Anthropic API 兜底生成"}
+                      className="rounded-full border border-emerald-400/40 bg-emerald-400/10 px-3 py-1 text-xs text-emerald-300"
+                    >
+                      {engine === "agent" ? "agent 生成" : "API 生成"}
+                    </span>
+                  )}
                   {generated.offline && (
                     <span
                       title="未配置 API key，由规则引擎离线生成；配置后可用真模型获得更佳效果"
