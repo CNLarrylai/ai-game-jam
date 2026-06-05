@@ -326,13 +326,26 @@ async def generation_loop():
         pool.open_window()
 
         if not best:
-            continue  # no valid comments, stay quiet
+            continue
 
-        pick = best[0]
-        print(f"\n🧠 ===== Phase 1 → Phase 2 =====")
-        print(f"  @{pick.username}: 「{pick.raw_text}」 ({pick.classify_result.category})")
+        # Dedupe: only keep one per category
+        seen_cats = set()
+        unique_best = []
+        for b in best:
+            cat = b.classify_result.category
+            if cat not in seen_cats:
+                seen_cats.add(cat)
+                unique_best.append(b)
 
-        await send_ws({"type": "system_msg", "name": "🧠 AI Engine", "avatar": "🧠", "text": f"✨ {total}条评论 · @{pick.username} · 生成中..."})
+        print(f"\n🧠 ===== 本轮 {total} 条评论，选出 {len(unique_best)} 条（每类最多1条）=====")
+        for b in unique_best:
+            print(f"  [{b.classify_result.category}] @{b.username}: {b.raw_text}")
+
+        # Process one at a time
+        pick = unique_best[0]
+        print(f"🧠 处理: @{pick.username} 「{pick.raw_text}」 ({pick.classify_result.category})")
+
+        await send_ws({"type": "system_msg", "name": "🧠 AI Engine", "avatar": "🧠", "text": f"✨ {total}条评论 · 选中@{pick.username}的创意 · 生成中..."})
 
         # ── Phase 1: 生成 ──
         try:
