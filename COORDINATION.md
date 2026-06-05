@@ -48,6 +48,10 @@ AI Game Jam = TikTok LIVE 末日生存**直播互动游戏**。三块拼图：
   - **⚠️ 本终端(WORLDS LIVE)动了 `app/page.tsx`(导入网页终端 territory)**——经 Larry 授权做门户合流,只重排首页+加 WORLDS LIVE 卡,未碰 /create、/scenarios、API、worker 内部逻辑。导入网页终端后续若改首页请注意此文件已被门户化。
   - `next build` 通过;`next start` 验证 首页(含 WORLDS LIVE 卡)+ 静态包(200)+ /create + /scenarios 全可达。
   - **待办**:整体部署 Vercel(导入/文字冒险需 `ANTHROPIC_API_KEY`,WORLDS LIVE 与离线兜底无需);public/games/worlds-live 是 novel_to_game_Larry/live 的拷贝,WORLDS LIVE 更新后需重新同步(可加脚本)。
+- 🟢 **小说→游戏链路验证 + 玩接 agent(2026-06-05, Larry 指派 WORLDS LIVE 终端验证)**:端到端实测通过——粘贴小说 → `/api/jobs` → worker(`claude -p` agent,无 key) → `scenarios/generated/` → 索引(`/api/scenarios` 含 source:generated) → 预览 → 玩。实测「漫游者号」(科幻生存)、「猩红疫年」(末世废土)。
+  - **缺口已补**:玩生成的游戏(GM 叙事)原走 `/api/game`→`streamChat`→需 key,本机没 key→500。**改 `lib/ai.ts`**:`streamChat` 无 `ANTHROPIC_API_KEY` 时自动兜底到新增的 `streamAgent`(spawn `claude -p` 流式转发 stdout,与 worker 同款,无需 key);有 key 仍走 API(快·真流式)。亦支持 `AI_PROVIDER=agent` 显式启用。
+  - **⚠️ 本终端(WORLDS LIVE)动了 `lib/ai.ts`(原我自己写的脚手架,但属 lib/ territory)**——纯 additive 兜底,不改有 key 时行为,不碰 generation/offlineGeneration/registry。
+  - 代价:agent 每回合 spawn 一个 `claude -p`(~15-30s/回合),慢但本机自含可演示;Vercel 上线则必须配 `ANTHROPIC_API_KEY`(云端无 claude CLI)走 API 快路径。
 - ⚪ 待办池见下「待决问题」。
 
 ---

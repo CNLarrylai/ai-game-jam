@@ -4,7 +4,7 @@ import type { ChatMessage } from "./types";
  * AI Provider 抽象层
  * ============================================
  * 统一封装不同模型厂商的「流式对话」接口，返回一个 ReadableStream<string>。
- * 当前支持：anthropic（Claude）、gemini。
+ * 当前支持：anthropic（Claude API）、gemini、agent（本机 claude -p 订阅，无需 key）。
  * 想接入新厂商？加一个 streamXxx 函数，并在 streamChat 里分支即可。
  */
 
@@ -14,13 +14,11 @@ export function streamChat(
   systemPrompt: string,
   messages: ChatMessage[],
 ): Promise<ReadableStream<string>> {
-  switch (PROVIDER) {
-    case "gemini":
-      return streamGemini(systemPrompt, messages);
-    case "anthropic":
-    default:
-      return streamAnthropic(systemPrompt, messages);
-  }
+  if (PROVIDER === "agent") return streamAgent(systemPrompt, messages);
+  if (PROVIDER === "gemini") return streamGemini(systemPrompt, messages);
+  // anthropic（默认）：有 key 走 API（快·真流式）；无 key 自动兜底到本机 claude -p agent
+  if (process.env.ANTHROPIC_API_KEY) return streamAnthropic(systemPrompt, messages);
+  return streamAgent(systemPrompt, messages);
 }
 
 // ---------- Anthropic (Claude) ----------
@@ -58,6 +56,57 @@ async function streamAnthropic(
       return data.delta.text as string;
     }
     return null;
+  });
+}
+
+// ---------- Agent（本机 claude -p 订阅，无需 API key） ----------
+// 像 worker 那样 spawn `claude -p`，把系统提示+对话折成单条 prompt 喂进去，
+// 实时转发 stdout。每回合一个进程（较慢 ~10-30s），但本机自含、不烧 key。
+async function streamAgent(
+  systemPrompt: string,
+  messages: ChatMessage[],
+): Promise<ReadableStream<string>> {
+  const { spawn } = await import("node:child_process");
+  const model = process.env.AGENT_MODEL || "claude-opus-4-7";
+
+  const convo = messages
+    .map((m) => (m.role === "user" ? "玩家：" : "主持人：") + m.content)
+    .join("\n\n");
+  const prompt =
+    `${systemPrompt}\n\n` +
+    `——以下是这局游戏到目前为止的对话。你是「游戏主持人(GM)」，严格延续上述规则，` +
+    `以 GM 身份回应玩家最新的行动。只输出叙事正文本身，不要任何前缀/解释，不要使用任何工具。——\n\n` +
+    `${convo}\n\n主持人：`;
+
+  const child = spawn(
+    "claude",
+    ["-p", "--model", model, "--dangerously-skip-permissions"],
+    { stdio: ["pipe", "pipe", "pipe"] },
+  );
+
+  return new ReadableStream<string>({
+    start(controller) {
+      const decoder = new TextDecoder();
+      let err = "";
+      let got = false;
+      child.stdout.on("data", (d: Buffer) => { got = true; controller.enqueue(decoder.decode(d)); });
+      child.stderr.on("data", (d: Buffer) => { err += d.toString(); });
+      child.on("error", (e) => {
+        controller.enqueue(`[系统] 无法启动本机 agent（claude CLI）：${e.message}`);
+        controller.close();
+      });
+      child.on("close", (code) => {
+        if (!got && code !== 0) {
+          controller.enqueue(`[系统] GM 生成失败（退出码 ${code}）：${err.slice(0, 160)}`);
+        }
+        controller.close();
+      });
+      child.stdin.write(prompt);
+      child.stdin.end();
+    },
+    cancel() {
+      child.kill("SIGKILL");
+    },
   });
 }
 
