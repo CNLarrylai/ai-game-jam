@@ -110,9 +110,9 @@ export default function Home() {
       >
         <span className="absolute" />
         <span className="text-4xl">🎬</span>
-        <h3 className="mt-4 text-xl font-bold text-parchment">小说 → 直播间游戏 <span className="ml-1 rounded bg-ember/90 px-2 py-0.5 align-middle text-xs font-bold text-ink">可玩 · 非文字</span></h3>
+        <h3 className="mt-4 text-xl font-bold text-parchment">小说 → 叙事抉择游戏 <span className="ml-1 rounded bg-ember/90 px-2 py-0.5 align-middle text-xs font-bold text-ink">可玩 · 剧情驱动</span></h3>
         <p className="mt-1.5 max-w-2xl text-sm leading-relaxed text-parchment/65">
-          粘一段末世/生存类小说，AI 理解它、生成整套游戏数据，填进像素直播间生存游戏壳——产出<span className="text-ember">能玩的像素游戏</span>（物品/地点/同伴/弹幕全换成你的小说），不是纯文字对话。
+          粘一段末世/生存类小说，AI 把剧情拆成 6 幕、每幕一个艰难抉择，生成一款<span className="text-ember">木刻风叙事生存游戏</span>（玩法类似《最后的人》）——小说的人物、剧情、两难直接长进游戏里。
         </p>
         <span className="mt-4 text-sm font-semibold text-ember">进入生成工作室 →</span>
       </Link>

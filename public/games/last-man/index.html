@@ -300,7 +300,17 @@
 <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
 <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
 <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<!-- ?id 时：从 localStorage 取小说生成的 GAME（在 gamedata.js 默认之后覆盖，engine 之前） -->
+<script>
+(function(){
+  try {
+    var id = new URLSearchParams(location.search).get('id');
+    if (id) { var raw = localStorage.getItem('wl_game_' + id); if (raw) window.__CUSTOM_GAME = JSON.parse(raw); }
+  } catch (e) { console.warn('[LM] 自定义 GAME 载入失败', e); }
+})();
+</script>
 <script src="gamedata.js"></script>
+<script>if (window.__CUSTOM_GAME) window.GAME = window.__CUSTOM_GAME;</script>
 <script src="engine.js"></script>
 <script type="text/babel" data-presets="react">
 const { useState, useEffect, useRef, useMemo, useCallback } = React;

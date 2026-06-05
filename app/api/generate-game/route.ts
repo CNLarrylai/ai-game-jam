@@ -5,77 +5,77 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 /**
- * POST /api/generate-game
- * body: { novelText: string, shell?: "pixel" | "woodcut" }
- * 小说 → 生成 GAME_DATA(直播间生存游戏数据)。不写文件:直接返回 gameData,
- * 由前端存 localStorage,游戏壳按 ?id 读取(serverless 友好)。
- * 引擎:有 ANTHROPIC_API_KEY → Anthropic API(线上/Vercel);否则本机 claude -p 订阅。
+ * POST /api/generate-game  body: { novelText: string }
+ * 小说 → 叙事抉择游戏 GAME（《最后的人》同款玩法：逐幕剧情 + 道德/生存抉择卡）。
+ * 不写文件:返回 game(window.GAME 结构),前端存 localStorage,last-man 壳按 ?id 读取。
+ * 引擎:有 ANTHROPIC_API_KEY → Anthropic API;否则本机 claude -p。
  */
 
-const SPEC = `你是「小说→直播间生存游戏数据」适配引擎。读下面的末世/生存小说，把它改造成一个直播间生存游戏的数据配置（GAME_DATA）。游戏机制固定（逐日生存、四维数值、出门探索、观众弹幕生成内容），你用小说的世界观/物资/地点/人物/语气**填充改写**数据。
+const SPEC = `你是「小说→叙事抉择游戏」适配引擎。把一段末世/生存小说改造成一个木刻风叙事抉择游戏（玩法类似《最后的人》）：玩家逐幕经历小说的关键剧情，每一幕面对一个艰难的道德/生存抉择，选择消耗资源、并揭晓后果。这样小说的剧情、人物、两难才真正"长进游戏里"。
 
-【风格——重要】严肃、文学、克制，像玛丽·雪莱《最后的人》那种末日文学：弹幕与事件要贴情境（恐惧、求生、人性挣扎、对逝去文明的追忆），有代入感。**绝不要网络梗、名人玩笑（马斯克/甄嬛之类）、无厘头、刷屏梗**。宁可肃穆，不要油滑。
+【风格】严肃、文学、忠于原著，像末日文学。绝不要网络梗/名人玩笑/无厘头。
+【只输出一个合法 JSON 对象】不要解释、不要 markdown 围栏。字符串内引号一律用中文「」（不要英文双引号），不要尾随逗号、不要注释、字符串不换行。
 
-【四维数值（键名必须严格用这四个）】hp 健康 / hunger 饱腹 / sanity 精神 / supply 水分。effect/skill.effect 的键只能是 hp/hunger/sanity/supply（用错键无效果）。正向=补充：食物→hunger+，水→supply+，医疗→hp+，安神→sanity+；代价用负数。
-【美术约束】物品 icon 只能从这组 emoji 选：💧 🐟 🥫 🍗 🔫 🩹 💊 🔩 🔧 🔦 🔋 📻 🗝️ 🪢 🎒。
-
-【严格 JSON】只输出一个合法 JSON 对象，不要解释、不要 markdown 围栏。字符串内若要引号一律用中文「」（不要英文双引号），不要尾随逗号、不要注释、字符串不换行。字段与形状：
+结构（GAME）：
 {
- "OPENING": "开局弹窗文案 ≤120字，第一人称，肃穆地交代此刻处境",
- "INIT_STATS": { "hp":50, "hunger":70, "sanity":60, "supply":70 },
- "ITEMS": { "<键>": { "id":"<键>", "icon":"<允许的emoji>", "name":"中文名", "kind":"consume|weapon|material", "effect":{"<资源>":<整数>}, "effText":"如 饱腹 +10", "qty":<初始数量> } （5~7 件，含水/食物/医疗/武器/材料各≥1） },
- "DESTINATIONS": [ { "id":"英文", "icon":"<地点emoji>", "name":"中文地点名", "danger":1-4, "reward":"中文收益", "ap":2-4, "confirm":"确定前往…？一句话" } （3~4 个，贴小说世界观） ],
- "COMPANIONS_POOL": [ { "id":"英文","name":"中文名","av":"<人物emoji>","role":"职业","status":"健康|轻伤","detail":"一句背景","hp":50-90,"mood":"情绪","skill":{"id":"英文","label":"技能名","icon":"🔧","effect":{"<资源>":<整数>},"line":"使用后的叙事","note":"恢复X·每天一次"},"ask":"「一句台词」" } （2 个） ],
- "MAP_NPC": { "name":"中文名","av":"<emoji>","line":"「一句开场」","options":[{"id":"trade","label":"交易","icon":"🔁","sub":"说明"},{"id":"recruit","label":"招募","icon":"🤝","sub":"说明"},{"id":"info","label":"询问情报","icon":"🗺️","sub":"说明"},{"id":"leave","label":"离开","icon":"🚶","sub":"说明"}] },
- "SCENE_COMMENTS": { "home":[{"user":"昵称","av":"emoji","text":"弹幕"}...4条], "organize":[...3条], "destination":[...3条], "explore":[...6条，含「生成XX」这种观众创意弹幕，但要贴小说题材、克制不刷梗] }
-}`;
-
-function buildPrompt(novelText: string) {
-  const clean = String(novelText).replace(/\r\n/g, "\n").trim().slice(0, 12000);
-  return `${SPEC}\n\n---\n小说原文：\n"""\n${clean}\n"""`;
+ "meta": { "title": "小说改编名≤12字", "subtitle": "一句副标题", "source": "原著名" },
+ "res_def": [ {"id":"food","ic":"🥫","label":"Food","cn":"中文名"}, {"id":"health","ic":"💊","label":"Health","cn":"中文名"}, {"id":"morale","ic":"🔥","label":"Morale","cn":"中文名"} ]  （⚠️ id 必须严格是 food/health/morale 三个不可改——引擎结局判定依赖它们；只把 cn 改成贴小说的中文名，如 食物/口粮、健康/体力、士气/人心/意志）,
+ "start_res": { "food":8, "health":9, "morale":8 },
+ "worldLines": [ {"t":"中文开场白描一句","cls":""} ]  （恰 4 句，交代小说的末世处境；最后两句的 cls 可用 "accent2" 和 "accent"）,
+ "crew": [ {"key":"英文","name":"中文名","tag":"一句身份","line":["短句一","短句二"],"rim":"#b33831","silTop":"#3a4466","detail":""} ]  （2~3 个，取自小说人物；detail 可空或 "pony"/"hood"/"cross"）,
+ "campaign": [ "卡id1","卡id2","卡id3","卡id4","卡id5","卡id6" ]  （按剧情顺序的 6 个卡 id）,
+ "nodes": {
+   "<卡id>": { "id":"<卡id>", "title":"这一幕的标题", "desc":"2-3句场景，忠于小说剧情、点出此刻的抉择处境", "icon":"emoji", "generated":true,
+     "choices": [ {"id":"英文","label":"玩家的选择","hint":"选前的模糊暗示（risk 项尤其不剧透）","costs":[{"res":"<res_def里的id>","d":整数增减}],"risk":true或false,"outcome":{"emoji":"emoji","title":"选后揭晓标题","body":"后果文字"},"next":"","effects":["因果文字"]} ]
+   }  （2~3 个选择，无明显最优；每卡至少 1 个 "risk":true；next 一律 ""）
+ },
+ "codex": { "<人物中文名>": {"tag":"身份","body":"一句背景"} }  （小说关键人物 2~4 个，供正文人名点击查看）
 }
 
-function parseGameData(raw: string) {
+要点：① 6 个卡 = 小说从开端到结局的 6 个关键剧情节点，每个都是真实场景 + 真两难。② costs 的 res 必须是 res_def 里定义的 id。③ next 全部 ""（逐幕线性推进）。④ 资源经济要能死人（撑不住某资源=0 即出局）也能通关。`;
+
+function parseGame(raw: string) {
   const s = String(raw).trim().replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
   const a = s.indexOf("{"), b = s.lastIndexOf("}");
   if (a === -1 || b === -1 || b <= a) throw new Error("未找到 JSON");
   const body = s.slice(a, b + 1);
-  const repaired = body
-    .replace(/^\s*\/\/.*$/gm, "")        // 行注释
-    .replace(/,(\s*[}\]])/g, "$1")        // 尾随逗号
-    .replace(/\}(\s*)\{/g, "},$1{")       // 数组中对象间漏逗号 }{ → },{
-    .replace(/\](\s*)\[/g, "],$1[")       // ][ → ],[
-    .replace(/"(\s*\n\s*)"/g, '",$1"');   // 相邻字符串元素漏逗号
+  const repaired = body.replace(/^\s*\/\/.*$/gm, "").replace(/,(\s*[}\]])/g, "$1")
+    .replace(/\}(\s*)\{/g, "},$1{").replace(/\](\s*)\[/g, "],$1[");
   let o: any;
   try { o = JSON.parse(body); } catch { o = JSON.parse(repaired); }
-  if (!o.ITEMS || !o.DESTINATIONS || !o.SCENE_COMMENTS) throw new Error("GAME_DATA 缺关键字段");
-  if (!o.COMPANIONS) o.COMPANIONS = [];
+  if (!o.nodes || !o.campaign || !o.res_def) throw new Error("GAME 缺关键字段(nodes/campaign/res_def)");
+  // 结构兜底(engine/UI 需要,LLM 不必产)
+  o.interactions = [];
+  o.nodeChapter = o.nodeChapter || {};
+  o.generated = o.generated || { _about: "novel→game", items: [], npcs: [], events: [] };
+  o.aliases = o.aliases || {};
+  o.codex = o.codex || {};
+  o.meta = o.meta || { title: "末世", subtitle: "", source: "" };
+  (o.crew || []).forEach((c: any) => { if (!c.rim) c.rim = "#b33831"; if (!c.silTop) c.silTop = "#3a4466"; });
+  // 只保留 campaign 里存在的节点;过滤无效 campaign id
+  o.campaign = (o.campaign || []).filter((id: string) => o.nodes[id]);
+  if (!o.campaign.length) o.campaign = Object.keys(o.nodes);
   return o;
 }
 
-// 引擎 A：Anthropic API（线上，需 key）。输入精简 + 单次超时,保证落在 Vercel 60s 内
 async function apiRaw(novelText: string): Promise<string> {
   const key = process.env.ANTHROPIC_API_KEY!;
-  // Haiku 快(~10s级),稳进 Vercel 60s 函数上限;结构化提取质量足够
   const model = process.env.GENERATE_MODEL || "claude-haiku-4-5-20251001";
   const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), 45000);
+  const t = setTimeout(() => ctrl.abort(), 48000);
   try {
     const res = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "content-type": "application/json", "x-api-key": key, "anthropic-version": "2023-06-01" },
-      body: JSON.stringify({ model, max_tokens: 3200, system: SPEC, messages: [{ role: "user", content: `小说原文（节选，据此提炼世界观/物资/地点/人物即可）：\n"""\n${String(novelText).slice(0, 5000)}\n"""` }] }),
+      body: JSON.stringify({ model, max_tokens: 4000, system: SPEC, messages: [{ role: "user", content: `小说原文（节选，据此提炼世界观/剧情/人物/抉择）：\n"""\n${String(novelText).slice(0, 6000)}\n"""` }] }),
       signal: ctrl.signal,
     });
     if (!res.ok) throw new Error(`API ${res.status}: ${(await res.text()).slice(0, 160)}`);
     const data = await res.json();
     return (data?.content?.map((c: any) => c.text || "").join("")) || "";
-  } finally {
-    clearTimeout(t);
-  }
+  } finally { clearTimeout(t); }
 }
 
-// 引擎 B：本机 claude -p 订阅（无 key 时）
 function agentRaw(novelText: string): Promise<string> {
   return new Promise((resolve, reject) => {
     const model = process.env.AGENT_MODEL || "claude-opus-4-7";
@@ -85,8 +85,8 @@ function agentRaw(novelText: string): Promise<string> {
     child.stdout.on("data", (d) => (out += d));
     child.stderr.on("data", (d) => (err += d));
     child.on("error", (e) => { clearTimeout(timer); reject(e); });
-    child.on("close", (code) => { clearTimeout(timer); code === 0 ? resolve(out) : reject(new Error(`agent 退出码 ${code}: ${err.slice(0, 160)}`)); });
-    child.stdin.write(buildPrompt(novelText));
+    child.on("close", (code) => { clearTimeout(timer); code === 0 ? resolve(out) : reject(new Error(`agent ${code}: ${err.slice(0, 160)}`)); });
+    child.stdin.write(`${SPEC}\n\n---\n小说原文：\n"""\n${String(novelText).slice(0, 8000)}\n"""`);
     child.stdin.end();
   });
 }
@@ -95,37 +95,29 @@ async function generate(novelText: string, attempts = 2): Promise<any> {
   const useApi = !!process.env.ANTHROPIC_API_KEY;
   let last = "";
   for (let i = 0; i < attempts; i++) {
-    try {
-      const raw = useApi ? await apiRaw(novelText) : await agentRaw(novelText);
-      return parseGameData(raw);
-    } catch (e) {
-      last = (e as Error).message;
-      if (/超时|启动|退出码|API \d/.test(last) && i === attempts - 1) throw e;
-    }
+    try { return parseGame(useApi ? await apiRaw(novelText) : await agentRaw(novelText)); }
+    catch (e) { last = (e as Error).message; if (/超时|API \d|agent \d/.test(last) && i === attempts - 1) throw e; }
   }
   throw new Error(`生成 ${attempts} 次仍未得到合法数据（${last}）`);
 }
 
 export async function POST(req: Request) {
   try {
-    const { novelText, shell: shellRaw } = (await req.json()) as { novelText?: string; shell?: string };
-    const shell = shellRaw === "woodcut" ? "woodcut" : "pixel";
+    const { novelText } = (await req.json()) as { novelText?: string };
     if (!novelText || novelText.trim().length < 150) {
       return new Response("小说内容太短了，至少需要 150 字。", { status: 400 });
     }
-
-    const data = await generate(novelText);
+    const game = await generate(novelText);
     const id = `pg-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
-
     return Response.json({
       id,
-      playUrl: `/games/${shell}-player/index.html?id=${id}`,
-      gameData: data, // 前端存 localStorage('wl_game_'+id)
+      playUrl: `/games/last-man/index.html?id=${id}`,
+      gameData: game, // 前端存 localStorage('wl_game_'+id)，last-man 壳读为 window.GAME
       summary: {
-        opening: data.OPENING || "",
-        items: Object.values(data.ITEMS || {}).map((i: any) => `${i.icon}${i.name}`),
-        destinations: (data.DESTINATIONS || []).map((d: any) => `${d.icon}${d.name}`),
-        companions: (data.COMPANIONS_POOL || []).map((c: any) => `${c.av}${c.name}`),
+        title: game.meta?.title || "",
+        opening: (game.worldLines || []).map((w: any) => w.t).join(" "),
+        scenes: (game.campaign || []).map((cid: string) => game.nodes[cid]?.title).filter(Boolean),
+        crew: (game.crew || []).map((c: any) => c.name),
       },
     });
   } catch (err) {

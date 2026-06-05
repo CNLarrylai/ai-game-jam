@@ -4,10 +4,10 @@ import { useRef, useState } from "react";
 import Link from "next/link";
 
 type Summary = {
+  title: string;
   opening: string;
-  items: string[];
-  destinations: string[];
-  companions: string[];
+  scenes: string[];
+  crew: string[];
 };
 
 const SAMPLE = `末日第四十七天。丧尸潮退去后，城市成了钢铁与腐肉的坟场。陈野背着空了大半的背包，蹲在天台边缘，啃着最后半块发霉的压缩饼干。楼下的街道上，三两只游荡的丧尸拖着断腿，发出空洞的低吼。他的水壶昨天就见底了，喉咙干得像吞了沙子。远处的加油站招牌还亮着半边，便利店、社区医院、废弃的地铁站——每一个都可能有补给，也可能是埋骨之地。怀里那把卷了刃的猎刀，是他唯一的依靠。`;
@@ -19,7 +19,6 @@ export default function Studio() {
   const [result, setResult] = useState<{ playUrl: string; summary: Summary } | null>(null);
   const [fileName, setFileName] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
-  const [shell, setShell] = useState<"pixel" | "woodcut">("woodcut");
   const fileRef = useRef<HTMLInputElement>(null);
 
   // 读 txt 文件：优先 UTF-8，乱码则回退 GBK（中文小说常见）
@@ -49,7 +48,7 @@ export default function Studio() {
       const res = await fetch("/api/generate-game", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ novelText: text, shell }),
+        body: JSON.stringify({ novelText: text }),
       });
       if (!res.ok) throw new Error(await res.text());
       const data = await res.json();
@@ -66,10 +65,11 @@ export default function Studio() {
   return (
     <main className="mx-auto max-w-3xl px-6 py-12">
       <Link href="/" className="text-sm text-ember/80 hover:text-ember">← 返回门户</Link>
-      <h1 className="mt-4 text-3xl font-bold text-parchment">🎬 小说 → 直播间游戏</h1>
+      <h1 className="mt-4 text-3xl font-bold text-parchment">🎬 小说 → 叙事抉择游戏</h1>
       <p className="mt-2 text-sm text-parchment/60">
-        粘一段<span className="text-parchment/90">末世 / 生存类</span>小说，AI 会理解它、生成整套游戏数据，
-        填进像素直播间生存游戏壳——产出的是<span className="text-ember">可玩的像素游戏</span>，不是纯文字。
+        粘一段<span className="text-parchment/90">末世 / 生存类</span>小说，AI 把它的剧情拆成 6 幕，
+        每一幕一个<span className="text-ember">艰难抉择</span>——产出一款木刻风叙事生存游戏（玩法类似《最后的人》），
+        小说的人物、剧情、两难直接长进游戏里。
       </p>
 
       {/* 上传 / 拖拽 / 粘贴 三合一 */}
@@ -109,39 +109,12 @@ export default function Studio() {
         <span>{fileName ? `📎 ${fileName} · ` : ""}{novel.trim().length} 字</span>
       </div>
 
-      {/* 版本选择：两种直播间美术风（同一份生成数据，换壳） */}
-      <div className="mt-6 text-xs font-semibold uppercase tracking-wider text-ember/80">选择游戏版本</div>
-      <div className="mt-3 grid gap-3 sm:grid-cols-2">
-        {([
-          { id: "pixel", emoji: "🤖", title: "像素直播间", desc: "星露谷风像素美术，类似《在AI统治的世界存活100天》。题材契合度高、美术统一。" },
-          { id: "woodcut", emoji: "🕯️", title: "木刻插画", desc: "维多利亚木刻暗调 + 衬线叙事，类似《最后的人》。文学质感，任意末世题材都贴。" },
-        ] as const).map((opt) => (
-          <button
-            key={opt.id}
-            onClick={() => setShell(opt.id)}
-            className={
-              "flex flex-col rounded-xl border p-4 text-left transition " +
-              (shell === opt.id
-                ? "border-ember bg-ember/15"
-                : "border-white/15 bg-white/[0.02] hover:border-ember/40")
-            }
-          >
-            <div className="flex items-center gap-2">
-              <span className="text-2xl">{opt.emoji}</span>
-              <span className="font-semibold text-parchment">{opt.title}</span>
-              {shell === opt.id && <span className="ml-auto text-xs text-ember">✓ 已选</span>}
-            </div>
-            <p className="mt-1.5 text-xs leading-relaxed text-parchment/55">{opt.desc}</p>
-          </button>
-        ))}
-      </div>
-
       <button
         onClick={generate}
         disabled={busy}
         className="mt-5 rounded-xl bg-ember px-6 py-3 font-medium text-ink transition enabled:hover:brightness-110 disabled:opacity-50"
       >
-        {busy ? "🤖 AI 正在理解小说、生成游戏…（约 30–60s）" : `✨ 生成${shell === "woodcut" ? "木刻版" : "像素版"}游戏`}
+        {busy ? "🤖 AI 正在拆解小说剧情、生成抉择幕…（约 30–60s）" : "✨ 生成叙事抉择游戏"}
       </button>
 
       {error && (
@@ -152,12 +125,11 @@ export default function Studio() {
 
       {result && (
         <div className="mt-6 rounded-2xl border border-ember/40 bg-ember/[0.08] p-6">
-          <div className="text-sm font-semibold text-ember">✅ 游戏已生成</div>
+          <div className="text-sm font-semibold text-ember">✅ 《{result.summary.title}》已生成</div>
           <p className="mt-2 text-sm leading-relaxed text-parchment/80">{result.summary.opening}</p>
           <div className="mt-4 space-y-2 text-xs text-parchment/65">
-            <div><b className="text-parchment/90">物品：</b>{result.summary.items.join("  ")}</div>
-            <div><b className="text-parchment/90">地点：</b>{result.summary.destinations.join("  ")}</div>
-            <div><b className="text-parchment/90">同伴：</b>{result.summary.companions.join("  ")}</div>
+            <div><b className="text-parchment/90">六幕剧情：</b>{result.summary.scenes.map((s, i) => `${i + 1}.${s}`).join("  ")}</div>
+            <div><b className="text-parchment/90">同行者：</b>{result.summary.crew.join("  ")}</div>
           </div>
           <a
             href={result.playUrl}
@@ -171,8 +143,8 @@ export default function Studio() {
       )}
 
       <p className="mt-10 text-center text-xs text-parchment/30">
-        引擎：本机 <code className="rounded bg-white/10 px-1.5 py-0.5">claude -p</code> 订阅生成 ·
-        数据驱动 <code className="rounded bg-white/10 px-1.5 py-0.5">/games/pixel-player</code> 像素壳
+        AI 把小说拆成 6 幕道德/生存抉择，注入《最后的人》同款木刻叙事壳 ·
+        <code className="rounded bg-white/10 px-1.5 py-0.5">/games/last-man</code>
       </p>
     </main>
   );
