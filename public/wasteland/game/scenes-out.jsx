@@ -57,6 +57,11 @@ function SceneExplore({ D }) {
   const [npc, setNpc] = useStateO(null);            // npc tile active
   const tiles = window.HEX_TILES;
 
+  // Expose internal state for viewer sync
+  useEffectO(() => {
+    window.__EXPLORE_STATE__ = { ap, revealed, foe: foe ? { name: foe.name, icon: foe.icon } : null, npc: npc ? { name: npc.name, av: npc.av, line: npc.line } : null };
+  }, [ap, revealed, foe, npc]);
+
   const isAdjacent = (t) =>
     NEIGHBORS.some(([nx, ny]) => nx === t.x && ny === t.y) && !revealed[t.id] && t.type !== "hero";
 

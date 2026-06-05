@@ -355,9 +355,33 @@ function App() {
         story: story ? { illus: story.illus, text: story.text, source: story.source } : null,
         phase: phase ? { big: phase.big, sub: phase.sub } : null,
         cta: cta ? { prompt: cta.prompt } : null,
+        flags: flags,
+        explore: window.__EXPLORE_STATE__ || null,
       });
     }
-  }, [day, stats, scene, decision, banner, story, phase, cta, floats]);
+  });
+  // Also re-broadcast on a short interval to catch scene-internal state changes (explore revealed tiles etc)
+  useEffect(() => {
+    const t = setInterval(() => {
+      if (window.WsSync && WsSync.connected) {
+        WsSync.broadcastGameState({
+          day, stats, scene,
+          pack: pack.map(i => ({ id: i.id, name: i.name, qty: i.qty, icon: i.icon })),
+          decision: decision ? {
+            icon: decision.icon, title: decision.title, desc: decision.desc,
+            opts: decision.options || decision.opts, votes: decision.votes, result: decision.result
+          } : null,
+          banner: banner ? { icon: banner.icon, html: banner.html, big: banner.big } : null,
+          story: story ? { illus: story.illus, text: story.text, source: story.source } : null,
+          phase: phase ? { big: phase.big, sub: phase.sub } : null,
+          cta: cta ? { prompt: cta.prompt } : null,
+          flags: flags,
+          explore: window.__EXPLORE_STATE__ || null,
+        });
+      }
+    }, 500);
+    return () => clearInterval(t);
+  }, []);
 
   /* ---- receive viewer comments via WebSocket ---- */
   useEffect(() => {

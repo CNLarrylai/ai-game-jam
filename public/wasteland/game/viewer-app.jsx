@@ -8,16 +8,6 @@ let _vid = 0;
 const vid = () => "v" + (++_vid);
 
 function ViewerApp() {
-  /* no-op director — viewer can see scenes but not interact */
-  const noopD = {
-    adoptComment: () => {}, applyStats: () => {}, addItem: () => {}, removeItem: () => {},
-    toast: () => {}, injectComment: () => {}, banner: () => {}, spawn: () => {}, byTag: () => {},
-    story: () => {}, closeStory: () => {}, decision: () => {}, closeDecision: () => {},
-    phase: () => {}, goOut: () => {}, confirmDest: () => {}, returnShelter: () => {},
-    goScene: () => {}, setFlag: () => {}, day: 1, injectCompanionLater: () => {},
-    generateAIEvent: async () => null,
-  };
-
   /* ---- login state ---- */
   const [entered, setEntered] = useState(false);
   const [nick, setNick] = useState("");
@@ -149,7 +139,6 @@ function ViewerApp() {
   // Extract host state
   const hs = hostState || {};
   const day = hs.day || '?';
-  noopD.day = day;
   const stats = hs.stats || { hp: 0, hunger: 0, sanity: 0, supply: 0 };
   const scene = hs.scene || 'waiting';
   const pack = hs.pack || [];
@@ -188,24 +177,134 @@ function ViewerApp() {
             <div className="scene-title-chip">{SCENE_LABELS[scene] || scene}</div>
           )}
 
-          {/* Main game view - render same scene components as host, read-only */}
+          {/* Main game view — rendered from host's synced state */}
           {!hostState && (
             <div className="scene" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: 20 }}>
               <div style={{ fontSize: 60, marginBottom: 20 }}>🎮</div>
               <div style={{ fontFamily: 'var(--pixel)', fontSize: 'var(--t-md)', color: 'var(--cyan)' }}>
                 {connected ? '等待主播开始游戏...' : '正在连接直播间...'}
               </div>
-              <div style={{ fontSize: 'var(--t-sm)', color: 'var(--txt-dim)', marginTop: 10 }}>
-                你的评论将影响游戏世界
+            </div>
+          )}
+
+          {/* Home scene */}
+          {hostState && (scene === 'home' || scene === 'organize') && (
+            <div className="scene">
+              <div className="scene-title-chip">🏠 家中 · Day {day}</div>
+              <ShelterBg>
+                <div className="char-sprite hero bob" style={{ left: '40%', top: 360 }}>
+                  <div className="body">🧑‍🚀</div>
+                  <div className="shadow" />
+                  <div className="name-tag">主播</div>
+                </div>
+                {COMPANIONS && COMPANIONS[0] && (
+                  <div className="char-sprite" style={{ position: 'absolute', left: '58%', top: 400 }}>
+                    <div className="body" style={{ fontSize: 44, borderColor: 'var(--magenta)', boxShadow: '0 0 18px rgba(255,77,141,.4)' }}>{COMPANIONS[0].av}</div>
+                    <div className="shadow" />
+                    <div className="name-tag">{COMPANIONS[0].name} · {COMPANIONS[0].role}</div>
+                  </div>
+                )}
+                {COMPANIONS && COMPANIONS[1] && (
+                  <div className="char-sprite" style={{ position: 'absolute', left: '24%', top: 560 }}>
+                    <div className="body" style={{ fontSize: 44, borderColor: 'var(--green)', boxShadow: '0 0 18px rgba(87,224,138,.35)' }}>{COMPANIONS[1].av}</div>
+                    <div className="shadow" />
+                    <div className="name-tag">{COMPANIONS[1].name} · {COMPANIONS[1].role}</div>
+                  </div>
+                )}
+                {/* Door */}
+                <div style={{ position: 'absolute', left: '7%', top: '26%', width: 150, height: 300 }}>
+                  <div style={{ width: '100%', height: '100%', background: '#0e0a1c', border: '4px solid #3a2f1a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 56 }}>🚪</div>
+                </div>
+                {/* Supplies */}
+                <div style={{ position: 'absolute', left: '69%', top: 560, display: 'flex', gap: 14, alignItems: 'flex-end' }}>
+                  <div style={{ width: 100, height: 90, background: '#3a2f1a', border: '3px solid #5a4a26', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 42 }}>📦</div>
+                  <div style={{ width: 80, height: 68, background: '#2a2350', border: '3px solid var(--purple)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 34 }}>🥫</div>
+                </div>
+              </ShelterBg>
+            </div>
+          )}
+
+          {/* Destination scene */}
+          {hostState && scene === 'destination' && (
+            <div className="scene">
+              <div className="scene-title-chip">🚪 选择目的地</div>
+              <div className="region-map">
+                <div className="rm-head">主播正在选择探索目标</div>
+                <div className="dest-grid">
+                  {(window.DESTINATIONS || []).map(d => (
+                    <div key={d.id} className={'dest-card ' + (d.generated ? 'generated' : '')}>
+                      {d.generated && <div className="gen-tag">✨ 由观众评论生成</div>}
+                      <div className="dc-thumb">{d.icon}</div>
+                      <div className="dc-name">{d.name}</div>
+                      <div className="dc-row"><span>危险等级</span><span className="danger">{'⭐'.repeat(d.danger)}</span></div>
+                      <div className="dc-row"><span>预估收益</span><span className="reward">{d.reward}</span></div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
 
-          {/* Reuse host's scene components — D is a no-op director (viewer can't operate) */}
-          {hostState && scene === 'home' && <SceneHome D={noopD} flags={{}} companions={COMPANIONS} />}
-          {hostState && scene === 'organize' && <SceneOrganize D={noopD} pack={pack.length ? pack : []} companions={COMPANIONS} />}
-          {hostState && scene === 'destination' && <SceneDestination D={noopD} />}
-          {hostState && scene === 'explore' && <SceneExplore D={noopD} />}
+          {/* Explore scene — read from synced explore state */}
+          {hostState && scene === 'explore' && (() => {
+            const ex = hs.explore || { ap: 3, revealed: {}, foe: null, npc: null };
+            const tiles = window.HEX_TILES || [];
+            const HW2 = 116, HH2 = 130, CX2 = 250, CY2 = 330;
+            const hpos = (x, y) => {
+              const odd = ((x % 2) + 2) % 2 === 1;
+              return { left: CX2 + x * (HW2 * 0.75) - HW2 / 2, top: CY2 + y * HH2 + (odd ? HH2 / 2 : 0) - HH2 / 2 };
+            };
+            return (
+              <div className="scene">
+                <div className="scene-title-chip">🗺️ 探索中</div>
+                <div className="explore">
+                  <div className="ap-bar">
+                    <span className="ap-label">主播行动点 {ex.ap}/5</span>
+                    <div className="ap-pips">{[0,1,2,3,4].map(i => <div key={i} className={'ap-pip ' + (i >= ex.ap ? 'used' : '')} />)}</div>
+                  </div>
+                  <div className="hexwrap">
+                    <div className="hexgrid" style={{ width: 520, height: 700 }}>
+                      {tiles.map(t => {
+                        const pos = hpos(t.x, t.y);
+                        const rev = ex.revealed[t.id];
+                        let cls = 'hex ';
+                        if (t.type === 'hero') cls += 'hero ';
+                        else if (rev) cls += 'revealed ' + t.type + ' ';
+                        else cls += 'fog ';
+                        if (t.generated && rev) cls += 'generated ';
+                        const icon = t.type === 'hero' ? '🧑‍🚀' : rev ? (t.icon || '') : '';
+                        return (
+                          <div key={t.id} className={cls} style={{ left: pos.left, top: pos.top }}>
+                            <div className="hx-inner">
+                              {icon}
+                              {rev && t.label && t.type !== 'hero' && <span className="htype">{t.label}</span>}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                  {ex.foe && (
+                    <div className="battle-foe">
+                      <div className="char-sprite hero" style={{ position: 'static' }}><div className="body">🧑‍🚀</div><div className="shadow" /></div>
+                      <div style={{ fontFamily: 'var(--pixel)', fontSize: 20, color: 'var(--red)' }}>VS</div>
+                      <div className="char-sprite" style={{ position: 'static' }}>
+                        <div className="body" style={{ borderColor: 'var(--red)', fontSize: 48, boxShadow: '0 0 20px rgba(255,59,92,.5)' }}>{ex.foe.icon}</div>
+                        <div className="shadow" /><div className="name-tag">{ex.foe.name}</div>
+                      </div>
+                    </div>
+                  )}
+                  {ex.npc && (
+                    <div className="npc-bubble" style={{ left: '52%', top: '26%' }}>
+                      <b style={{ color: 'var(--cyan)' }}>{ex.npc.av} {ex.npc.name}</b><br />{ex.npc.line}
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })()}
+
+          {/* Endings */}
           {hostState && scene === 'fail' && <EndingFail days={day} onSettle={() => {}} onReplay={() => {}} />}
           {hostState && scene === 'win' && <EndingWin days={day} explored={0} items={0} onSettle={() => {}} onShare={() => {}} />}
           {hostState && scene === 'settle' && <Settlement outcome="win" days={day} onShare={() => {}} onReplay={() => {}} />}
