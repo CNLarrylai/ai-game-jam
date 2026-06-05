@@ -20,6 +20,7 @@ const WsSync = {
     this.uid = userInfo.uid || 'u_' + Math.random().toString(36).slice(2, 10);
 
     const doConnect = () => {
+      console.log('[WS] Connecting to:', WS_URL);
       try {
         this.ws = new WebSocket(WS_URL);
       } catch (e) {
@@ -54,7 +55,7 @@ const WsSync = {
         this.reconnectTimer = setTimeout(doConnect, 3000);
       };
 
-      this.ws.onerror = () => {};  // onclose will handle reconnect
+      this.ws.onerror = (e) => { console.error('[WS] error:', e); };
     };
 
     doConnect();
