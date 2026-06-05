@@ -623,14 +623,48 @@ function App(props) {
         }
       }
 
-      // ============ ITEM: 获得物品 ============
+      // ============ ITEM: 获得物品 → 弹决策让主播选择怎么用 ============
       if (cat === 'ITEM' || cat === 'ITEM_RECEIVED') {
         const itemName = ev.event_title || ev.name || ev.narrative?.match(/「(.+?)」/)?.[1] || '神秘物品';
-        showBanner({ icon: '✨', html: '<b>@' + source + '</b> 的创意生效了！获得「' + itemName + '」' });
-        toast({ icon: '🎒', name: '获得: ' + itemName + ' (by @' + source + ')' });
-        if (ev.narrative) {
-          pushComment({ user: '🎮 系统', av: '🎮', text: ev.narrative, system: true });
-        }
+        showBanner({ icon: '✨', html: '<b>@' + source + '</b> 的创意生效了！发现「' + itemName + '」' });
+
+        // If Phase 2 returned options, use them; otherwise generate default use/discard options
+        const itemOpts = (ev.options && ev.options.length) ? ev.options.map(o =>
+          typeof o === 'string' ? { id: o, label: o, icon: '▸', _raw: {} }
+          : { id: o.id || o.label, label: o.label || o.text, icon: o.icon || '▸', sub: o.sub || '', _raw: o }
+        ) : [
+          { id: 'use', label: '立即使用 ' + itemName, icon: '✅', sub: ev.stat_changes ? Object.entries(ev.stat_changes).filter(([,v])=>v).map(([k,v])=>k+(v>0?'+':'')+v).join(', ') : '可能有未知效果', _raw: { reward: ev.stat_changes || { hp: 10 } } },
+          { id: 'keep', label: '收入背包', icon: '🎒', sub: '留着以后用', _raw: { result: '你把「' + itemName + '」塞进了背包。' } },
+          { id: 'discard', label: '丢弃', icon: '🗑️', sub: '太危险了不要', _raw: { reward: { sanity: 5 }, result: '你把「' + itemName + '」丢到了一边，理智 +5。' } },
+        ];
+
+        setTimeout(() => {
+          openDecision({
+            id: 'item_' + Date.now(), icon: '🎒',
+            title: '✨ 发现: ' + itemName + '  — by @' + source,
+            desc: ev.narrative || '你发现了一个来自观众创意的物品。',
+            options: itemOpts,
+            onChoose: (opt) => {
+              if (window.WsSync && WsSync.connected) {
+                WsSync.send({ type: 'host_action', action: 'choice', data: { choice: opt.label || opt.id } });
+              }
+              const raw = opt._raw || {};
+              const delta = {};
+              if (raw.cost) Object.entries(raw.cost).forEach(([k, v]) => { if (v) delta[k] = v; });
+              if (raw.reward) Object.entries(raw.reward).forEach(([k, v]) => { if (v) delta[k] = v; });
+              if (Object.keys(delta).length) applyStats(delta);
+              if (opt.id === 'keep') {
+                addItem(itemName.toLowerCase().replace(/\s/g, '_'));
+                toast({ icon: '🎒', name: itemName + ' 已收入背包' });
+              }
+              return raw.result || ('你选择了「' + (opt.label || opt.id) + '」');
+            },
+            onContinue: () => {
+              closeDecision();
+              toast({ icon: '✅', name: '@' + source + ' 的物品事件已处理' });
+            },
+          });
+        }, 1500);
       }
 
       // Apply stat changes if any
