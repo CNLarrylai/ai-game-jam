@@ -22,6 +22,9 @@ function dwellingForDay(day) {
 }
 
 function App() {
+  // 同伴对话来自技能契约 dialogue.json（引导加载后挂在 window.WL_DIALOGUE）
+  const COMPANIONS = window.WL_DIALOGUE || [];
+
   const [scene, setScene] = useState("intro");
   const [day, setDay] = useState(1);
   const maxDay = 7;
@@ -373,4 +376,7 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+// 等契约数据(intro/dialogue)就绪再挂载，确保 WL_INTRO / WL_DIALOGUE 已加载
+(window.WL_BOOT || Promise.resolve()).then(() => {
+  ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+});
