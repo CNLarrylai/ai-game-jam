@@ -450,6 +450,10 @@ function App(props) {
     destinations,
   };
 
+  // Keep latest action functions on window — WsSync handlers in useEffect([]) have stale closures
+  // This is the ONLY reliable way to call current functions from one-time-registered listeners
+  window.__A = { openDecision, closeDecision, showBanner, applyStats, toast, setStory, setDecision, addItem, removeItem, confirmDest, pushComment, setDestinations };
+
   /* enter-scene chat banners */
   useEffect(() => {
     if (scene !== "fail" && scene !== "win") setChatBanner(null);
@@ -560,7 +564,7 @@ function App(props) {
     };
     const onViewerJoin = (msg) => {
       setViewers(msg.viewerCount || viewers);
-      pushComment({ user: "系统", av: "📢", text: (msg.name || "新观众") + " 进入了直播间", system: true });
+      window.__A.pushComment({ user: "系统", av: "📢", text: (msg.name || "新观众") + " 进入了直播间", system: true });
     };
     const onViewerLeave = (msg) => {
       setViewers(msg.viewerCount || viewers);
@@ -584,12 +588,12 @@ function App(props) {
           sub: '由 @' + source + ' 创造' + (cat === 'LOCATION' ? ' · 新地点' : cat === 'ITEM' ? ' · 新物品' : ''),
           _raw: ev.options?.[0] || { result: ev.narrative || optLabel },
         };
-        setDecision(d => d ? { ...d, options: [...(d.options || []), newOpt] } : d);
-        showBanner({ icon: '✨', html: '<b>@' + source + '</b> 为当前事件添加了新选项！「' + optLabel + '」' });
+        window.__A.setDecision(d => d ? { ...d, options: [...(d.options || []), newOpt] } : d);
+        window.__A.showBanner({ icon: '✨', html: '<b>@' + source + '</b> 为当前事件添加了新选项！「' + optLabel + '」' });
         // Also add location if LOCATION type
         if (cat === 'LOCATION' || cat === 'LOCATION_PASSTHROUGH') {
           const locName = ev.event_title || ev.name || '观众地点';
-          setDestinations(ds => [...ds, {
+          window.__A.setDestinations(ds => [...ds, {
             id: 'gen_' + Date.now(), icon: '✨', name: locName,
             danger: ev.danger_level || 3, reward: ev.reward || '未知',
             ap: ev.ap || 3, generated: true, by: source,
@@ -602,7 +606,7 @@ function App(props) {
       // If there's an active story, queue the event
       if (storyRef.current) {
         eventQueueRef.current.push(msg);
-        toast({ icon: '📋', name: '新事件已排队' });
+        window.__A.toast({ icon: '📋', name: '新事件已排队' });
         return;
       }
 
@@ -615,9 +619,9 @@ function App(props) {
           ap: ev.ap || 3, generated: true, by: source,
           confirm: '确定前往「' + locName + '」？这是观众 @' + source + ' 创造的地点。'
         };
-        setDestinations(ds => [...ds, newDest]);
-        showBanner({ big: true, icon: '🏭', html: '<b>@' + source + '</b> 创造了新地点！「' + locName + '」已加入目的地列表' });
-        toast({ icon: '🗺️', name: '新目的地: ' + locName + ' (by @' + source + ')' });
+        window.__A.setDestinations(ds => [...ds, newDest]);
+        window.__A.showBanner({ big: true, icon: '🏭', html: '<b>@' + source + '</b> 创造了新地点！「' + locName + '」已加入目的地列表' });
+        window.__A.toast({ icon: '🗺️', name: '新目的地: ' + locName + ' (by @' + source + ')' });
         return;
       }
 
@@ -639,10 +643,10 @@ function App(props) {
           opt._raw = o;
           return opt;
         });
-        showBanner({ big: true, icon: '✨', html: '<b>@' + source + '</b> 的创意生效了！' + (ev.event_title ? '「' + ev.event_title + '」' : '') });
+        window.__A.showBanner({ big: true, icon: '✨', html: '<b>@' + source + '</b> 的创意生效了！' + (ev.event_title ? '「' + ev.event_title + '」' : '') });
         if (opts.length) {
           setTimeout(() => {
-            openDecision({
+            window.__A.openDecision({
               id: 'ai_' + Date.now(), icon: '🎮',
               title: '✨ ' + (ev.event_title || 'AI 事件') + '  — by @' + source,
               desc: ev.narrative || '',
@@ -655,19 +659,19 @@ function App(props) {
                 setTimeout(() => {
                   const d = decisionRef.current;
                   if (d && d.result && d.result.includes('AI 正在生成')) {
-                    applyStats({ sanity: -5 });
-                    closeDecision();
-                    setStory({
+                    window.__A.applyStats({ sanity: -5 });
+                    window.__A.closeDecision();
+                    window.__A.setStory({
                       illus: '📖',
                       text: '你选择了「' + (opt.label || opt.id) + '」。这个决定的后果还不明朗……\n\n━━━━━━━━━━━━━━━━\n📊 🧠理智-5',
-                      source: '@' + source, onContinue: () => setStory(null),
+                      source: '@' + source, onContinue: () => window.__A.setStory(null),
                     });
                   }
                 }, 12000);
                 return '你选择了「' + (opt.label || opt.id) + '」\n\nAI 正在生成结果...';
               },
               onContinue: () => {
-                closeDecision();
+                window.__A.closeDecision();
                 // Process next queued event if any
                 if (eventQueueRef.current.length > 0) {
                   const next = eventQueueRef.current.shift();
@@ -678,13 +682,13 @@ function App(props) {
           }, 1500);
         } else if (ev.narrative) {
           // No options — show as story with stat effects
-          setStory({ illus: '✨', text: ev.narrative, source: '@' + source, onContinue: () => {
-            setStory(null);
+          window.__A.setStory({ illus: '✨', text: ev.narrative, source: '@' + source, onContinue: () => {
+            window.__A.setStory(null);
             // Apply any stat changes from the event
             if (ev.stat_changes) {
               const delta = {};
               Object.entries(ev.stat_changes).forEach(([k, v]) => { if (v) delta[k] = v; });
-              if (Object.keys(delta).length) applyStats(delta);
+              if (Object.keys(delta).length) window.__A.applyStats(delta);
             }
           }});
         }
@@ -693,7 +697,7 @@ function App(props) {
       // ============ ITEM: 获得物品 → 弹决策让主播选择怎么用 ============
       if (cat === 'ITEM' || cat === 'ITEM_RECEIVED') {
         const itemName = ev.event_title || ev.name || ev.narrative?.match(/「(.+?)」/)?.[1] || '神秘物品';
-        showBanner({ icon: '✨', html: '<b>@' + source + '</b> 的创意生效了！发现「' + itemName + '」' });
+        window.__A.showBanner({ icon: '✨', html: '<b>@' + source + '</b> 的创意生效了！发现「' + itemName + '」' });
 
         // If Phase 2 returned options, use them; otherwise generate default use/discard options
         const itemOpts = (ev.options && ev.options.length) ? ev.options.map(o =>
@@ -706,7 +710,7 @@ function App(props) {
         ];
 
         setTimeout(() => {
-          openDecision({
+          window.__A.openDecision({
             id: 'item_' + Date.now(), icon: '🎒',
             title: '✨ 发现: ' + itemName + '  — by @' + source,
             desc: ev.narrative || '你发现了一个来自观众创意的物品。',
@@ -719,16 +723,16 @@ function App(props) {
               const delta = {};
               if (raw.cost) Object.entries(raw.cost).forEach(([k, v]) => { if (v) delta[k] = v; });
               if (raw.reward) Object.entries(raw.reward).forEach(([k, v]) => { if (v) delta[k] = v; });
-              if (Object.keys(delta).length) applyStats(delta);
+              if (Object.keys(delta).length) window.__A.applyStats(delta);
               if (opt.id === 'keep') {
-                addItem(itemName.toLowerCase().replace(/\s/g, '_'));
-                toast({ icon: '🎒', name: itemName + ' 已收入背包' });
+                window.__A.addItem(itemName.toLowerCase().replace(/\s/g, '_'));
+                window.__A.toast({ icon: '🎒', name: itemName + ' 已收入背包' });
               }
               return raw.result || ('你选择了「' + (opt.label || opt.id) + '」');
             },
             onContinue: () => {
-              closeDecision();
-              toast({ icon: '✅', name: '@' + source + ' 的物品事件已处理' });
+              window.__A.closeDecision();
+              window.__A.toast({ icon: '✅', name: '@' + source + ' 的物品事件已处理' });
             },
           });
         }, 1500);
@@ -741,14 +745,14 @@ function App(props) {
         if (ev.stat_changes.hunger) delta.hunger = ev.stat_changes.hunger;
         if (ev.stat_changes.sanity) delta.sanity = ev.stat_changes.sanity;
         if (ev.stat_changes.thirst) delta.supply = ev.stat_changes.thirst;
-        if (Object.keys(delta).length) applyStats(delta);
+        if (Object.keys(delta).length) window.__A.applyStats(delta);
       }
       if (ev.inventory_change?.add_items) {
-        ev.inventory_change.add_items.forEach(item => toast({ icon: '🎒', name: '获得: ' + item }));
+        ev.inventory_change.add_items.forEach(item => window.__A.toast({ icon: '🎒', name: '获得: ' + item }));
       }
     };
     const onBanner = (msg) => {
-      if (msg.data) showBanner({ ...msg.data, id: Date.now() });
+      if (msg.data) window.__A.showBanner({ ...msg.data, id: Date.now() });
     };
     const onChoiceResult = (msg) => {
       const r = msg.data || {};
@@ -764,30 +768,30 @@ function App(props) {
           const label = { hp: '❤️HP', hunger: '🍞饱腹', supply: '📦物资', sanity: '🧠理智' }[key] || key;
           statParts.push(label + (v > 0 ? '+' : '') + v);
         });
-        if (Object.keys(delta).length) applyStats(delta);
+        if (Object.keys(delta).length) window.__A.applyStats(delta);
       }
 
       // Apply items
       const itemParts = [];
       if (r.inventory_change?.add_items) {
-        r.inventory_change.add_items.forEach(item => { addItem(item); itemParts.push('✅ 获得: ' + item); });
+        r.inventory_change.add_items.forEach(item => { window.__A.addItem(item); itemParts.push('✅ 获得: ' + item); });
       }
       if (r.inventory_change?.remove_items) {
-        r.inventory_change.remove_items.forEach(item => { removeItem(item); itemParts.push('❌ 失去: ' + item); });
+        r.inventory_change.remove_items.forEach(item => { window.__A.removeItem(item); itemParts.push('❌ 失去: ' + item); });
       }
 
       // Close decision, show full-screen story with result + stats
-      closeDecision();
+      window.__A.closeDecision();
       const storyText = r.narrative || '选择完成。';
       const statsLine = statParts.length ? '━━━━━━━━━━━━━━━━\n📊 ' + statParts.join('   ') : '';
       const itemsLine = itemParts.length ? '🎒 ' + itemParts.join('   ') : '';
       const fullText = storyText
         + (statsLine || itemsLine ? '\n\n' + statsLine + (itemsLine ? '\n' + itemsLine : '') : '');
 
-      setStory({
+      window.__A.setStory({
         illus: '📖', text: fullText, source: '',
         onContinue: () => {
-          setStory(null);
+          window.__A.setStory(null);
           // Process queued events
           if (eventQueueRef.current.length > 0) {
             const next = eventQueueRef.current.shift();
@@ -799,7 +803,7 @@ function App(props) {
 
     WsSync.on('viewer_comment', onViewerComment);
     const onSystemMsg = (msg) => {
-      pushComment({ user: msg.name || '系统', av: msg.avatar || '🎮', text: msg.text, system: true });
+      window.__A.pushComment({ user: msg.name || '系统', av: msg.avatar || '🎮', text: msg.text, system: true });
     };
 
     WsSync.on('viewer_join', onViewerJoin);
@@ -834,7 +838,7 @@ function App(props) {
       if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
       if (e.key === "1") triggerFail();
       else if (e.key === "2") triggerWin();
-      else if (e.key === "3") { closeDecision(); setStory(null); setScene("settle"); }
+      else if (e.key === "3") { window.__A.closeDecision(); window.__A.setStory(null); setScene("settle"); }
       else if (e.key === "0") resetGame();
     };
     window.addEventListener("keydown", onKey);
@@ -903,11 +907,11 @@ function App(props) {
             onChoose={(opt) => {
               const res = decision.onChoose ? decision.onChoose(opt) : "";
               if (voteTimer.current) clearInterval(voteTimer.current);
-              setDecision((d) => d ? { ...d, result: res } : d);
+              window.__A.setDecision((d) => d ? { ...d, result: res } : d);
             }}
-            onContinue={() => decision && (decision.onContinue ? decision.onContinue() : closeDecision())} />}
+            onContinue={() => decision && (decision.onContinue ? decision.onContinue() : window.__A.closeDecision())} />}
           <StoryCard story={story}
-            onContinue={() => story && (story.onContinue ? story.onContinue() : setStory(null))} />
+            onContinue={() => story && (story.onContinue ? story.onContinue() : window.__A.setStory(null))} />
           <ItemToast toasts={toasts} />
           <ConfirmModal confirm={confirmD} onGo={goExplore} onBack={() => setConfirmD(null)} />
           <PhaseTransition phase={phase} />
