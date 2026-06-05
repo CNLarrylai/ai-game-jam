@@ -215,11 +215,12 @@ function SceneExplore({ D }) {
               if (t.type === "hero") cls += "hero ";
               else if (rev) cls += "revealed " + t.type + " ";
               else if (adj) cls += "adjacent ";
+              else if (isViewer) cls += "fog ";  // viewer: show all unrevealed as fog with ?
               else cls += "fog ";
               if (t.generated && (rev || adj)) cls += "generated ";
               const icon = t.type === "hero" ? "🧑‍🚀"
-                : rev ? (t.icon || (t.type === "empty" ? "·" : "")) 
-                : adj ? "❔" : "";
+                : rev ? (t.icon || (t.type === "empty" ? "·" : t.type === "search" ? "🏥" : t.type === "npc" ? "❓" : t.type === "battle" ? "⚠️" : "📍"))
+                : (adj || isViewer) ? "❔" : "";
               return (
                 <div key={t.id} className={cls} style={{ left: pos.left, top: pos.top }}
                   onClick={() => adj && explore(t)}>
