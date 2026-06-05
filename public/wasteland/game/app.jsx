@@ -765,12 +765,14 @@ function App(props) {
 
       // Close decision, show full-screen story with result + stats
       closeDecision();
-      const storyText = (r.narrative || '选择完成。')
-        + (statParts.length ? '\n\n' + statParts.join('  ') : '')
-        + (itemParts.length ? '\n' + itemParts.join('  ') : '');
+      const storyText = r.narrative || '选择完成。';
+      const statsLine = statParts.length ? '━━━━━━━━━━━━━━━━\n📊 ' + statParts.join('   ') : '';
+      const itemsLine = itemParts.length ? '🎒 ' + itemParts.join('   ') : '';
+      const fullText = storyText
+        + (statsLine || itemsLine ? '\n\n' + statsLine + (itemsLine ? '\n' + itemsLine : '') : '');
 
       setStory({
-        illus: '📖', text: storyText, source: '',
+        illus: '📖', text: fullText, source: '',
         onContinue: () => {
           setStory(null);
           // Process queued events
