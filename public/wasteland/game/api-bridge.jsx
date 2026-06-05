@@ -1,7 +1,8 @@
 /* api-bridge.jsx — connects WASTELAND LIVE to backend APIs + WebSocket */
 
 const API_BASE = window.location.origin;
-const WS_URL = 'ws://' + window.location.hostname + ':3002';
+const _isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const WS_URL = _isLocal ? 'ws://localhost:3002' : 'wss://wasteland-ws.loca.lt';
 
 /* ============================================================
    WebSocket 实时同步层
@@ -194,9 +195,9 @@ window.ApiBridge = ApiBridge;
 /* ============================================================
    Auto-connect: 主播端自动以 host 身份连接 WebSocket
    ============================================================ */
-if (!window.__WS_CONNECTED__) {
+// Only auto-connect as host if NOT loaded by viewer-app.jsx
+// Viewer connects separately with its own identity
+if (!window.__WS_CONNECTED__ && !window.__VIEWER_MODE__) {
   window.__WS_CONNECTED__ = true;
-  // 默认以 host 身份连接（WASTELAND LIVE.html 是主播端）
-  // 用户端会在自己的页面里以 viewer 身份连接
   WsSync.connect('host');
 }

@@ -11,7 +11,8 @@ const initPack = () => ([
   { ...ITEMS.can }, { ...ITEMS.bandage }, { ...ITEMS.water }, { ...ITEMS.scrap },
 ]);
 
-function App() {
+function App(props) {
+  const isViewer = props && props.viewerMode;
   const [scene, setScene] = useState("home");
   const [day, setDay] = useState(1);
   const maxDay = 7;
@@ -45,8 +46,57 @@ function App() {
   const sceneRef = useRef(scene);
   sceneRef.current = scene;
 
-  /* ---- ambient comment stream ---- */
+  /* ---- VIEWER MODE: receive all state from host via WebSocket ---- */
   useEffect(() => {
+    if (!isViewer || !props.viewerWs) return;
+    const ws = props.viewerWs;
+    const handler = (e) => {
+      let msg;
+      try { msg = JSON.parse(e.data); } catch { return; }
+      if (msg.type === 'state_sync' && msg.data) {
+        const d = msg.data;
+        if (d.day != null) setDay(d.day);
+        if (d.stats) setStats(s => ({ ...s, ...d.stats }));
+        if (d.scene) setScene(d.scene);
+        if (d.pack) setPack(d.pack);
+        if (d.flags) setFlags(d.flags);
+        // Decision
+        if (d.decision) setDecision(d.decision);
+        else setDecision(null);
+        // Overlays
+        if (d.banner) { setBanner({ ...d.banner, id: uid() }); }
+        else setBanner(null);
+        if (d.story) setStory(d.story);
+        else setStory(null);
+        if (d.phase) setPhase({ ...d.phase, id: uid() });
+        else setPhase(null);
+        if (d.cta) setCta(d.cta);
+        else setCta(null);
+        // Explore internal state
+        if (d.explore) window.__EXPLORE_STATE__ = d.explore;
+      }
+      if (msg.type === 'host_action') {
+        if (msg.action === 'explore_state' && msg.data) {
+          window.__EXPLORE_STATE__ = msg.data;
+        }
+        if (msg.action === 'cursor' && msg.data) {
+          window.__HOST_CURSOR__ = msg.data;
+        }
+        if (msg.action === 'click' && msg.data) {
+          window.__HOST_CLICK__ = { ...msg.data, t: Date.now() };
+        }
+      }
+      if (msg.type === 'new_comment') {
+        streamComment({ user: msg.name || '?', av: msg.avatar || '👤', text: msg.text });
+      }
+    };
+    ws.addEventListener('message', handler);
+    return () => ws.removeEventListener('message', handler);
+  }, [isViewer, props?.viewerWs]);
+
+  /* ---- ambient comment stream (host only) ---- */
+  useEffect(() => {
+    if (isViewer) return;
     var elapsed = 0;
     const t = setInterval(() => {
       elapsed++;
@@ -70,6 +120,7 @@ function App() {
      comments collapses into ONE muted ×N line, then the AI posts a notice that
      repeating the same content gains no adoption weight. */
   useEffect(() => {
+    if (isViewer) return;
     let timers = [];
     const burst = () => {
       const phrase = SPAM_PHRASES[Math.floor(Math.random() * SPAM_PHRASES.length)];
@@ -323,7 +374,7 @@ function App() {
 
   /* ---- periodically check server comment buffer for actionable comments ---- */
   useEffect(() => {
-    if (!window.ApiBridge) return;
+    if (isViewer || !window.ApiBridge) return;
     const interval = setInterval(async () => {
       const serverComments = await ApiBridge.getComments();
       if (serverComments.length > 0) {
@@ -343,7 +394,7 @@ function App() {
 
   /* ---- broadcast FULL game state for spectators (WebSocket) ---- */
   useEffect(() => {
-    if (window.WsSync && WsSync.connected) {
+    if (!isViewer && window.WsSync && WsSync.connected) {
       WsSync.broadcastGameState({
         day, stats, scene,
         pack: pack.map(i => ({ id: i.id, name: i.name, qty: i.qty, icon: i.icon })),
@@ -359,33 +410,22 @@ function App() {
         explore: window.__EXPLORE_STATE__ || null,
       });
     }
-  });
-  // Also re-broadcast on a short interval to catch scene-internal state changes (explore revealed tiles etc)
+  }, [day, stats, scene, decision, banner, story, phase, cta]);
+
+  // Broadcast explore internal state changes separately (since they're in a child component)
   useEffect(() => {
+    if (isViewer || scene !== 'explore') return;
     const t = setInterval(() => {
-      if (window.WsSync && WsSync.connected) {
-        WsSync.broadcastGameState({
-          day, stats, scene,
-          pack: pack.map(i => ({ id: i.id, name: i.name, qty: i.qty, icon: i.icon })),
-          decision: decision ? {
-            icon: decision.icon, title: decision.title, desc: decision.desc,
-            opts: decision.options || decision.opts, votes: decision.votes, result: decision.result
-          } : null,
-          banner: banner ? { icon: banner.icon, html: banner.html, big: banner.big } : null,
-          story: story ? { illus: story.illus, text: story.text, source: story.source } : null,
-          phase: phase ? { big: phase.big, sub: phase.sub } : null,
-          cta: cta ? { prompt: cta.prompt } : null,
-          flags: flags,
-          explore: window.__EXPLORE_STATE__ || null,
-        });
+      if (window.WsSync && WsSync.connected && window.__EXPLORE_STATE__) {
+        WsSync.send({ type: 'host_action', action: 'explore_state', data: window.__EXPLORE_STATE__ });
       }
-    }, 500);
+    }, 800);
     return () => clearInterval(t);
-  }, []);
+  }, [scene]);
 
   /* ---- receive viewer comments via WebSocket ---- */
   useEffect(() => {
-    if (!window.WsSync) return;
+    if (isViewer || !window.WsSync) return;
     const onViewerComment = (msg) => {
       streamComment({ user: msg.name, av: msg.avatar, text: msg.text });
     };
@@ -408,6 +448,7 @@ function App() {
 
   /* hidden review shortcuts (NOT visible streamer controls): 1=fail 2=win 3=settle 0=restart */
   useEffect(() => {
+    if (isViewer) return;
     const onKey = (e) => {
       if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
       if (e.key === "1") triggerFail();
@@ -421,7 +462,7 @@ function App() {
 
   /* ---- broadcast cursor position for viewers ---- */
   useEffect(() => {
-    if (!window.WsSync || !WsSync.connected) return;
+    if (isViewer || !window.WsSync || !WsSync.connected) return;
     const stage = document.querySelector('.stage-col');
     if (!stage) return;
     let last = 0;
@@ -469,7 +510,7 @@ function App() {
         floats={floats} flashSlot={flashSlot} />
 
       <div className="main-row">
-        <div className="stage-col">
+        <div className={"stage-col" + (isViewer ? " viewer-stage" : "")}>
           {scene !== "fail" && scene !== "win" && scene !== "settle" && renderScene()}
 
           {/* overlays */}
@@ -514,4 +555,7 @@ function App() {
   );
 }
 
-ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+// Only auto-mount if NOT in viewer mode (viewer-app.jsx mounts its own wrapper)
+if (!window.__VIEWER_MODE__) {
+  ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+}
