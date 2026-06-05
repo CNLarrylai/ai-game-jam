@@ -332,6 +332,9 @@ function App() {
   const goScene = useCallback((s) => { closeDecision(); setStory(null); setScene(s); }, [closeDecision]);
   const setFlag = useCallback((k, v) => setFlags((f) => ({ ...f, [k]: v })), []);
 
+  /* 探索场景状态(走格/开格/AP)上报,经 state_sync 镜像到看播端 */
+  const [exploreSync, setExploreSync] = useState(null);
+
   const D = {
     adoptComment, applyStats, addItem, removeItem, toast, injectComment: pushComment,
     banner: showBanner, spawn: showSpawn, byTag: showByTag, story: setStory,
@@ -339,6 +342,7 @@ function App() {
     phase: showPhase, goOut, confirmDest, returnShelter, goScene, setFlag, day, stats,
     addCompanion: (c) => { setCompanions((prev) => [...prev, c]); },
     generateAIEvent,
+    reportExplore: setExploreSync,
   };
 
   /* enter-scene chat banners */
@@ -380,9 +384,10 @@ function App() {
         story: story ? { illus: story.illus, text: story.text, source: story.source } : null,
         phase: phase ? { big: phase.big, sub: phase.sub } : null,
         cta: cta ? { prompt: cta.prompt } : null,
+        explore: scene === "explore" ? exploreSync : null,
       });
     }
-  }, [day, stats, scene, decision, banner, story, phase, cta]);
+  }, [day, stats, scene, decision, banner, story, phase, cta, exploreSync]);
 
   /* ---- receive viewer comments via WebSocket ---- */
   useEffect(() => {

@@ -109,16 +109,16 @@ function SceneHome({ D, flags, companions }) {
     <div className="scene">
       <div className="scene-title-chip">🏠 家中 · Day {D.day} · 点击物体互动</div>
       <ShelterBg>
-        {/* door — event hotspot */}
+        {/* door — event hotspot · aligned over the painted wood door (bottom-center of room) */}
         <Hotspot variant="gold" label={flags.knock ? "🚪 门口（已查看）" : "🚪 查看门口"}
           badge={flags.knock ? null : "!"} onClick={openDoor}
-          style={{ left: "4%", top: "22%", width: 150, height: 300 }}>
+          style={{ left: "44%", top: "78%", width: 130, height: 150 }}>
           {/* transparent click region — the painted door in home_scene shows through */}
           <div style={{ width: "100%", height: "100%" }} />
         </Hotspot>
 
-        {/* hero (not interactive) — official idle pixel sprite */}
-        <div className="char-sprite hero bob" style={{ left: "40%", top: 360 }}>
+        {/* hero (not interactive) — official idle pixel sprite, stands on open floor */}
+        <div className="char-sprite hero bob" style={{ left: "46%", top: 400 }}>
           <img className="player-sprite" src="../assets/characters/char_player_idle.png"
             width={96} height={96} alt="" />
           <div className="shadow" />
@@ -135,7 +135,7 @@ function SceneHome({ D, flags, companions }) {
           </div>
         </Hotspot>}
         {companions && companions[1] && <Hotspot label={"💬 和 " + companions[1].name + " 对话"} onClick={() => talk(companions[1])}
-          style={{ left: "24%", top: 560 }}>
+          style={{ left: "30%", top: 540 }}>
           <div className="char-sprite" style={{ position: "static" }}>
             <CompanionSprite av={companions[1].av} glow="rgba(30,188,115,.7)" />
             <div className="shadow" />
@@ -164,10 +164,10 @@ function SceneHome({ D, flags, companions }) {
 
 
 
-        {/* supplies — open inventory */}
+        {/* supplies — open inventory · aligned over the painted cabinet + bookshelf (top-right of room) */}
         <Hotspot label="📦 整理物资" onClick={() => D.goScene("organize")}
-          style={{ left: "72%", top: 540, width: 200, height: 150 }}>
-          {/* transparent click region — aligns over the painted storage crates */}
+          style={{ left: "62%", top: "30%", width: 170, height: 130 }}>
+          {/* transparent click region — aligns over the painted storage cabinet/shelf */}
           <div style={{ width: "100%", height: "100%" }} />
         </Hotspot>
       </ShelterBg>

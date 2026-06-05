@@ -10,7 +10,9 @@ function BroadcastBanner({ banner }) {
   return (
     <div className="banner-layer">
       <div className={"banner " + (banner.big ? "big" : "")} key={banner.id}>
-        <span className="b-icon">{banner.icon || "✨"}</span>
+        <span className="b-icon">{window.ArtIco
+          ? <ArtIco icon={banner.icon || "✨"} text={banner.html || ""} />
+          : (banner.icon || "✨")}</span>
         <span className="b-text" dangerouslySetInnerHTML={{ __html: banner.html }} />
       </div>
     </div>
@@ -102,7 +104,9 @@ function StoryCard({ story, onContinue }) {
     <div className="story">
       <div className="s-illus">
         <div className="glowbg" />
-        <span style={{ position: "relative" }}>{story.illus}</span>
+        <span style={{ position: "relative" }}>{window.ArtIllus
+          ? <ArtIllus emoji={story.illus} text={story.text || ""} />
+          : story.illus}</span>
       </div>
       <div className="s-text">
         {shown}{!done && <span className="caret">▋</span>}
@@ -127,7 +131,9 @@ function DecisionCard({ decision, onChoose, onContinue }) {
     <div className="decision">
       <div className="d-card">
         <div className="d-head">
-          {icon && <span className="d-icon">{icon}</span>}
+          {icon && <span className="d-icon">{window.ArtIco
+            ? <ArtIco icon={icon} text={(title || "") + " " + (desc || "")} />
+            : icon}</span>}
           <span className="d-title">{title}</span>
         </div>
         {desc && <div className="d-desc">{desc}</div>}

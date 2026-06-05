@@ -38,8 +38,10 @@ function ViewerApp() {
   /* ============ WebSocket ============ */
   useEffect(() => {
     if (!entered) return;
-    const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-    const url = isLocal ? 'ws://localhost:3002' : 'wss://wasteland-ws.loca.lt';
+    /* localhost/局域网(手机同 WiFi)直连本机 ws;公网才走隧道 */
+    const h = window.location.hostname;
+    const isPrivate = h === 'localhost' || /^(127\.|10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.)/.test(h);
+    const url = isPrivate ? ('ws://' + h + ':3002') : 'wss://wasteland-ws.loca.lt';
     let ws;
     try { ws = new WebSocket(url); } catch { return; }
 
@@ -193,7 +195,7 @@ function ViewerApp() {
           {hostState && scene === 'home' && <SceneHome D={noopD} flags={{}} companions={COMPANIONS} />}
           {hostState && scene === 'organize' && <SceneOrganize D={noopD} pack={pack.length ? pack : []} companions={COMPANIONS} />}
           {hostState && scene === 'destination' && <SceneDestination D={noopD} />}
-          {hostState && scene === 'explore' && <SceneExplore D={noopD} />}
+          {hostState && scene === 'explore' && <SceneExplore D={noopD} mirror={hs.explore || null} />}
           {hostState && scene === 'fail' && <EndingFail days={day} onSettle={() => {}} onReplay={() => {}} />}
           {hostState && scene === 'win' && <EndingWin days={day} explored={0} items={0} onSettle={() => {}} onShare={() => {}} />}
           {hostState && scene === 'settle' && <Settlement outcome="win" days={day} onShare={() => {}} onReplay={() => {}} />}
@@ -203,7 +205,9 @@ function ViewerApp() {
             <div className="decision">
               <div className="d-card">
                 <div className="d-head">
-                  <span className="d-icon">{decision.icon || '❓'}</span>
+                  <span className="d-icon">{window.ArtIco
+                    ? <ArtIco icon={decision.icon || '❓'} text={(decision.title || '') + ' ' + (decision.desc || '')} />
+                    : (decision.icon || '❓')}</span>
                   <span className="d-title">{decision.title || ''}</span>
                   <span style={{ marginLeft: 'auto', fontSize: 'var(--t-sm)', color: 'var(--cyan)', display: 'flex', alignItems: 'center', gap: 6 }}>
                     👁 主播正在操作…
@@ -238,7 +242,9 @@ function ViewerApp() {
           {banner && (
             <div className="banner-layer">
               <div className={"banner " + (banner.big ? "big" : "")}>
-                <span className="b-icon">{banner.icon || '✨'}</span>
+                <span className="b-icon">{window.ArtIco
+                  ? <ArtIco icon={banner.icon || '✨'} text={banner.html || ''} />
+                  : (banner.icon || '✨')}</span>
                 <span className="b-text" dangerouslySetInnerHTML={{ __html: banner.html || '' }} />
               </div>
             </div>
@@ -247,7 +253,9 @@ function ViewerApp() {
           {/* Story overlay */}
           {story && (
             <div className="story">
-              <div className="s-illus"><div className="glowbg" />{story.illus || '📖'}</div>
+              <div className="s-illus"><div className="glowbg" />{window.ArtIllus
+                ? <ArtIllus emoji={story.illus || '📖'} text={story.text || ''} />
+                : (story.illus || '📖')}</div>
               <div className="s-text">{story.text || ''}</div>
               {story.source && <div className="s-source">📝 灵感来源：{story.source}</div>}
             </div>

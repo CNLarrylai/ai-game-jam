@@ -56,7 +56,8 @@ function SceneDestination({ D }) {
 /* ============================================================
    探索地图 (hex) — 键盘走格 · 踏入式开格
    ============================================================ */
-const HEX_W = 116, HEX_H = 130, CX = 250, CY = 330;
+/* flat-top honeycomb: H = W·√3/2 so edges tile seamlessly (col step .75W, odd col sinks H/2) */
+const HEX_W = 120, HEX_H = 104, CX = 250, CY = 330;
 /* 六向邻接随列奇偶变化（奇数列视觉下沉半格） */
 function hexNeighbors(x) {
   return ((x % 2) + 2) % 2 === 1
@@ -79,7 +80,7 @@ function hexPos(x, y) {
   };
 }
 
-function SceneExplore({ D }) {
+function SceneExplore({ D, mirror }) {
   const [ap, setAp] = useStateO(5);                 // 每日 5 行动点（对齐游戏框架文档）
   const [revealed, setRevealed] = useStateO({ c: true }); // id -> true；出生格已探明
   const [foe, setFoe] = useStateO(null);            // battle tile active
@@ -91,9 +92,21 @@ function SceneExplore({ D }) {
   const [busy, setBusy] = useStateO(false);         // 事件卡打开时锁移动
   const tiles = window.HEX_TILES;
 
+  /* —— 双端同步:看播端传入 mirror(主播状态镜像),只读渲染;主播端把状态上报给 app 广播 —— */
+  const vAp = mirror ? mirror.ap : ap;
+  const vRevealed = mirror ? (mirror.revealed || {}) : revealed;
+  const vHero = mirror ? (mirror.hero || { x: 0, y: 0 }) : hero;
+  const vFacing = mirror ? (mirror.facing || "down") : facing;
+  const vStepF = mirror ? (mirror.stepF || 0) : stepF;
+  const vMoving = mirror ? !!mirror.moving : moving;
+  useEffectO(() => {
+    if (mirror || !D.reportExplore) return;
+    D.reportExplore({ ap, revealed, hero, facing, stepF, moving });
+  }, [ap, revealed, hero, facing, stepF, moving]);
+
   const isAdjacent = (t) =>
-    hexNeighbors(hero.x).some(([nx, ny]) => hero.x + nx === t.x && hero.y + ny === t.y)
-    && !revealed[t.id] && t.type !== "hero";
+    hexNeighbors(vHero.x).some(([nx, ny]) => vHero.x + nx === t.x && vHero.y + ny === t.y)
+    && !vRevealed[t.id] && t.type !== "hero";
 
   const finishEvent = () => { setFoe(null); setNpc(null); setBusy(false); D.closeDecision(); };
 
@@ -214,7 +227,7 @@ function SceneExplore({ D }) {
     setTimeout(() => { setMoving(false); setStepF(0); }, 220);
   };
   const tryMove = (dx, dy) => {
-    if (busy || moving || foe || npc) return;
+    if (mirror || busy || moving || foe || npc) return;
     const t = tiles.find((k) => k.x === hero.x + dx && k.y === hero.y + dy);
     if (!t) return;
     const dir = dirOf(dx, dy);
@@ -248,15 +261,15 @@ function SceneExplore({ D }) {
     return () => window.removeEventListener("keydown", onKey);
   }, []);
 
-  const heroPx = hexPos(hero.x, hero.y);
+  const heroPx = hexPos(vHero.x, vHero.y);
   return (
     <div className="scene">
       <div className="scene-title-chip">🗺️ 出门 · 探索废弃医院</div>
       <div className="explore">
         <div className="ap-bar">
-          <span className="ap-label">行动点 {ap}/5</span>
+          <span className="ap-label">行动点 {vAp}/5</span>
           <div className="ap-pips">
-            {[0,1,2,3,4].map((i) => <div key={i} className={"ap-pip " + (i >= ap ? "used" : "")} />)}
+            {[0,1,2,3,4].map((i) => <div key={i} className={"ap-pip " + (i >= vAp ? "used" : "")} />)}
           </div>
           {!IS_VIEWER_PAGE && <span className="ap-hint" style={{ marginLeft: 12, opacity: .65,
             fontSize: "var(--t-xs)" }}>↑↓←→ / WASD 走格 · 踏入未知格揭开它</span>}
@@ -267,7 +280,7 @@ function SceneExplore({ D }) {
             {tiles.map((t) => {
               const pos = hexPos(t.x, t.y);
               const adj = isAdjacent(t);
-              const rev = revealed[t.id];
+              const rev = vRevealed[t.id];
               let cls = "hex ";
               if (t.type === "hero") cls += "revealed empty ";   // 出生格 = 已探明地面，hero 由独立 sprite 渲染
               else if (rev) cls += "revealed " + t.type + " ";
@@ -279,7 +292,7 @@ function SceneExplore({ D }) {
                 : adj ? "❔" : "";
               return (
                 <div key={t.id} className={cls} style={{ left: pos.left, top: pos.top }}
-                  onClick={() => adj && tryMove(t.x - hero.x, t.y - hero.y)}>
+                  onClick={() => adj && tryMove(t.x - vHero.x, t.y - vHero.y)}>
                   <div className="hx-inner">
                     {icon}
                     {rev && t.label && t.type !== "hero" &&
@@ -290,8 +303,8 @@ function SceneExplore({ D }) {
             })}
             {/* 主播角色：可行走 sprite（行走帧 4向×2帧，idle 单帧） */}
             <img alt="" className="player-sprite hero-walker"
-              src={"../assets/characters/" + (moving
-                ? "char_player_walk_" + facing + "_f" + (stepF + 1)
+              src={"../assets/characters/" + (vMoving
+                ? "char_player_walk_" + vFacing + "_f" + (vStepF + 1)
                 : "char_player_idle") + ".png"}
               width={96} height={96}
               style={{ position: "absolute", zIndex: 12, pointerEvents: "none",
@@ -331,7 +344,7 @@ function SceneExplore({ D }) {
         )}
 
         {/* out of AP */}
-        {ap <= 0 && !foe && !npc && (
+        {!mirror && ap <= 0 && !foe && !npc && (
           <div style={{ position: "absolute", left: 0, right: 0, bottom: 28, display: "flex",
             justifyContent: "center", zIndex: 50 }}>
             <button className="btn gold" onClick={() => D.returnShelter()}>
