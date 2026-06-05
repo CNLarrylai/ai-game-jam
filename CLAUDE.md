@@ -109,20 +109,54 @@ ai-game-jam/
 - Context 压缩：保留近2天详情，更早的压缩为一行摘要
 - 状态一致性修复：自动清除引用不存在道具的选项
 
+## Phase 1 → Phase 2 交互链路
+
+完整数据流：评论 → Phase 1(classifier+generator) → Phase 2(phase2_engine) → 前端
+
+```
+评论 → classifier(1ms) → generator(4.5s,Haiku) → narrative_safety(0ms)
+  → phase2_inject(0ms,透传) → 前端展示事件+选项
+  → 主播选择 → phase2_event_choice(3.5s,Haiku) → Harness守护 → 前端更新
+总耗时: ~8s
+```
+
+**bridge.py** 是胶水层，维护 GameState + history + hook_queue，串联一切。
+**字段映射**: bridge 用 spirit/health，Phase 2 用 sanity/hp，bridge 自动转换。
+
+### Phase 2 接口契约
+
+详见 `comment_engine/PHASE2_CONTRACT.md`。
+
+关键：Phase 2 有三个接口，签名和输出格式不能改（bridge.py + 测试依赖），内部逻辑随意改。
+- `/phase2_action` — 主播直接操作
+- `/phase2_inject` — Phase 1 生成结果注入
+- `/phase2_event_choice` — 主播选了选项后回调
+
+修改 Phase 2 后跑 `cd comment_engine && python3 test_pipeline_e2e.py` 确认 10/10 通过。
+
 ## 协作规范
 
 ### 身份标识
-- **cheney**: Prompt 设计 + 能力驱动系统 + 连贯性引擎 + 测试验证
+- **cheney**: Phase 1 引擎 + 能力驱动系统 + bridge.py + 测试
+- **charlotte**: Phase 2 规则守护者 (phase2_engine.py)
 - **Larry**: 小说→游戏卡点 pipeline
 - 其他窗口在 commit 时注明自己的分工方向
 
 ### 协作原则
 1. **单一数据源**: `tests/fixtures/` 下的 JSON 是标准测试状态，所有窗口从这里读
-2. **分支隔离**: 各窗口用独立 feature 分支开发，避免冲突
-3. **Prompt 同步**: 飞书文档是 prompt 设计的 source of truth，代码中的 prompt 从文档同步
-4. **状态变更通知**: 修改共享类型时，需更新本文件并通知其他窗口
+2. **接口契约**: 改 Phase 2 内部随意，但三个接口签名和 Phase2Response 格式不能变
+3. **Prompt 同步**: 飞书文档是 prompt 设计的 source of truth
+4. **修改后验证**: `python3 test_pipeline_e2e.py` 10/10 通过才能提交
+
+### 启动顺序
+```bash
+node ws-server.js                                         # :3002
+cd comment_engine && uvicorn phase2_engine:app --port 8000 # :8000
+python3 bridge.py                                         # 串联层
+npm run dev                                               # :3000
+```
 
 ## 依赖
-- Python 3.9+, anthropic SDK（comment_engine）
+- Python 3.9+, anthropic, fastapi, pydantic, json-repair, aiohttp, websockets
 - Node.js（前端 + novel pipeline）
-- Claude API key（generator.py / narrative-engine.ts 需要）
+- Claude API key（generator.py / phase2_engine.py / narrative-engine.ts）
