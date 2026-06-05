@@ -218,6 +218,7 @@ function SceneExplore({ D, mirror, dest }) {
       get ap(){ return stateRef.current.ap; },
       get hero(){ return stateRef.current.hero; },
       get revealed(){ return stateRef.current.revealed; },
+      get seenCount(){ return stateRef.current.seen.size; },
       pois: pois.map((p) => ({ id: p.cell.id, type: p.cell.type, tx: p.tx, ty: p.ty, px: (p.tx+0.5)*TILE, py: (p.ty+0.5)*TILE })),
       spawn, TILE,
       // QC：把主播瞬移到某像素坐标（仅测试用）
