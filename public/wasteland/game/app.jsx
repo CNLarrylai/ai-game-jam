@@ -410,7 +410,7 @@ function App(props) {
         explore: window.__EXPLORE_STATE__ || null,
       });
     }
-  }, [day, stats, scene, decision, banner, story, phase, cta]);
+  }, [day, stats, scene, decision, banner, story, phase, cta, flags, pack, confirmD, share]);
 
   // Broadcast explore internal state changes separately (since they're in a child component)
   useEffect(() => {
@@ -549,7 +549,11 @@ function App(props) {
         </div>
 
         <CommentFeed comments={comments} viewers={viewers} likes={likes}
-          inputHot={inputHot} chatBanner={chatBanner} />
+          inputHot={inputHot} chatBanner={chatBanner}
+          isViewer={isViewer}
+          viewerChatVal={props?.viewerChatVal || ""}
+          viewerSetChatVal={props?.viewerSetChatVal}
+          viewerSendComment={props?.viewerSendComment} />
       </div>
     </div>
   );

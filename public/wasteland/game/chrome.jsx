@@ -65,7 +65,7 @@ function StatusBar({ day, maxDay, stats, pack, floats, flashSlot }) {
   );
 }
 
-function CommentFeed({ comments, viewers, likes, inputHot, chatBanner }) {
+function CommentFeed({ comments, viewers, likes, inputHot, chatBanner, isViewer, viewerChatVal, viewerSetChatVal, viewerSendComment }) {
   const listRef = useRef(null);
   useEffect(() => {
     if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
@@ -104,13 +104,22 @@ function CommentFeed({ comments, viewers, likes, inputHot, chatBanner }) {
         ))}
       </div>
 
-      <div className={"chat-input " + (inputHot ? "hot" : "")}>
-        <div className="chat-guide">🎮 这片大陆会回应你的声音</div>
+      <div className={"chat-input " + (inputHot ? "hot" : "") + (isViewer ? " viewer" : "")}>
+        <div className="chat-guide">🎮 {isViewer ? "发评论影响游戏世界" : "这片大陆会回应你的声音"}</div>
         <div className="input-row">
-          <div className="input-fake">
-            {inputHot ? "🎮 你的创意将出现在游戏中…" : "说点什么…"}
-          </div>
-          <div className="input-send">➤</div>
+          {isViewer ? (
+            <input value={viewerChatVal || ""} onChange={e => viewerSetChatVal && viewerSetChatVal(e.target.value)}
+              placeholder="说点什么…和主播一起创造世界"
+              onKeyDown={e => e.key === 'Enter' && viewerSendComment && viewerSendComment()}
+              style={{ flex: 1, background: '#0c0a1c', border: '2px solid var(--line)', color: 'var(--txt)',
+                fontFamily: 'var(--body)', fontSize: 'var(--t-sm)', padding: '11px 12px', outline: 'none' }} />
+          ) : (
+            <div className="input-fake">
+              {inputHot ? "🎮 你的创意将出现在游戏中…" : "说点什么…"}
+            </div>
+          )}
+          <div className="input-send" onClick={isViewer ? viewerSendComment : undefined}
+            style={isViewer ? { cursor: 'pointer' } : undefined}>➤</div>
         </div>
       </div>
     </div>
