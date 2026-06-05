@@ -1,0 +1,8 @@
+[phases.setup]
+nixPkgs = ["python39", "python39Packages.pip"]
+
+[phases.install]
+cmds = ["npm install", "pip install anthropic websockets python-dotenv fastapi uvicorn pydantic aiohttp"]
+
+[start]
+cmd = "node start-server.js"
