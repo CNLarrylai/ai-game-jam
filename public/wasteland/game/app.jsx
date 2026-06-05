@@ -508,13 +508,78 @@ function App(props) {
     const onViewerLeave = (msg) => {
       setViewers(msg.viewerCount || viewers);
     };
+    // Host receives AI-generated events from bridge
+    const onGameEvent = (msg) => {
+      const ev = msg.data || {};
+      console.log('[HOST] AI game_event:', ev.final_category, ev.narrative?.substring(0, 60));
+      // Show banner
+      showBanner({ big: true, icon: '✨', html: ev.narrative ? ev.narrative.substring(0, 80) : 'AI 生成了新内容' });
+      // If has options, show as decision for host to choose
+      if (ev.options && ev.options.length) {
+        setTimeout(() => {
+          openDecision({
+            id: 'ai_' + Date.now(), icon: '🎮', title: ev.event_title || 'AI 生成事件',
+            desc: ev.narrative || '',
+            options: ev.options.map(o => typeof o === 'string' ? { id: o, label: o, icon: '▸' } : { id: o.id || o.label, label: o.label || o.text, icon: o.icon || '▸', sub: o.sub || '' }),
+            onChoose: (opt) => {
+              // Send choice back to bridge
+              if (window.WsSync && WsSync.connected) {
+                WsSync.send({ type: 'host_action', action: 'choice', data: { choice: opt.label || opt.id } });
+              }
+              return '你选择了「' + (opt.label || opt.id) + '」，等待结果...';
+            },
+            onContinue: () => closeDecision(),
+          });
+        }, 1500);
+      } else if (ev.narrative) {
+        // No options, just show story
+        setStory({ illus: '✨', text: ev.narrative, source: '', onContinue: () => setStory(null) });
+      }
+      // Apply stat changes if any
+      if (ev.stat_changes) {
+        const delta = {};
+        if (ev.stat_changes.hp) delta.hp = ev.stat_changes.hp;
+        if (ev.stat_changes.hunger) delta.hunger = ev.stat_changes.hunger;
+        if (ev.stat_changes.sanity) delta.sanity = ev.stat_changes.sanity;
+        if (ev.stat_changes.thirst) delta.supply = ev.stat_changes.thirst;
+        if (Object.keys(delta).length) applyStats(delta);
+      }
+      // Add items
+      if (ev.inventory_change?.add_items) {
+        ev.inventory_change.add_items.forEach(item => {
+          toast({ icon: '🎒', name: '获得: ' + item });
+        });
+      }
+    };
+    const onBanner = (msg) => {
+      if (msg.data) showBanner({ ...msg.data, id: Date.now() });
+    };
+    const onChoiceResult = (msg) => {
+      const r = msg.data || {};
+      if (r.narrative) {
+        closeDecision();
+        setStory({ illus: '📖', text: r.narrative, source: '', onContinue: () => setStory(null) });
+      }
+      if (r.stat_changes) {
+        const delta = {};
+        Object.entries(r.stat_changes).forEach(([k, v]) => { if (v) delta[k] = v; });
+        if (Object.keys(delta).length) applyStats(delta);
+      }
+    };
+
     WsSync.on('viewer_comment', onViewerComment);
     WsSync.on('viewer_join', onViewerJoin);
     WsSync.on('viewer_leave', onViewerLeave);
+    WsSync.on('game_event', onGameEvent);
+    WsSync.on('banner', onBanner);
+    WsSync.on('choice_result', onChoiceResult);
     return () => {
       WsSync.off('viewer_comment', onViewerComment);
       WsSync.off('viewer_join', onViewerJoin);
       WsSync.off('viewer_leave', onViewerLeave);
+      WsSync.off('game_event', onGameEvent);
+      WsSync.off('banner', onBanner);
+      WsSync.off('choice_result', onChoiceResult);
     };
   }, []);
 

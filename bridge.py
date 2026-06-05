@@ -303,27 +303,24 @@ def on_state_sync(msg):
 async def generation_loop():
     global comment_buffer, pending_event
 
-    # Open first window
+    COOLDOWN = 8  # seconds between generations
     pool.open_window()
 
     while True:
-        await asyncio.sleep(WINDOW_SECONDS)
+        await asyncio.sleep(3)  # check every 3s instead of waiting 30s
 
-        # Select FIRST, then open new window (open_window clears the pool!)
+        if pool.total_size() == 0:
+            continue  # nothing to process
+
         phase_map = {"home": "home_event", "organize": "resource_manage", "destination": "choose_map", "explore": "explore"}
         phase = phase_map.get(state.phase, "explore")
-        print(f"🧠 [PRE-SELECT] pool={pool.total_size()} phase={phase} queues={[(k,len(v)) for k,v in pool._queues.items()]} daily={pool.daily_counts}")
         best = pool.select_adoptions(phase=phase)
         total = len(comment_buffer)
         comment_buffer = []
-
-        # NOW open new window for next cycle (clears old comments)
         pool.open_window()
 
         if not best:
-            print(f"🧠 本轮 {total} 条评论，无有效创意 (pool_after={pool.total_size()})")
-            await send_ws({"type": "comment", "name": "🧠 AI Engine", "avatar": "🧠", "text": f"📊 {total} 条评论，无有效创意"})
-            continue
+            continue  # no valid comments, stay quiet
 
         pick = best[0]
         print(f"\n🧠 ===== Phase 1 → Phase 2 =====")
