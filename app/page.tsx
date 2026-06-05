@@ -34,30 +34,47 @@ export default function Home() {
 
       {/* —— 成品游戏：直播间形态，即点即玩 —— */}
       <SectionLabel>🎮 成品游戏 · 即点即玩</SectionLabel>
-      <a
-        href="/games/worlds-live/index.html"
-        target="_blank"
-        rel="noopener noreferrer"
-        className="group relative flex flex-col overflow-hidden rounded-2xl border border-ember/30 bg-gradient-to-br from-ember/[0.12] to-white/[0.02] p-7 transition hover:border-ember/70 hover:from-ember/20"
-      >
-        <span className="absolute right-5 top-5 rounded-full bg-ember/90 px-3 py-1 text-xs font-bold text-ink">
-          可玩 · 直播间
-        </span>
-        <span className="text-5xl">🛸</span>
-        <h3 className="mt-4 text-2xl font-bold text-parchment">WORLDS LIVE · 世界大战</h3>
-        <p className="mt-2 max-w-xl text-sm leading-relaxed text-parchment/65">
-          《世界大战》改编 · 维多利亚末日生存直播。火星人入侵，你只是个普通人——打不赢，只能躲。
-          带妻逃亡、潜行避敌、撑过七天，等火星人被地球细菌击倒。观众的弹幕会写进你的命运。
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {["开场演出", "生存抉择", "隐蔽潜行", "同伴对白", "观众弹幕"].map((t) => (
-            <span key={t} className="rounded-md border border-white/15 px-2.5 py-1 text-xs text-parchment/70">
-              {t}
+      <div className="grid gap-5 sm:grid-cols-2">
+        {[
+          {
+            href: "/games/worlds-live/index.html",
+            emoji: "🛸",
+            title: "WORLDS LIVE · 世界大战",
+            desc: "《世界大战》改编 · 维多利亚末日。火星人入侵，你只是个普通人——打不赢，只能躲。带妻逃亡、潜行避敌、撑过七天，等火星人被地球细菌击倒。",
+            tags: ["开场演出", "隐蔽潜行", "同伴对白", "观众弹幕"],
+          },
+          {
+            href: "/games/last-man/index.html",
+            emoji: "🕯️",
+            title: "最后的人 · 末日生存",
+            desc: "玛丽·雪莱《最后的人》改编 · 瘟疫末世。文明在瘟疫中崩塌，你带着挚爱与最后的同伴从温莎一路南逃——每失去一人，离“最后的人”就更近一步。",
+            tags: ["旅程生存", "4 维资源", "幸存者羁绊", "观众生成"],
+          },
+        ].map((g) => (
+          <a
+            key={g.href}
+            href={g.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group relative flex flex-col overflow-hidden rounded-2xl border border-ember/30 bg-gradient-to-br from-ember/[0.12] to-white/[0.02] p-6 transition hover:border-ember/70 hover:from-ember/20"
+          >
+            <span className="absolute right-4 top-4 rounded-full bg-ember/90 px-2.5 py-1 text-xs font-bold text-ink">
+              可玩 · 直播间
             </span>
-          ))}
-        </div>
-        <span className="mt-5 text-sm font-semibold text-ember">进入直播间 →</span>
-      </a>
+            <span className="text-5xl">{g.emoji}</span>
+            <h3 className="mt-4 text-xl font-bold text-parchment">{g.title}</h3>
+            <p className="mt-2 flex-1 text-sm leading-relaxed text-parchment/65">{g.desc}</p>
+            <div className="mt-4 flex flex-wrap gap-2">
+              {g.tags.map((t) => (
+                <span key={t} className="rounded-md border border-white/15 px-2.5 py-1 text-xs text-parchment/70">
+                  {t}
+                </span>
+              ))}
+            </div>
+            <span className="mt-5 text-sm font-semibold text-ember">进入直播间 →</span>
+          </a>
+        ))}
+      </div>
 
       {/* —— 文字冒险剧本：AI 主持人实时叙事 —— */}
       <SectionLabel>📜 文字冒险剧本 · AI 主持人实时编织</SectionLabel>
