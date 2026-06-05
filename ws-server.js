@@ -3,7 +3,43 @@ const http = require('http');
 
 const PORT = process.env.PORT || 3002;
 const server = http.createServer((req, res) => {
-  // Health check endpoint
+  // CORS headers
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  if (req.method === 'OPTIONS') { res.writeHead(200); res.end(); return; }
+
+  // POST /api/comment — HTTP endpoint for triggering AI generation
+  if (req.method === 'POST' && req.url === '/api/comment') {
+    let body = '';
+    req.on('data', c => body += c);
+    req.on('end', () => {
+      try {
+        const data = JSON.parse(body);
+        const text = data.text || '';
+        const name = data.name || '外部调用';
+        const avatar = data.avatar || '🔌';
+        if (!text) { res.writeHead(400, {'Content-Type':'application/json'}); res.end(JSON.stringify({error:'text is required'})); return; }
+        // Broadcast as comment (same as WebSocket comment)
+        if (host && host.readyState === 1) {
+          host.send(JSON.stringify({ type: 'viewer_comment', uid: 'api', name, avatar, text }));
+        }
+        broadcast({ type: 'new_comment', uid: 'api', name, avatar, text }, 'all');
+        res.writeHead(200, {'Content-Type':'application/json'});
+        res.end(JSON.stringify({ok: true, message: 'Comment sent, AI will process in next cycle'}));
+      } catch(e) { res.writeHead(400, {'Content-Type':'application/json'}); res.end(JSON.stringify({error: e.message})); }
+    });
+    return;
+  }
+
+  // GET /api/state — get current game state
+  if (req.method === 'GET' && req.url === '/api/state') {
+    res.writeHead(200, {'Content-Type':'application/json'});
+    res.end(JSON.stringify({ ok: true, state: latestState, viewers: viewers.size, hostConnected: !!(host && host.readyState === 1) }));
+    return;
+  }
+
+  // Health check
   res.writeHead(200, { 'Content-Type': 'text/plain' });
   res.end('WASTELAND LIVE WS Server OK');
 });
