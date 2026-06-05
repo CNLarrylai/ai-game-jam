@@ -17,9 +17,10 @@ description: >-
 
 ## 输入 / 输出
 - **输入**:一本小说的纯文本(常见来源 Project Gutenberg `.txt`)。
-- **输出**:`world_bible.json`(全局底座)+ `map.json`(决策卡)+ `interactions.json`(直播互动层)+ `characters.json`(角色配方)+ 可选 `game-*.html`(可玩前端)。
+- **输出(标准交付物,缺一不可)**:`world_bible.json`(全局底座)+ `intro.json`(**开场代入,必出**)+ `map.json`(决策卡)+ `interactions.json`(直播互动层)+ `characters.json`(角色配方)+ `dialogue.json`(**开局后人物对话,必出**)+ 可选 `game-*.html`(可玩前端)。
+- **代入感双件套(本技能的硬性标准)**:任何小说转游戏都**必须**产出 ① `intro.json` 开场铺垫(`references/INTRO_SPEC.md`)② `dialogue.json` 同伴对话(`references/DIALOGUE_SPEC.md`)。二者都从 `world_bible.json` 派生,是"沉浸感"的两根支柱,不是可选项。
 
-## 七步流程
+## 标准流程(7 步内容核心 + 2 个必出的代入感产物)
 
 > 通用脚本在本技能 `scripts/`(`split.mjs` / `merge.mjs` / `rich-merge.mjs` / `build-gamedata.mjs` / `sim.cjs`);把它们**拷到工作目录**按下表改少量常量即可。详细方法论见 `references/METHODOLOGY.md`。
 
@@ -30,6 +31,10 @@ description: >-
 5. **逐章挖卡**(`references/SPEC.md` 契约 → `out/<章>.json`):**密度加权**——高密度章厚挖 2–4 卡,低密度只取全卷最强少数(张力评分≥3)。并行 fan-out:一章一 agent。
 6. **厚提炼:直播互动层**(`references/SPEC2.md` → 每章 +beats/cast/places/stockpile + 轻量互动点 poll/predict/react/micro_choice/lore)。
 7. **合并 + 校验**(`scripts/merge.mjs` / `rich-merge.mjs`):契约合规、node id 全局唯一、`next` 无悬空;按阅读顺序拼 `map.json` + `interactions.json`。`scripts/sim.cjs` 多策略模拟调平衡(死亡率别 0%/100%)。
+8. **开场 intro(必出)**(`references/INTRO_SPEC.md` → `dist/intro.json`):从 `world_bible` 的 `progression_phases` + `setup_to_preserve` + `cast` 提炼 4–6 拍开场(首拍=灾前常态,末拍=玩法引导)。**只读 world_bible,不另读原文**;step 3 完成后即可生成,不依赖卡点。
+9. **人物对话(必出)**(`references/DIALOGUE_SPEC.md` → `dist/dialogue.json`):从 `cast` 里挑 2–4 个长期同行角色,各产一棵对话树(greeting/ask/idle/**带代价的 skill**),技能必须呼应角色的戏剧功能(累赘=帮你要付代价、虚假希望=浪费补给…)。同 step 8,world_bible 后即可生成。
+
+> 步骤 8/9 是**代入感双件套**,从 world_bible 派生,与逐章卡点平行;换书时同样必出。参考实现:WORLDS LIVE 的 `scenes-intro.jsx` 与 `data.jsx` COMPANIONS。
 
 ## 卡点输出契约(前端只认这个,换书不变)
 ```
