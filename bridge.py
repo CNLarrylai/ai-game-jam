@@ -1,13 +1,20 @@
 """
-bridge.py — 连接 WebSocket 服务 和 comment_engine 的桥梁
+bridge.py v2 — Phase 1 → Phase 2 → 前端 串联层
 
-功能：
-1. 以 WebSocket 客户端连接 ws-server.js（端口 3002）
-2. 监听用户评论，灌入 comment_engine 的 CommentPool
-3. 每 30s 窗口结束时，调用 generator 生成内容
-4. 生成结果推回 ws-server 广播给主播端和所有用户
+数据流:
+  观众评论 → WebSocket → Phase 1 (classifier + filter + generator)
+  → Phase 2 (phase2_engine: inject/event_choice/action)
+  → WebSocket → 前端渲染
 
-启动: cd ai-game-jam && python3 bridge.py
+职责:
+  1. WebSocket 监听评论和主播操作
+  2. 维护 GameState（唯一状态源）
+  3. 维护 history（每次操作后追加 HistoryEntry）
+  4. 调用 Phase 1 生成 → Phase 2 注入 → 推前端
+  5. 字段映射: spirit↔sanity, health↔hp
+
+启动: python3 bridge.py
+依赖: ws-server.js (:3002) + uvicorn phase2_engine:app (:8000)
 """
 
 import os
@@ -15,26 +22,26 @@ import sys
 import json
 import asyncio
 import time
+import aiohttp
 
-# 设置环境变量
 from dotenv import load_dotenv
 load_dotenv('.env.local')
 load_dotenv('.env')
 
-# 把 comment_engine 加入 path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'comment_engine'))
 
 import websockets
 from classifier import classify
 from comment_pool import CommentPool
 from generator import generate
-from game_state import GameState, EventRecord
-from narrative_safety import check_narrative_safety, clean_orphan_hooks
+from game_state import GameState, Item, Companion, CompanionSkill, EventRecord, NarrativeHook
+from narrative_safety import check_narrative_safety, clean_orphan_hooks, compress_history
 
 # ============================================================
 # 配置
 # ============================================================
 WS_URL = "ws://localhost:3002"
+PHASE2_URL = "http://localhost:8000"
 WINDOW_SECONDS = 30
 
 # ============================================================
@@ -43,22 +50,115 @@ WINDOW_SECONDS = 30
 pool = CommentPool(window_seconds=WINDOW_SECONDS)
 state = GameState()
 ws_connection = None
-comment_buffer = []  # 原始评论缓存（给前端展示用）
+comment_buffer = []
+history = []  # List[dict] — HistoryEntry for Phase 2
+turn_counter = 0
+pending_event = None  # 当前待选择的事件
 
+
+# ============================================================
+# 字段映射: cheney (spirit/health) ↔ charlotte (sanity/hp)
+# ============================================================
+
+def state_to_phase2():
+    """GameState → Phase 2 入参格式"""
+    return {
+        "current_status": {
+            "hp": state.health,
+            "hunger": state.hunger,
+            "thirst": state.thirst,
+            "sanity": state.spirit,
+        },
+        "companions_list": [
+            {
+                "name": c.name if isinstance(c, Companion) else str(c),
+                "personality": c.skill if isinstance(c, Companion) else "",
+                "loyalty": 60,
+            }
+            for c in state.companions
+        ],
+        "inventory": [
+            i.name if isinstance(i, Item) else str(i)
+            for i in state.inventory
+        ],
+        "history": history[-20:],
+    }
+
+
+def apply_phase2_response(resp: dict):
+    """Phase2Response → 更新 GameState + 追加 history"""
+    global turn_counter
+
+    sc = resp.get("stat_changes", {})
+    state.spirit = max(0, min(100, state.spirit + sc.get("sanity", 0)))
+    state.health = max(0, min(100, state.health + sc.get("hp", 0)))
+    state.hunger = max(0, min(100, state.hunger + sc.get("hunger", 0)))
+    state.thirst = max(0, min(100, state.thirst + sc.get("thirst", 0)))
+
+    inv_change = resp.get("inventory_change", {})
+    for item_name in inv_change.get("remove_items", []):
+        state.remove_item(item_name)
+    for item_name in inv_change.get("add_items", []):
+        state.add_item(Item(
+            name=item_name, icon="📦", category="special",
+            description="", durability=3,
+        ))
+
+    turn_counter += 1
+    delta_parts = []
+    for k, v in sc.items():
+        if v: delta_parts.append(f"{k}{v:+d}")
+    history.append({
+        "turn": turn_counter,
+        "action": resp.get("narrative", "")[:40],
+        "narrative": resp.get("narrative", ""),
+        "items_gained": inv_change.get("add_items", []),
+        "items_lost": inv_change.get("remove_items", []),
+        "stat_delta": " ".join(delta_parts) or None,
+    })
+    if len(history) > 20:
+        history[:] = history[-20:]
+
+    state._check_game_over()
+
+
+# ============================================================
+# Phase 2 HTTP 调用
+# ============================================================
+
+async def call_phase2_inject(generated: dict) -> dict:
+    payload = {"upstream_payload": generated, **state_to_phase2()}
+    async with aiohttp.ClientSession() as session:
+        async with session.post(f"{PHASE2_URL}/phase2_inject", json=payload) as resp:
+            return await resp.json()
+
+
+async def call_phase2_event_choice(event_narrative: str, choice: str) -> dict:
+    payload = {"event_narrative": event_narrative, "player_choice": choice, **state_to_phase2()}
+    async with aiohttp.ClientSession() as session:
+        async with session.post(f"{PHASE2_URL}/phase2_event_choice", json=payload) as resp:
+            return await resp.json()
+
+
+async def call_phase2_action(player_input: str) -> dict:
+    payload = {"player_input": player_input, **state_to_phase2()}
+    async with aiohttp.ClientSession() as session:
+        async with session.post(f"{PHASE2_URL}/phase2_action", json=payload) as resp:
+            return await resp.json()
+
+
+# ============================================================
+# WebSocket
+# ============================================================
 
 async def connect():
-    """连接 WebSocket 服务器，注册为 engine 角色"""
     global ws_connection
     while True:
         try:
             ws_connection = await websockets.connect(WS_URL)
-            # 注册为特殊角色 "engine"
             await ws_connection.send(json.dumps({
-                "type": "register",
-                "role": "viewer",  # 复用 viewer 身份
-                "uid": "engine_001",
-                "name": "🧠 AI Engine",
-                "avatar": "🧠"
+                "type": "register", "role": "viewer",
+                "uid": "engine_001", "name": "🧠 AI Engine", "avatar": "🧠"
             }))
             print(f"🧠 [BRIDGE] 已连接 ws-server ({WS_URL})")
             return ws_connection
@@ -67,207 +167,191 @@ async def connect():
             await asyncio.sleep(3)
 
 
+async def send_ws(msg):
+    global ws_connection
+    if ws_connection:
+        try:
+            await ws_connection.send(json.dumps(msg, ensure_ascii=False))
+        except:
+            pass
+
+
+# ============================================================
+# 消息处理
+# ============================================================
+
 async def listen(ws):
-    """监听 WebSocket 消息"""
     async for raw in ws:
         try:
             msg = json.loads(raw)
         except:
             continue
-
         if msg["type"] == "new_comment":
             on_comment(msg)
         elif msg["type"] == "host_action":
-            on_host_action(msg)
+            await on_host_action(msg)
         elif msg["type"] == "state_sync":
             on_state_sync(msg)
 
 
 def on_comment(msg):
-    """收到用户评论 → 分类 → 入池"""
     text = msg.get("text", "")
     username = msg.get("name", "匿名")
-    uid = msg.get("uid", "")
-
     if not text.strip():
         return
-
-    # 分类
     result = classify(text, phase=state.phase)
     if not pool.is_window_open():
         pool.open_window()
     pool.add(username, text, result)
-    comment_buffer.append({
-        "uid": uid,
-        "username": username,
-        "text": text,
-        "category": result.category,
-        "confidence": result.confidence,
-        "time": time.time()
-    })
-
-    print(f"💬 [{result.category}] {username}: {text} (conf={result.confidence:.2f})")
+    comment_buffer.append({"username": username, "text": text, "category": result.category, "confidence": result.confidence})
+    print(f"💬 [{result.category}] {username}: {text}")
 
 
-def on_host_action(msg):
-    """主播操作 → 更新游戏状态"""
+async def on_host_action(msg):
+    global pending_event
     action = msg.get("action", "")
     data = msg.get("data", {})
 
     if action == "scene_change":
         state.phase = data.get("scene", state.phase)
-        print(f"🎮 [HOST] 场景切换: {state.phase}")
-    elif action == "stat_change":
-        for k, v in data.get("delta", {}).items():
-            if hasattr(state, k):
-                setattr(state, k, max(0, min(100, getattr(state, k, 50) + v)))
+
+    elif action == "choice":
+        choice_text = data.get("choice", "")
+        if pending_event:
+            print(f"🎮 主播选择: \"{choice_text}\"")
+            try:
+                # 对 CHARACTER 类型，传完整角色信息而非仅 narration
+                event_info = pending_event.get("narration", "")
+                generated = pending_event.get("generated", {})
+                if generated.get("type") == "CHARACTER":
+                    event_info = json.dumps(generated, ensure_ascii=False)
+
+                resp = await call_phase2_event_choice(event_info, choice_text)
+                apply_phase2_response(resp)
+                await send_ws({"type": "choice_result", "data": resp})
+                print(f"  ✅ {resp.get('narrative', '')[:60]}")
+            except Exception as e:
+                print(f"  ❌ Phase 2 event_choice 失败: {e}")
+            pending_event = None
+
+    elif action == "player_action":
+        player_input = data.get("input", "")
+        if player_input:
+            print(f"🎮 主播操作: \"{player_input}\"")
+            try:
+                resp = await call_phase2_action(player_input)
+                apply_phase2_response(resp)
+                await send_ws({"type": "action_result", "data": resp})
+                print(f"  ✅ {resp.get('narrative', '')[:60]}")
+            except Exception as e:
+                print(f"  ❌ Phase 2 action 失败: {e}")
 
 
 def on_state_sync(msg):
-    """主播端同步完整状态"""
     data = msg.get("data", {})
-    if "day" in data:
-        state.day = data["day"]
+    if "day" in data: state.day = data["day"]
     if "stats" in data:
-        for k, v in data["stats"].items():
-            if hasattr(state, k):
-                setattr(state, k, v)
-    if "scene" in data:
-        state.phase = data["scene"]
+        s = data["stats"]
+        state.spirit = s.get("spirit", s.get("sanity", state.spirit))
+        state.health = s.get("health", s.get("hp", state.health))
+        state.hunger = s.get("hunger", state.hunger)
+        state.thirst = s.get("thirst", state.thirst)
+    if "scene" in data: state.phase = data["scene"]
 
+
+# ============================================================
+# 评论生成循环: Phase 1 → Phase 2 → 前端
+# ============================================================
 
 async def generation_loop():
-    """每 30s 触发一次内容生成"""
-    global comment_buffer
+    global comment_buffer, pending_event
 
     while True:
         await asyncio.sleep(WINDOW_SECONDS)
 
-        # 从池中取最佳评论
         if not pool.is_window_open():
             pool.open_window()
-        # Map host scene names to engine phases; fallback to 'explore' which accepts all categories
-        phase_map = {'home': 'home_event', 'organize': 'resource', 'destination': 'choose_destination', 'explore': 'explore'}
-        phase = phase_map.get(state.phase, 'explore')
+
+        phase_map = {"home": "home_event", "organize": "resource_manage", "destination": "choose_map", "explore": "explore"}
+        phase = phase_map.get(state.phase, "explore")
         best = pool.select_adoptions(phase=phase)
-
-        if not best:
-            print(f"🧠 [GEN] 本轮无有效评论，跳过")
-            # 广播倒计时重置
-            await send_ws({
-                "type": "comment",
-                "name": "🧠 AI Engine",
-                "avatar": "🧠",
-                "text": f"📊 本轮收集 {len(comment_buffer)} 条评论，无有效创意，等待下一轮..."
-            })
-            comment_buffer = []
-            continue
-
-        pick = best[0]
         total = len(comment_buffer)
         comment_buffer = []
 
-        print(f"\n🧠 [GEN] ===== 开始生成 =====")
-        print(f"   选中: {pick.username} 「{pick.raw_text}」 ({pick.classify_result.category})")
-        print(f"   本轮评论: {total} 条")
+        if not best:
+            print(f"🧠 本轮 {total} 条评论，无有效创意")
+            await send_ws({"type": "comment", "name": "🧠 AI Engine", "avatar": "🧠", "text": f"📊 {total} 条评论，无有效创意"})
+            continue
 
-        # 广播"正在生成"
-        await send_ws({
-            "type": "comment",
-            "name": "🧠 AI Engine",
-            "avatar": "🧠",
-            "text": f"✨ 本轮采集完成！共 {total} 条评论 · 选中 @{pick.username} 的创意 · 正在生成..."
-        })
+        pick = best[0]
+        print(f"\n🧠 ===== Phase 1 → Phase 2 =====")
+        print(f"  @{pick.username}: 「{pick.raw_text}」 ({pick.classify_result.category})")
 
-        # 调用 Claude API 生成
+        await send_ws({"type": "comment", "name": "🧠 AI Engine", "avatar": "🧠", "text": f"✨ {total}条评论 · @{pick.username} · 生成中..."})
+
+        # ── Phase 1: 生成 ──
         try:
-            context = state.context_string()
-            result = generate(
+            generated = generate(
                 category=pick.classify_result.category,
                 comment=pick.raw_text,
                 username=pick.username,
-                context=context,
+                context=state.context_string(),
             )
-
-            if result:
-                # 安全检查
-                safety = check_narrative_safety(result, state, pick.classify_result.category)
-                if not safety.passed:
-                    print(f"   ⚠️ 安全检查未通过 (score={safety.score}): {safety.issues}")
-                    await send_ws({
-                        "type": "comment",
-                        "name": "🧠 AI Engine",
-                        "avatar": "🧠",
-                        "text": f"⚠️ 生成内容未通过安全检查，使用兜底事件"
-                    })
-                    continue
-
-                print(f"   ✅ 生成成功 (safety_score={safety.score})")
-                print(f"   类型: {result.get('type', 'unknown')}")
-
-                # 广播采纳通知（自见 → 全场）
-                await send_ws({
-                    "type": "comment_adopted",
-                    "authorUid": pick.username,  # 简化：用 username 匹配
-                    "data": {
-                        "text": f"你的创意被采纳了！",
-                        "detail": f"「{pick.raw_text}」正在融入游戏世界...",
-                        "banner": {
-                            "big": True,
-                            "icon": "✨",
-                            "html": f"<b>@{pick.username}</b> 的创意生效了！「{result.get('title', pick.raw_text)}」"
-                        },
-                        "delay": 3000
-                    }
-                })
-
-                # 广播生成结果给主播端渲染
-                await send_ws({
-                    "type": "host_action",
-                    "action": "ai_generated",
-                    "data": {
-                        "source_user": pick.username,
-                        "source_text": pick.raw_text,
-                        "category": pick.classify_result.category,
-                        "generated": result,
-                    }
-                })
-
+            if not generated:
+                continue
+            safety = check_narrative_safety(generated, state, pick.classify_result.category)
+            if not safety.passed:
+                print(f"  ⚠️ 安全检查: {safety.issues}")
+            generated["type"] = pick.classify_result.category
+            print(f"  ✅ Phase 1: {generated.get('event_title') or generated.get('name', '?')}")
         except Exception as e:
-            print(f"   ❌ 生成失败: {e}")
+            print(f"  ❌ Phase 1 失败: {e}")
+            continue
+
+        # ── Phase 2: 注入 ──
+        try:
+            resp = await call_phase2_inject(generated)
+            print(f"  ✅ Phase 2: {resp.get('final_category')}")
+
+            # 采纳通知
             await send_ws({
-                "type": "comment",
-                "name": "🧠 AI Engine",
-                "avatar": "🧠",
-                "text": f"⚠️ AI 生成遇到问题，使用兜底剧情"
+                "type": "comment_adopted", "authorUid": pick.username,
+                "data": {"banner": {"big": True, "icon": "✨", "html": f"<b>@{pick.username}</b> 的创意生效了！「{generated.get('event_title') or generated.get('name', '')}」"}}
             })
 
+            final_cat = resp.get("final_category", "")
+            if final_cat in ("EVENT", "CHARACTER"):
+                pending_event = {"narration": resp.get("narrative", ""), "options": resp.get("options", []), "generated": generated}
+                await send_ws({"type": "game_event", "data": resp})
+                print(f"  📺 等待主播选择...")
+            elif final_cat == "ITEM":
+                apply_phase2_response(resp)
+                await send_ws({"type": "game_event", "data": resp})
+            elif final_cat == "LOCATION":
+                await send_ws({"type": "game_event", "data": resp})
+            else:
+                apply_phase2_response(resp)
+                await send_ws({"type": "game_event", "data": resp})
 
-async def send_ws(msg):
-    """发送消息到 ws-server"""
-    global ws_connection
-    if ws_connection and ws_connection.state.name == 'OPEN':
-        try:
-            await ws_connection.send(json.dumps(msg))
-        except:
-            pass
+        except Exception as e:
+            print(f"  ❌ Phase 2 失败: {e}，降级推送 Phase 1 结果")
+            await send_ws({"type": "host_action", "action": "ai_generated", "data": {"category": pick.classify_result.category, "generated": generated}})
 
+
+# ============================================================
+# 入口
+# ============================================================
 
 async def main():
     print("🧠 ============================================")
-    print("🧠  WASTELAND LIVE — AI Bridge")
-    print(f"🧠  评论窗口: {WINDOW_SECONDS}s")
-    print(f"🧠  API Key: {os.environ.get('ANTHROPIC_API_KEY', 'NOT SET')[:20]}...")
+    print("🧠  WASTELAND LIVE — Bridge v2")
+    print(f"🧠  Phase 1: comment_engine (本地)")
+    print(f"🧠  Phase 2: {PHASE2_URL}")
+    print(f"🧠  WebSocket: {WS_URL}")
+    print(f"🧠  窗口: {WINDOW_SECONDS}s")
     print("🧠 ============================================\n")
-
     ws = await connect()
-
-    # 并行运行：监听消息 + 30s 生成循环
-    await asyncio.gather(
-        listen(ws),
-        generation_loop(),
-    )
-
+    await asyncio.gather(listen(ws), generation_loop())
 
 if __name__ == "__main__":
     asyncio.run(main())
