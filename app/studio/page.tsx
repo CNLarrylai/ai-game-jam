@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Link from "next/link";
 
 type Summary = {
@@ -17,6 +17,28 @@ export default function Studio() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<{ playUrl: string; summary: Summary } | null>(null);
+  const [fileName, setFileName] = useState<string | null>(null);
+  const [dragOver, setDragOver] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  // 读 txt 文件：优先 UTF-8，乱码则回退 GBK（中文小说常见）
+  async function readFile(file: File) {
+    setError(null);
+    if (file.size > 5 * 1024 * 1024) { setError("文件太大（>5MB），请截取一段。"); return; }
+    const buf = await file.arrayBuffer();
+    let text = new TextDecoder("utf-8").decode(buf);
+    if (text.includes("�")) {
+      try { text = new TextDecoder("gbk").decode(buf); } catch { /* 浏览器不支持 gbk 就保留 utf-8 */ }
+    }
+    setNovel(text.trim());
+    setFileName(file.name);
+  }
+
+  function onDrop(e: React.DragEvent) {
+    e.preventDefault(); setDragOver(false);
+    const f = e.dataTransfer.files?.[0];
+    if (f) readFile(f);
+  }
 
   async function generate() {
     const text = novel.trim();
@@ -47,16 +69,41 @@ export default function Studio() {
         填进像素直播间生存游戏壳——产出的是<span className="text-ember">可玩的像素游戏</span>，不是纯文字。
       </p>
 
-      <textarea
-        value={novel}
-        onChange={(e) => setNovel(e.target.value)}
-        rows={10}
-        placeholder="把小说原文粘贴到这里（≥150 字，末世/生存题材效果最佳）…"
-        className="mt-6 w-full resize-y rounded-xl border border-white/15 bg-black/30 px-4 py-3 text-sm leading-relaxed text-parchment placeholder:text-parchment/30 focus:border-ember/60 focus:outline-none"
+      {/* 上传 / 拖拽 / 粘贴 三合一 */}
+      <input
+        ref={fileRef}
+        type="file"
+        accept=".txt,text/plain"
+        className="hidden"
+        onChange={(e) => { const f = e.target.files?.[0]; if (f) readFile(f); }}
       />
-      <div className="mt-2 flex items-center justify-between text-xs text-parchment/40">
-        <button onClick={() => setNovel(SAMPLE)} className="hover:text-ember">↳ 填入示例（丧尸末世）</button>
-        <span>{novel.trim().length} 字</span>
+      <div
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={onDrop}
+        className={"relative mt-6 rounded-xl border transition " + (dragOver ? "border-ember bg-ember/10" : "border-white/15")}
+      >
+        <textarea
+          value={novel}
+          onChange={(e) => { setNovel(e.target.value); setFileName(null); }}
+          rows={10}
+          placeholder="把小说原文粘贴到这里，或把 .txt 文件拖进来 / 点下方按钮上传（≥150 字，末世/生存题材最佳）…"
+          className="w-full resize-y rounded-xl bg-black/30 px-4 py-3 text-sm leading-relaxed text-parchment placeholder:text-parchment/30 focus:outline-none"
+        />
+        {dragOver && (
+          <div className="pointer-events-none absolute inset-0 flex items-center justify-center rounded-xl bg-ink/70 text-sm font-medium text-ember">
+            松开以载入 txt 文件
+          </div>
+        )}
+      </div>
+      <div className="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-parchment/40">
+        <div className="flex items-center gap-3">
+          <button onClick={() => fileRef.current?.click()} className="rounded-md border border-white/15 px-2.5 py-1 text-parchment/70 hover:border-ember/50 hover:text-ember">
+            📄 上传 .txt 文件
+          </button>
+          <button onClick={() => { setNovel(SAMPLE); setFileName(null); }} className="hover:text-ember">↳ 填入示例（丧尸末世）</button>
+        </div>
+        <span>{fileName ? `📎 ${fileName} · ` : ""}{novel.trim().length} 字</span>
       </div>
 
       <button
