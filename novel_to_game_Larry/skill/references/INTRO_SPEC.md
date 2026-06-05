@@ -27,26 +27,28 @@
 ]
 ```
 
-## 标准拍序(4–6 拍,按 world_bible 映射)
+## ⚠️ intro 只交代背景与世界观,**不含玩法引导**
+intro 是"电影开场字幕",纯叙事——交代灾难前的常态、灾难如何降临、世界变成了什么。
+**不要**在 intro 里讲资源/操作/通关条件——那属于「开局对白演出」(`OPENING_SCENE_SPEC.md`,落到当天任务)与游戏内上下文提示。intro 干净,玩家才入戏。
+
+## 标准拍序(4–5 拍,按 world_bible 映射)
 | 拍 | 内容 | 取自 |
 |---|---|---|
 | 1 常态 | 灾前寻常 + 玩家珍视的现状(将被夺走) | `progression_phases[0]` + `setup_to_preserve` |
 | 2 远兆 | 灾难的第一个征兆,尚不切身 | `progression_phases[1]` |
 | 3 爆发 | 本土爆发,秩序崩塌的第一击 | `progression_phases[2]` |
-| 4 你的处境 | 你是谁、为何而逃、能做什么不能做什么 | `genre_mapping` + `cast`(主角/stake) |
-| 5 玩法引导(**必有,放最后**) | 资源轴含义 + 核心机制一句话 + 观众如何影响 + 通关条件 | `resource_logic` + 游戏壳机制 + `progression_phases[末]` |
+| 4 黄昏 | 全面崩塌/大流亡——世界已是另一副模样 | `progression_phases[3]` |
 
-> 中间可按密度增删 1 拍(如灾难有标志性中段),但**首拍=常态、末拍=玩法引导**固定。
+> 首拍=常态固定;末拍=灾难全貌(不是玩法)。中间可按灾难标志性中段增删 1 拍。
 
 ## 设计规则
-1. **4–6 拍**,每拍 1–2 句,简短克制,有代入感。忠于原著,别另编。
-2. 末拍是 onboarding:把"几维资源 / 核心动词 / 观众弹幕怎么改剧情 / 撑到第几天算赢"讲清。
-3. 每拍一个 emoji 作"木刻插画";时间地点 chip 来自 setting。
-4. 玩家可见文字简体中文;`id` 英文 snake_case。
-5. 交互(由游戏壳实现,内容侧不管):空格/回车/点击推进、可跳过、**重开跳过不重看**。
+1. **4–5 拍**,每拍 1–2 句,简短克制,有代入感。忠于原著,别另编。**纯叙事,不带任何 UI/操作说明。**
+2. 每拍一个 emoji 作"木刻插画";时间地点 chip 来自 setting。
+3. 玩家可见文字简体中文;`id` 英文 snake_case。
+4. 交互(由游戏壳实现,内容侧不管):空格/回车/点击推进、可跳过、**重开跳过不重看**。
 
 ## 游戏壳如何消费
-游戏初始 scene = `intro`,读 `intro.json` 逐拍渲染,末拍按钮 onStart → 进入 home。参考 `applications/war_of_the_worlds/frontend/live/game/scenes-intro.jsx`(已把 beats 内联,后续应改为读 intro.json)。
+游戏初始 scene = `intro`,读 `intro.json` 逐拍渲染,末拍 onStart → **进入第 1 天的开局对白演出**(见 OPENING_SCENE_SPEC)→ 再进 home。参考 `applications/war_of_the_worlds/frontend/live/game/scenes-intro.jsx`(已改为读 `data/intro.json`)。
 
 ## 收尾
 写文件前确认 `JSON.parse` 通过。回报:产了几拍、首拍/末拍标题。
