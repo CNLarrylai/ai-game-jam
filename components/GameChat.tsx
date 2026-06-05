@@ -43,8 +43,8 @@ export default function GameChat({
         body: JSON.stringify({
           scenarioId: scenario.id,
           messages: history,
-          // 现场生成的自定义剧本不在剧本库里，需把提示词一并带给后端
-          ...(scenario.id.startsWith("custom-")
+          // 带上提示词，后端优先用它——这样内置/仓库/GitHub/现场生成的剧本走同一条播放路径
+          ...(scenario.systemPrompt
             ? { systemPrompt: scenario.systemPrompt }
             : {}),
         }),
