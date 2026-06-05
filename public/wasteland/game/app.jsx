@@ -84,24 +84,14 @@ function App(props) {
         });
         // Overlays
         // Only update overlays if content CHANGED (avoid re-render on heartbeat)
-        setBanner(prev => {
-          if (!d.banner && !prev) return prev;
-          if (!d.banner) return null;
-          if (prev && prev.html === d.banner.html) return prev;
-          return { ...d.banner, id: uid() };
-        });
+        // banner handled by dedicated 'banner' message, not state_sync
         setStory(prev => {
           if (!d.story && !prev) return prev;
           if (!d.story) return null;
           if (prev && prev.text === d.story.text) return prev;
           return d.story;
         });
-        setPhase(prev => {
-          if (!d.phase && !prev) return prev;
-          if (!d.phase) return null;
-          if (prev && prev.big === d.phase.big) return prev;
-          return { ...d.phase, id: uid() };
-        });
+        // phase handled by dedicated 'phase' message, not state_sync
         if (d.cta) setCta(d.cta);
         else if (d.cta === null) setCta(null);
         // Explore internal state
@@ -495,9 +485,7 @@ function App(props) {
           icon: decision.icon, title: decision.title, desc: decision.desc,
           options: decision.options || decision.opts, votes: decision.votes, result: decision.result
         } : null,
-        banner: banner ? { icon: banner.icon, html: banner.html, big: banner.big } : null,
-        story: story ? { illus: story.illus, text: story.text, source: story.source } : null,
-        phase: phase ? { big: phase.big, sub: phase.sub } : null,
+        // banner/phase have dedicated channels, don't send in state_sync (heartbeat overwrites them)
         cta: cta ? { prompt: cta.prompt } : null,
         flags: flags,
         companions: companions.map(c => ({
@@ -525,9 +513,9 @@ function App(props) {
             icon: d.icon, title: d.title, desc: d.desc,
             options: d.options || d.opts, votes: d.votes, result: d.result
           } : null; })(),
-          banner: banner ? { icon: banner.icon, html: banner.html, big: banner.big } : null,
+          // banner/story/phase NOT in heartbeat — they have dedicated message channels
+          // Sending them here causes heartbeat to overwrite active banners/stories with null
           story: (() => { const s = storyRef.current; return s ? { illus: s.illus, text: s.text, source: s.source } : null; })(),
-          phase: phase ? { big: phase.big, sub: phase.sub } : null,
           cta: cta ? { prompt: cta.prompt } : null,
           flags, companions: companions.map(c => ({
             id: c.id, name: c.name, av: c.av, role: c.role, status: c.status, hp: c.hp, mood: c.mood,
@@ -578,7 +566,8 @@ function App(props) {
       setViewers(msg.viewerCount || viewers);
     };
     // Host receives AI-generated events from bridge
-    const onGameEvent = (msg) => {
+    // Store handler in ref so listener always calls latest version
+    const _onGameEvent = (msg) => {
       const ev = msg.data || {};
       const cat = ev.final_category || ev.type || '';
       const source = ev.source_user || '观众';
@@ -815,17 +804,25 @@ function App(props) {
 
     WsSync.on('viewer_join', onViewerJoin);
     WsSync.on('viewer_leave', onViewerLeave);
+    // Use refs so listeners always call latest handlers (avoid stale closures)
+    window.__gameEventHandler = _onGameEvent;
+    window.__choiceResultHandler = onChoiceResult;
+    window.__bannerHandler = onBanner;
+    const onGameEvent = (msg) => window.__gameEventHandler?.(msg);
+    const onChoiceResultWrap = (msg) => window.__choiceResultHandler?.(msg);
+    const onBannerWrap = (msg) => window.__bannerHandler?.(msg);
+
     WsSync.on('game_event', onGameEvent);
-    WsSync.on('banner', onBanner);
-    WsSync.on('choice_result', onChoiceResult);
+    WsSync.on('banner', onBannerWrap);
+    WsSync.on('choice_result', onChoiceResultWrap);
     WsSync.on('system_msg', onSystemMsg);
     return () => {
       WsSync.off('viewer_comment', onViewerComment);
       WsSync.off('viewer_join', onViewerJoin);
       WsSync.off('viewer_leave', onViewerLeave);
       WsSync.off('game_event', onGameEvent);
-      WsSync.off('banner', onBanner);
-      WsSync.off('choice_result', onChoiceResult);
+      WsSync.off('banner', onBannerWrap);
+      WsSync.off('choice_result', onChoiceResultWrap);
       WsSync.off('system_msg', onSystemMsg);
     };
   }, []);
