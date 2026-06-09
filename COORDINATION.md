@@ -4,7 +4,7 @@
 > 这是跨 agent 的"共享上下文"：谁在干什么、动了哪些文件、当前状态、待决问题。
 > 对话上下文搬不动，但这份文档能让多个 agent 高效互不踩脚。
 
-最后更新：2026-06-05 · by Claude(WORLDS LIVE 终端) · 已搭统一门户合流两条赛道
+最后更新：2026-06-09 · by Claude(WORLDS LIVE 终端) · 小说→游戏在线生成统一为「最后的人」决策卡玩法 + JSON 截断救援，已上线
 
 ---
 
@@ -52,6 +52,14 @@ AI Game Jam = TikTok LIVE 末日生存**直播互动游戏**。三块拼图：
   - **缺口已补**:玩生成的游戏(GM 叙事)原走 `/api/game`→`streamChat`→需 key,本机没 key→500。**改 `lib/ai.ts`**:`streamChat` 无 `ANTHROPIC_API_KEY` 时自动兜底到新增的 `streamAgent`(spawn `claude -p` 流式转发 stdout,与 worker 同款,无需 key);有 key 仍走 API(快·真流式)。亦支持 `AI_PROVIDER=agent` 显式启用。
   - **⚠️ 本终端(WORLDS LIVE)动了 `lib/ai.ts`(原我自己写的脚手架,但属 lib/ territory)**——纯 additive 兜底,不改有 key 时行为,不碰 generation/offlineGeneration/registry。
   - 代价:agent 每回合 spawn 一个 `claude -p`(~15-30s/回合),慢但本机自含可演示;Vercel 上线则必须配 `ANTHROPIC_API_KEY`(云端无 claude CLI)走 API 快路径。
+- 🟢 **小说→游戏在线生成统一为「最后的人」决策卡玩法(2026-06-09, Larry 拍板)**:Larry 反馈生存循环类生成"感受不到小说信息被提炼进去",决定**砍掉多种可生成类型,统一只产「最后的人」同款叙事抉择卡**(`/games/last-man/`)——逐幕剧情 + 道德/生存两难,更忠于原著剧情、保守安全。
+  - `app/api/generate-game/route.ts`:`SPEC` 重写成产 last-man `window.GAME` 结构(meta/res_def 固定 food·health·morale/start_res/worldLines/crew/campaign/nodes 决策卡/codex),5 幕、每幕 2 抉择含 1 risk、`next` 全空走线性 campaign。引擎:有 `ANTHROPIC_API_KEY`→Anthropic API(Haiku, `max_tokens:3600`, 48s abort);否则本机 `claude -p`(opus)。
+  - **JSON 截断救援 `salvage()`**:Haiku 输出常因 `max_tokens` 被截断→数组没闭合→`JSON.parse` 失败。`parseGame` 三级兜底:原文 → 正则修复 → **`salvage`(单遍扫描记录"最后一个完整 value"的位置,区分 key/value 位,丢弃残缺尾部元素并补齐括号)**。即使截断也能救回已完整的卡;`campaign` 再按存在的 node id 过滤。9 个截断场景单测全过。
+  - 前端:`app/studio/page.tsx` 单按钮"生成叙事抉择游戏"(已去掉像素/木刻版本选择器),支持粘贴 + .txt 上传(UTF-8/GBK 兜底)+拖拽;生成结果存 `localStorage('wl_game_'+id)`,`/games/last-man/index.html?id=` 壳同步读取覆盖 `window.GAME`。`app/page.tsx` 门户卡指向 /studio。
+  - **部署**:Vercel git 已断开(避免自动构建旧 main),**CLI-only**:`npx vercel --prod --force --yes` → `npx vercel alias set <新url> ai-game-jam-nine.vercel.app`。稳定地址 **https://ai-game-jam-nine.vercel.app/studio**。
+  - **实测(2026-06-09)**:在线 POST `/api/generate-game` HTTP 200,《末日第四十七天》5 幕(断水危机/口粮困局/感染迹象/逃离之路/营地之门)+同行者苏晴/小满,节点数 5。
+  - **⚠️ 本终端动了 `app/api/generate-game/route.ts` + `app/studio/page.tsx` + `app/page.tsx`(导入网页终端 territory)**——经 Larry 多次授权做统一生成,纯重写这条 last-man 生成链;`pixel-player/`、`woodcut-player/` 已弃用(无害遗留)。
+  - **已知局限**:生成游戏存浏览器 `localStorage`,换设备/换浏览器打不开同一条链接(分享受限)。下一步可做云存储(KV/blob)真正可分享。
 - ⚪ 待办池见下「待决问题」。
 
 ---
